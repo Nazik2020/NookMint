@@ -67,12 +67,6 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Hardware accelerated smooth scrolling & GPU layer promotion */
-header.sticky {
-  transform: translateZ(0);
-  backface-visibility: hidden;
-}
-
 /* Accessible focus ring utility */
 .focus-ring {
   outline: none;
