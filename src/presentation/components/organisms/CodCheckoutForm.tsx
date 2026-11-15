@@ -293,7 +293,7 @@ export const CodCheckoutForm: React.FC = () => {
               <label htmlFor="district" className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
                 <span>Delivery District & City Coverage *</span>
                 <span className="text-[11px] font-normal text-slate-500">
-                  Select your district to see exact delivery fee
+                  Islandwide Cash on Delivery Across 25 Districts
                 </span>
               </label>
               <select
@@ -303,54 +303,23 @@ export const CodCheckoutForm: React.FC = () => {
                 onChange={(e) => handleDistrictChange(e.target.value)}
                 className="w-full px-3.5 py-3 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all font-medium text-slate-900 cursor-pointer"
               >
-                {SRI_LANKA_DISTRICTS.map((d) => {
-                  const info = getDistrictDeliveryInfo(d.district);
-                  return (
-                    <option key={d.district} value={d.district}>
-                      {d.district} ({d.province}) — {isFreeDelivery ? 'FREE Delivery' : `Delivery Fee: Rs. ${info.fee} (${info.estimatedDays})`}
-                    </option>
-                  );
-                })}
+                {SRI_LANKA_DISTRICTS.map((d) => (
+                  <option key={d.district} value={d.district}>
+                    {d.district} ({d.province})
+                  </option>
+                ))}
               </select>
 
-              {/* Dynamic Delivery Fee Info Box */}
-              {hasDropship ? (
-                <div className="mt-2.5 p-3 rounded-2xl bg-amber-50/80 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-                  <div className="flex items-center gap-2 text-amber-950 font-medium">
-                    <MessageCircle className="w-4 h-4 text-amber-700 shrink-0" />
-                    <span>Courier Delivery Fee: <strong className="font-bold">Invoiced on WhatsApp</strong> (Destination: {formData.district})</span>
-                  </div>
-                  <span className="text-[10px] font-bold text-amber-800 bg-white px-2 py-0.5 rounded border border-amber-200 shrink-0">
-                    Pay Upon Delivery
-                  </span>
+              {/* Dynamic Delivery Fee Info Box: Always Invoiced on WhatsApp */}
+              <div className="mt-2.5 p-3 rounded-2xl bg-amber-50/80 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-2 text-amber-950 font-medium">
+                  <MessageCircle className="w-4 h-4 text-amber-700 shrink-0" />
+                  <span>Courier Delivery Fee: <strong className="font-bold">Invoiced on WhatsApp</strong> (Destination: {formData.district})</span>
                 </div>
-              ) : (
-                <div className="mt-2.5 p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-                  <div className="flex items-center gap-2">
-                    <Truck className="w-4 h-4 text-[#064E3B] shrink-0" />
-                    <span className="text-slate-700">
-                      Doorstep Courier to <strong className="text-slate-900 font-bold">{formData.district}</strong>:
-                    </span>
-                    {isFreeDelivery ? (
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-black text-[10px] uppercase">
-                        FREE DELIVERY APPLIED
-                      </span>
-                    ) : (
-                      <span className="font-black text-[#064E3B] font-mono text-sm">
-                        {formatLKR(baseShippingFee)}
-                      </span>
-                    )}
-                    {currentDistrictInfo.groupName && (
-                      <span className="hidden sm:inline text-[10px] px-2 py-0.5 rounded bg-white text-slate-600 font-bold border border-emerald-200">
-                        {currentDistrictInfo.groupName}
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-[11px] text-emerald-800 font-bold flex items-center gap-1">
-                    <span>⚡</span> {currentDistrictInfo.estimatedDays || '1-3 Business Days'} Doorstep Courier
-                  </span>
-                </div>
-              )}
+                <span className="text-[10px] font-bold text-amber-800 bg-white px-2 py-0.5 rounded border border-amber-200 shrink-0 self-start sm:self-auto">
+                  Pay Upon Delivery
+                </span>
+              </div>
             </div>
 
             <div>
@@ -491,25 +460,10 @@ export const CodCheckoutForm: React.FC = () => {
               <span className="font-bold text-slate-900">{formatLKR(summary.subtotal)}</span>
             </div>
 
-            <div className="flex justify-between text-slate-600 font-medium">
-              <span className="flex items-center gap-1">
-                <span>Courier to {formData.district}:</span>
-                {!hasDropship && isFreeDelivery && (
-                  <span className="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
-                    FREE
-                  </span>
-                )}
-              </span>
-              <span>
-                {hasDropship ? (
-                  <span className="font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-[11px]">
-                    Invoiced on WhatsApp
-                  </span>
-                ) : actualShippingFee === 0 ? (
-                  <span className="font-bold text-emerald-700">FREE</span>
-                ) : (
-                  <span className="font-bold text-slate-900">{formatLKR(actualShippingFee)}</span>
-                )}
+            <div className="flex justify-between text-slate-600 font-medium items-center">
+              <span>Courier to {formData.district}:</span>
+              <span className="font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-[11px]">
+                Invoiced on WhatsApp
               </span>
             </div>
 

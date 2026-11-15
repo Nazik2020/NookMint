@@ -646,42 +646,22 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
                     <span className="font-semibold text-slate-900">{formatLKR(itemTotal)}</span>
                   </div>
 
-                  {isDropship ? (
-                    <>
-                      <div className="flex justify-between items-center text-slate-600">
-                        <span>Courier Delivery:</span>
-                        <span className="font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-[11px]">
-                          Invoiced via WhatsApp
-                        </span>
-                      </div>
-                      <div className="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200/80 text-[11px] text-amber-900 leading-relaxed">
-                        <strong>💡 Official Invoice Notice:</strong> Only product price is charged here ({formatLKR(itemTotal)}). Courier delivery fee based on your destination will be calculated and provided on your official WhatsApp invoice before courier dispatch.
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex justify-between items-center text-slate-600">
-                        <span>Courier Delivery ({selectedDistrict}):</span>
-                        <span className={`font-semibold ${deliveryInfo.isFree ? 'text-emerald-700' : 'text-slate-900'}`}>
-                          {deliveryInfo.text}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center text-[11px] text-emerald-800 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-200">
-                        <span className="flex items-center gap-1 font-bold">
-                          <Truck className="w-3.5 h-3.5 text-emerald-600" />
-                          <span>Estimated Delivery:</span>
-                        </span>
-                        <span className="font-extrabold">{deliveryInfo.eta || '1 - 2 Business Days'}</span>
-                      </div>
-                    </>
-                  )}
+                  <div className="flex justify-between items-center text-slate-600">
+                    <span>Courier Delivery:</span>
+                    <span className="font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-[11px]">
+                      Invoiced via WhatsApp
+                    </span>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200/80 text-[11px] text-amber-900 leading-relaxed">
+                    <strong>💡 Delivery Notice:</strong> Only product price is charged here ({formatLKR(itemTotal)}). Courier delivery fee based on your destination city will be calculated and provided on your official WhatsApp invoice before courier dispatch.
+                  </div>
 
                   <div className="pt-2 border-t border-slate-200 flex justify-between items-baseline font-black">
                     <div>
                       <span className="text-slate-900 text-xs">Total Order Value:</span>
-                      {isDropship && <span className="block text-[10px] text-slate-500 font-medium">Product price only</span>}
+                      <span className="block text-[10px] text-slate-500 font-medium">Product price only</span>
                     </div>
-                    <span className="text-base font-mono text-emerald-800">{formatLKR(totalPayable)}</span>
+                    <span className="text-base font-mono text-emerald-800">{formatLKR(itemTotal)}</span>
                   </div>
                 </div>
 
@@ -689,22 +669,22 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
                 <button
                   type="submit"
                   disabled={isSubmittingCod}
-                  className="w-full py-4 px-6 rounded-2xl bg-[#064E3B] hover:bg-[#04382A] active:scale-98 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg shadow-emerald-950/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="w-full px-4 py-3.5 sm:py-4 rounded-2xl bg-[#064E3B] hover:bg-[#04382A] active:scale-[0.99] text-white shadow-lg shadow-emerald-950/20 transition-all flex flex-col items-center justify-center gap-1 cursor-pointer disabled:opacity-50"
                 >
                   {isSubmittingCod ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Submitting Order...</span>
-                    </>
-                  ) : isDropship ? (
-                    <>
-                      <MessageCircle className="w-4 h-4 text-emerald-300 shrink-0" />
-                      <span>Confirm Order (Invoice will be sent to your WhatsApp)</span>
-                    </>
+                    <div className="flex items-center justify-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin text-white" />
+                      <span className="font-extrabold text-xs sm:text-sm uppercase tracking-wider">Submitting Order...</span>
+                    </div>
                   ) : (
                     <>
-                      <Truck className="w-5 h-5 text-emerald-200" />
-                      <span>Confirm Cash on Delivery Order • {formatLKR(totalPayable)}</span>
+                      <div className="flex items-center justify-center gap-2 font-black text-xs sm:text-sm uppercase tracking-wider text-center">
+                        <MessageCircle className="w-4.5 h-4.5 text-emerald-200 shrink-0 fill-emerald-200/20" />
+                        <span>Confirm Cash on Delivery Order</span>
+                      </div>
+                      <span className="text-[10px] sm:text-[11px] text-emerald-100 font-medium normal-case tracking-normal text-center">
+                        Courier fee &amp; official invoice will be sent to your WhatsApp
+                      </span>
                     </>
                   )}
                 </button>
@@ -727,62 +707,18 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
       )}
 
       {/* Delivery Section */}
-      {isDropship ? (
-        <div className="p-4 rounded-3xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2.5">
-            <Truck className="w-4 h-4 text-emerald-700 shrink-0" />
-            <div>
-              <div className="font-bold text-slate-900">Islandwide COD Delivery via Courier</div>
-              <div className="text-[11px] text-slate-500">Delivered via Prompt Xpress & Domex • Invoice with courier fee sent via WhatsApp</div>
-            </div>
-          </div>
-          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 shrink-0">
-            100% COD
-          </span>
-        </div>
-      ) : (
-        /* Interactive Delivery Estimator for Own In-House Products */
-        <div className="p-4 rounded-3xl bg-slate-50 border border-slate-200/80 space-y-3 text-xs">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 font-bold text-slate-900">
-              <Truck className="w-4 h-4 text-emerald-700" />
-              <span>Estimated Courier & Delivery to Your District</span>
-            </div>
-            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-              COD Available
-            </span>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-            <div className="relative flex-1">
-              <MapPin className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <select
-                value={selectedDistrict}
-                onChange={(e) => handleDistrictChange(e.target.value)}
-                className="w-full pl-8 pr-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#064E3B]"
-              >
-                {SRI_LANKA_DISTRICTS.map((d) => (
-                  <option key={d.district} value={d.district}>
-                    {d.district} ({d.province})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 flex items-center justify-between sm:justify-start gap-2">
-              <span className="text-slate-500 text-[11px]">Fee:</span>
-              <span className={`font-black font-mono text-sm ${deliveryInfo.isFree ? 'text-emerald-700' : 'text-slate-900'}`}>
-                {deliveryInfo.text}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
-            <span>⚡ Estimated Arrival: <strong className="text-slate-800">{deliveryInfo.eta}</strong></span>
-            <span className="text-slate-400">Islandwide Tracked Delivery</span>
+      <div className="p-4 rounded-3xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2.5">
+          <Truck className="w-4 h-4 text-emerald-700 shrink-0" />
+          <div>
+            <div className="font-bold text-slate-900">Islandwide COD Delivery via Courier</div>
+            <div className="text-[11px] text-slate-500">Delivered via Prompt Xpress &amp; Domex • Invoice with courier fee sent via WhatsApp</div>
           </div>
         </div>
-      )}
+        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 shrink-0">
+          100% COD
+        </span>
+      </div>
 
       {/* 🛒 Real-time Mobile "Added to Cart" Toast Alert */}
       {showCartToast && (

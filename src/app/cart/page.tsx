@@ -211,18 +211,8 @@ export default function CartPage() {
               )}
               <div className="flex justify-between text-slate-600 font-medium items-center">
                 <span>Courier Delivery</span>
-                <span>
-                  {hasDropship ? (
-                    <span className="text-amber-800 font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 text-[11px]">
-                      Invoiced on WhatsApp
-                    </span>
-                  ) : summary.shippingFee === 0 ? (
-                    <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                      FREE
-                    </span>
-                  ) : (
-                    <span className="font-bold text-slate-900">{formatLKR(summary.shippingFee)}</span>
-                  )}
+                <span className="text-amber-800 font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 text-[11px]">
+                  Invoiced on WhatsApp
                 </span>
               </div>
             </div>
