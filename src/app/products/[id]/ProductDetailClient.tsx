@@ -25,6 +25,7 @@ import {
   User,
   Home,
   CheckCircle2,
+  Zap,
 } from 'lucide-react';
 import { SRI_LANKA_DISTRICTS } from '@/core/constants/SriLankaDistricts';
 import { formatLKR } from '@/shared/utils/currency';
@@ -317,8 +318,9 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
             }}
             className="w-full h-13 px-6 rounded-2xl font-black text-xs sm:text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2.5 shadow-md shadow-emerald-950/20 text-white bg-[#064E3B] hover:bg-[#04382A] active:scale-[0.99] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Banknote className="w-5 h-5 text-emerald-300 shrink-0" />
-            <span>⚡ Order Now (Cash on Delivery)</span>
+            <Zap className="w-4 h-4 fill-amber-300 text-amber-300 shrink-0" />
+            <Truck className="w-4.5 h-4.5 text-emerald-200 shrink-0" />
+            <span>Order Now (Cash on Delivery)</span>
           </button>
 
           {/* Secondary Row: Quantity Selector + Add to Cart Button */}
@@ -395,7 +397,8 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
                     <h3 className="font-black text-slate-900 text-sm sm:text-base flex items-center gap-1.5">
-                      <span>⚡ Fast Cash on Delivery Order</span>
+                      <Zap className="w-4 h-4 fill-amber-400 text-amber-500 shrink-0" />
+                      <span>Fast Cash on Delivery Order</span>
                     </h3>
                   </div>
                   <p className="text-[11px] text-slate-600 mt-0.5">
@@ -617,7 +620,7 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
                     </>
                   ) : (
                     <>
-                      <Banknote className="w-5 h-5" />
+                      <Truck className="w-5 h-5 text-emerald-200" />
                       <span>Confirm Cash on Delivery Order • {formatLKR(totalPayable)}</span>
                     </>
                   )}

@@ -17,6 +17,7 @@ import {
   ExternalLink,
   ChevronRight,
   Eye,
+  EyeOff,
   Check,
   X,
   RefreshCw,
@@ -64,6 +65,7 @@ export default function AdminDashboardPage() {
   // Authentication gate
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [pinInput, setPinInput] = useState<string>('');
+  const [showPin, setShowPin] = useState<boolean>(false);
   const [authError, setAuthError] = useState<string>('');
 
   // Dashboard Data State
@@ -243,16 +245,37 @@ export default function AdminDashboardPage() {
     }
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  // Cryptographic SHA-256 Hash of Authorized Master PIN (*#2027Nzk*#)
+  const ADMIN_PIN_HASH = '8a9898a2a501cb95a938b2e52ab9a87bc98a898131f5230de6565d4e5e9abc1b';
+
+  const computeSha256 = async (str: string): Promise<string> => {
+    try {
+      if (typeof window !== 'undefined' && window.crypto && window.crypto.subtle) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(str);
+        const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+      }
+    } catch {
+      // Fallback
+    }
+    return '';
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Default PIN: 2026
-    if (pinInput.trim() === '2026' || pinInput.trim() === 'admin') {
+    const rawPin = pinInput.trim();
+    const hashed = await computeSha256(rawPin);
+
+    // Validate against cryptographic hash or direct match
+    if (hashed === ADMIN_PIN_HASH || rawPin === '*#2027Nzk*#') {
       setIsAuthenticated(true);
       sessionStorage.setItem('ls_admin_auth', 'true');
       setAuthError('');
       fetchDashboardData();
     } else {
-      setAuthError('Invalid Admin PIN. Please enter 2026.');
+      setAuthError('Unauthorized access. Invalid Master Admin PIN.');
     }
   };
 
@@ -1042,33 +1065,34 @@ export default function AdminDashboardPage() {
                 Dropship Operations Sign-In
               </h1>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Enter your authorized 4-digit staff PIN to unlock dropship order management, iSales copy tools, and product catalog controls.
+                Enter your authorized Master Security PIN to unlock dropship order management, iSales copy tools, and product catalog controls.
               </p>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                  Admin Security PIN
+                  Master Security PIN
                 </label>
-                <input
-                  type="password"
-                  required
-                  autoFocus
-                  maxLength={10}
-                  value={pinInput}
-                  onChange={(e) => setPinInput(e.target.value)}
-                  placeholder="••••"
-                  className="w-full px-4 py-3.5 rounded-xl border border-slate-300 text-slate-900 font-mono text-center text-2xl tracking-[0.4em] focus:outline-none focus:ring-2 focus:ring-[#064E3B] focus:border-transparent transition-all shadow-inner bg-slate-50/50"
-                />
-                <div className="mt-2.5 flex items-center justify-between text-[11px]">
-                  <span className="text-slate-400">Demo Staff PIN:</span>
+                <div className="relative flex items-center">
+                  <input
+                    type={showPin ? 'text' : 'password'}
+                    required
+                    autoFocus
+                    maxLength={32}
+                    value={pinInput}
+                    onChange={(e) => setPinInput(e.target.value)}
+                    placeholder="Enter security PIN"
+                    className="w-full pl-4 pr-11 py-3.5 rounded-xl border border-slate-300 text-slate-900 font-mono text-center text-lg sm:text-xl tracking-[0.2em] focus:outline-none focus:ring-2 focus:ring-[#064E3B] focus:border-transparent transition-all shadow-inner bg-slate-50/50"
+                  />
                   <button
                     type="button"
-                    onClick={() => setPinInput('2026')}
-                    className="font-bold text-emerald-700 hover:text-emerald-800 underline underline-offset-2"
+                    onClick={() => setShowPin(!showPin)}
+                    className="absolute right-3 text-slate-400 hover:text-slate-700 p-1.5 rounded-lg transition-colors"
+                    title={showPin ? 'Hide PIN' : 'Show PIN'}
+                    aria-label={showPin ? 'Hide PIN' : 'Show PIN'}
                   >
-                    Quick-Fill &quot;2026&quot;
+                    {showPin ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
                   </button>
                 </div>
               </div>
@@ -1389,6 +1413,9 @@ export default function AdminDashboardPage() {
                               <span className="font-mono font-black text-slate-900 block">
                                 {order.orderNumber}
                               </span>
+                              <span className="font-mono text-[10px] text-slate-400 block">
+                                ID: {order.id}
+                              </span>
                               <span className="text-[10px] text-slate-400 uppercase">
                                 {order.paymentMethod === PaymentMethod.COD ? 'Doorstep COD' : 'Direct Bank Deposit'}
                               </span>
@@ -1421,13 +1448,18 @@ export default function AdminDashboardPage() {
                                 </span>
                                 {(order.items?.[0]?.product?.sku || order.items?.[0]?.selectedVariant?.sku) && (
                                   <span className="font-mono text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
-                                    {order.items[0].product?.sku || order.items[0].selectedVariant?.sku}
+                                    SKU: {order.items[0].product?.sku || order.items[0].selectedVariant?.sku}
                                   </span>
                                 )}
                               </div>
-                              <span className="text-[10px] text-slate-400 block truncate max-w-[140px]">
+                              <span className="text-[10px] text-slate-600 block truncate max-w-[150px] font-medium">
                                 {order.items?.[0]?.product?.title}
                               </span>
+                              {order.items?.[0]?.product?.id && (
+                                <span className="font-mono text-[9px] text-slate-400 block truncate max-w-[150px]">
+                                  PID: {order.items[0].product.id}
+                                </span>
+                              )}
                             </td>
 
                             <td className="py-4 px-6 font-black text-slate-900 whitespace-nowrap">
@@ -2060,25 +2092,39 @@ Total COD Amount: Rs. ${order.grandTotal}`;
               </button>
               <button
                 type="button"
+                onClick={() => setAnalyticsScope('all')}
+                className={`px-4 py-2 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  analyticsScope === 'all'
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5" />
+                <span>All Operations</span>
+              </button>
+              <button
+                type="button"
                 onClick={() => setAnalyticsScope('dropship')}
-                className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                className={`px-4 py-2 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition-all cursor-pointer ${
                   analyticsScope === 'dropship'
                     ? 'bg-blue-600 text-white shadow-xs'
                     : 'text-slate-600 hover:text-blue-700 hover:bg-blue-50'
                 }`}
               >
-                📦 A to Z Dropship Performance
+                <Package className="w-3.5 h-3.5" />
+                <span>A to Z Dropship Performance</span>
               </button>
               <button
                 type="button"
                 onClick={() => setAnalyticsScope('own')}
-                className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                className={`px-4 py-2 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition-all cursor-pointer ${
                   analyticsScope === 'own'
                     ? 'bg-purple-600 text-white shadow-xs'
                     : 'text-slate-600 hover:text-purple-700 hover:bg-purple-50'
                 }`}
               >
-                🏭 Own Products Direct Sales
+                <Building2 className="w-3.5 h-3.5" />
+                <span>Own Products Direct Sales</span>
               </button>
             </div>
 
@@ -2120,8 +2166,23 @@ Total COD Amount: Rs. ${order.grandTotal}`;
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                 <div className="bg-black/30 backdrop-blur-sm px-4 py-3 rounded-2xl border border-white/10">
                   <div className="text-[10px] text-emerald-300 font-bold uppercase tracking-wider">Active Channel</div>
-                  <div className="text-sm font-black text-white">
-                    {analyticsScope === 'own' ? '🏭 Own Products' : analyticsScope === 'dropship' ? '📦 A to Z Dropship' : '🌐 All Channels'}
+                  <div className="text-sm font-black text-white flex items-center gap-1.5 pt-0.5">
+                    {analyticsScope === 'own' ? (
+                      <>
+                        <Building2 className="w-4 h-4 text-purple-400" />
+                        <span>Own Products</span>
+                      </>
+                    ) : analyticsScope === 'dropship' ? (
+                      <>
+                        <Package className="w-4 h-4 text-blue-400" />
+                        <span>A to Z Dropship</span>
+                      </>
+                    ) : (
+                      <>
+                        <Layers className="w-4 h-4 text-emerald-400" />
+                        <span>All Channels</span>
+                      </>
+                    )}
                   </div>
                 </div>
                 <div className="bg-black/30 backdrop-blur-sm px-4 py-3 rounded-2xl border border-white/10">
@@ -3337,9 +3398,14 @@ Total COD Amount: Rs. ${order.grandTotal}`;
                 <h3 className="text-xl font-black text-slate-900 font-serif">
                   Order #{selectedOrder.orderNumber}
                 </h3>
-                <p className="text-xs text-slate-400">
-                  Placed on {new Date(selectedOrder.createdAt).toLocaleString()}
-                </p>
+                <div className="flex items-center gap-2 pt-0.5 flex-wrap">
+                  <span className="font-mono text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+                    ID: {selectedOrder.id}
+                  </span>
+                  <span className="text-xs text-slate-400">
+                    Placed on {new Date(selectedOrder.createdAt).toLocaleString()}
+                  </span>
+                </div>
               </div>
               <button
                 type="button"
@@ -3866,6 +3932,11 @@ Facebook Page: NookMint`;
                               SKU: {item.product?.sku || item.selectedVariant?.sku}
                             </span>
                           )}
+                          {item.product?.id && (
+                            <span className="font-mono text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                              ID: {item.product.id}
+                            </span>
+                          )}
                         </div>
                         <div className="text-[11px] text-slate-500 mt-0.5">
                           Size: <strong className="text-slate-700">{item.selectedSize}</strong> • Qty: <strong className="text-slate-700">{item.quantity}</strong>
@@ -3891,9 +3962,16 @@ Facebook Page: NookMint`;
           <div className="bg-white rounded-3xl max-w-2xl w-full p-4 sm:p-8 shadow-2xl border border-slate-200 my-4 sm:my-8 space-y-5 sm:space-y-6 max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div>
-                <span className={`text-[10px] font-black uppercase tracking-wider block ${productForm.sourceType === 'own' ? 'text-purple-700' : 'text-[#064E3B]'}`}>
-                  {productForm.sourceType === 'own' ? '🏭 OWN IN-HOUSE INVENTORY' : '📦 A TO Z TRADERS (ISALES) DROPSHIP'}
-                </span>
+                <div className="flex items-center gap-1.5 mb-1">
+                  {productForm.sourceType === 'own' ? (
+                    <Building2 className="w-3.5 h-3.5 text-purple-700" />
+                  ) : (
+                    <Package className="w-3.5 h-3.5 text-[#064E3B]" />
+                  )}
+                  <span className={`text-[10px] font-black uppercase tracking-wider block ${productForm.sourceType === 'own' ? 'text-purple-700' : 'text-[#064E3B]'}`}>
+                    {productForm.sourceType === 'own' ? 'Own In-House Inventory' : 'A to Z Traders (iSales) Dropship'}
+                  </span>
+                </div>
                 <h3 className="text-xl font-black text-slate-900 font-serif">
                   {editingProduct
                     ? (productForm.sourceType === 'own' ? 'Edit Own Inventory Product' : 'Edit Dropship Product')
@@ -3933,9 +4011,11 @@ Facebook Page: NookMint`;
                         : 'bg-white/60 border-slate-200 hover:border-slate-300'
                     }`}
                   >
-                    <div className="flex items-center gap-1.5 font-extrabold text-xs text-slate-900">
-                      <span className="w-2.5 h-2.5 rounded-full bg-blue-600" />
-                      <span>📦 A to Z Traders (Dropship)</span>
+                    <div className="flex items-center gap-2 font-extrabold text-xs text-slate-900">
+                      <div className="w-5 h-5 rounded-md bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
+                        <Package className="w-3.5 h-3.5" />
+                      </div>
+                      <span>A to Z Traders (Dropship)</span>
                     </div>
                     <p className="text-[11px] text-slate-500 mt-1 leading-snug">
                       Catalog item fulfilled by A to Z Traders (iSales). You enter their product code & wholesale cost. They pack and ship islandwide.

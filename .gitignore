@@ -33,5 +33,6 @@ Thumbs.db
 *.zip
 *.tar.gz
 
-# Scripts
+# Scripts & Scratch
 scripts/
+scratch/
