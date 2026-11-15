@@ -29,13 +29,13 @@ export const MidPageCalloutBanner: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Image Visual - Compact, proportional frame fitting the height */}
-          <div className="md:col-span-5 relative w-full h-36 sm:h-40 md:h-44 lg:h-48 rounded-xl overflow-hidden shadow-sm">
+          {/* Right Image Visual - Using home.png from nookmint_images */}
+          <div className="md:col-span-5 relative w-full h-44 sm:h-48 md:h-52 lg:h-56 rounded-2xl overflow-hidden bg-emerald-950/40 shadow-sm border border-emerald-700/50">
             <Image
-              src="/nookmint_images/hero.png"
-              alt="NookMint household essentials, kitchenware, and smart tech gadgets"
+              src="/nookmint_images/home.png"
+              alt="NookMint cozy home, kitchen essentials, and gardening supplies"
               fill
-              sizes="(max-width: 768px) 100vw, 400px"
+              sizes="(max-width: 768px) 100vw, 450px"
               className="object-cover object-center"
               unoptimized
               loading="lazy"

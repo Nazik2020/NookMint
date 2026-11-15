@@ -243,75 +243,144 @@ export const Navbar: React.FC = () => {
         </div>
       </div>
 
-      {/* 4. Mobile Navigation Drawer */}
+      {/* 4. Full-Screen Native App Mobile Navigation Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 top-[110px] bg-slate-900/40 backdrop-blur-xs z-50 flex justify-end animate-fadeIn">
-          <div className="w-full max-w-xs bg-white h-full shadow-2xl flex flex-col justify-between p-5 overflow-y-auto">
-            <div className="space-y-6">
-              <div className="space-y-1.5">
-                <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 block px-2">
-                  Browse Categories
-                </span>
-                <nav className="flex flex-col space-y-1 text-sm font-bold text-slate-800">
-                  <Link
-                    href="/products?category=Household+%26+Kitchen"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="px-3.5 py-2.5 rounded-xl hover:bg-slate-50 flex items-center gap-2.5 text-slate-900"
-                  >
-                    <Home className="w-4 h-4 text-emerald-600" />
-                    <span>Household & Kitchen</span>
-                  </Link>
-                  <Link
-                    href="/products?category=Home+%26+Garden"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="px-3.5 py-2.5 rounded-xl hover:bg-slate-50 flex items-center gap-2.5 text-slate-900"
-                  >
-                    <Sprout className="w-4 h-4 text-emerald-600" />
-                    <span>Gardening & Outdoor</span>
-                  </Link>
-                  <Link
-                    href="/products?category=Smart+Gadgets+%26+Audio"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="px-3.5 py-2.5 rounded-xl hover:bg-slate-50 flex items-center justify-between text-slate-900"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <Headphones className="w-4 h-4 text-emerald-600" />
-                      <span>Smart Gadgets (Earbuds, Mics)</span>
+        <div className="md:hidden fixed inset-0 z-50 bg-white flex flex-col animate-fadeIn">
+          {/* Mobile Drawer Top Bar: Brand Logo + Close Button */}
+          <div className="px-4 py-3.5 border-b border-slate-200/90 flex items-center justify-between bg-white shrink-0">
+            <BrandLogo variant="navbar" />
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-800 transition-colors"
+              aria-label="Close menu"
+            >
+              <X className="w-5 h-5 text-slate-900" />
+            </button>
+          </div>
+
+          {/* Mobile Drawer Scrollable Content */}
+          <div className="flex-1 overflow-y-auto p-5 space-y-6 bg-white">
+            {/* Quick Search Input */}
+            <form onSubmit={handleSearchSubmit} className="relative w-full">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search products..."
+                className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#064E3B]"
+              />
+            </form>
+
+            {/* Department Navigation */}
+            <div className="space-y-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block px-1">
+                Browse Departments
+              </span>
+              <nav className="flex flex-col space-y-1 text-sm font-bold text-slate-800">
+                <Link
+                  href="/products?category=Household+%26+Kitchen"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3.5 py-3 rounded-2xl hover:bg-slate-50 flex items-center gap-3 text-slate-900 border border-transparent hover:border-slate-200"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-800 flex items-center justify-center">
+                    <Home className="w-4 h-4" />
+                  </div>
+                  <span>Household &amp; Kitchen</span>
+                </Link>
+                <Link
+                  href="/products?category=Home+%26+Garden"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3.5 py-3 rounded-2xl hover:bg-slate-50 flex items-center gap-3 text-slate-900 border border-transparent hover:border-slate-200"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-800 flex items-center justify-center">
+                    <Sprout className="w-4 h-4" />
+                  </div>
+                  <span>Home &amp; Garden</span>
+                </Link>
+                <Link
+                  href="/products?category=Smart+Gadgets+%26+Audio"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3.5 py-3 rounded-2xl hover:bg-slate-50 flex items-center justify-between text-slate-900 border border-transparent hover:border-slate-200"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-800 flex items-center justify-center">
+                      <Headphones className="w-4 h-4" />
                     </div>
-                    <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 tracking-wider">
-                      Hot
-                    </span>
-                  </Link>
-                  <Link
-                    href="/products?filter=sale"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="px-3.5 py-2.5 rounded-xl hover:bg-slate-50 flex items-center gap-2.5 text-slate-900"
-                  >
-                    <Tag className="w-4 h-4 text-emerald-600" />
-                    <span>Offers</span>
-                  </Link>
-                  <Link
-                    href="/contact"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="px-3.5 py-2.5 rounded-xl hover:bg-slate-50 flex items-center gap-2.5 text-slate-900"
-                  >
-                    <Phone className="w-4 h-4 text-emerald-600" />
-                    <span>Contact</span>
-                  </Link>
-                </nav>
+                    <span>Smart Gadgets &amp; Audio</span>
+                  </div>
+                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                    Hot
+                  </span>
+                </Link>
+                <Link
+                  href="/products"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3.5 py-3 rounded-2xl hover:bg-slate-50 flex items-center gap-3 text-slate-900 border border-transparent hover:border-slate-200"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <span>Explore All Products</span>
+                </Link>
+              </nav>
+            </div>
+
+            {/* Quick Service Links */}
+            <div className="space-y-2 pt-2 border-t border-slate-100">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block px-1">
+                Customer Care &amp; Orders
+              </span>
+              <div className="grid grid-cols-2 gap-2 text-xs font-semibold text-slate-700">
+                <Link
+                  href="/dashboard"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-3 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center gap-2"
+                >
+                  <span>📦 Track Parcel</span>
+                </Link>
+                <Link
+                  href="/delivery"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-3 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center gap-2"
+                >
+                  <span>🚚 COD Info</span>
+                </Link>
+                <Link
+                  href="/returns"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-3 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center gap-2"
+                >
+                  <span>🔄 Easy Return</span>
+                </Link>
+                <Link
+                  href="/contact"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-3 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center gap-2"
+                >
+                  <span>📞 Contact</span>
+                </Link>
               </div>
             </div>
 
-            <div className="pt-6 border-t border-slate-100">
+            {/* WhatsApp Direct Order Concierge */}
+            <div className="pt-2">
               <a
                 href="https://wa.me/94787844914?text=Hello%20NookMint%2C%20I%20would%20like%20to%20order"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-sm"
+                className="w-full py-3.5 bg-[#25D366] hover:bg-[#20bd5a] text-white font-extrabold text-xs uppercase tracking-wider rounded-2xl flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 active:scale-98"
               >
-                <MessageCircle className="w-4 h-4" />
-                <span>Chat on WhatsApp</span>
+                <MessageCircle className="w-4.5 h-4.5" />
+                <span>Order on WhatsApp (+94 78 784 4914)</span>
               </a>
+            </div>
+
+            {/* Islandwide COD Banner */}
+            <div className="p-3 rounded-2xl bg-[#064E3B] text-white text-center space-y-0.5">
+              <div className="text-xs font-bold">100% Cash on Delivery</div>
+              <div className="text-[10px] text-emerald-200">Zero advance payment required across all 25 districts</div>
             </div>
           </div>
         </div>
