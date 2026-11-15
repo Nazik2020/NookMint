@@ -43,10 +43,10 @@ export const HeroSection: React.FC = () => {
 
           {/* Clean 2-Line Headline for Optimal Screen Fit & Typographic Balance on Mobile & Desktop */}
           <h1 className="text-[28px] sm:text-[38px] md:text-[46px] lg:text-[52px] font-black tracking-tight leading-[1.12] sm:leading-[1.08] text-[#111827] font-sans">
-            <span>Cozy home, garden &</span>
+            <span>Cozy Home, Garden &amp;</span>
             <br />
             <span className="relative inline-block text-[#004D40]">
-              smart tech gadgets.
+              Smart Tech Gadgets
               <svg
                 className="absolute -bottom-2 left-0 w-full h-3 text-[#F59E0B]"
                 viewBox="0 0 100 20"
@@ -62,7 +62,7 @@ export const HeroSection: React.FC = () => {
 
           {/* Subhead specifically tuned to user's exact inventory */}
           <p className="text-xs sm:text-sm md:text-base text-slate-700 max-w-lg leading-relaxed font-normal">
-            Quality kitchenware, home decor, gardening tools, and smart audio gadgets like earbuds & wireless mics — delivered straight to your doorstep with Cash on Delivery.
+            Quality kitchenware, home decor, gardening tools, and smart audio gadgets like earbuds &amp; wireless mics - delivered straight to your doorstep with 100% Cash on Delivery across Sri Lanka.
           </p>
 
           {/* Action CTA Buttons (Responsive on Mobile) */}

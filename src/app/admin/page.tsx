@@ -48,6 +48,9 @@ import {
   Copy,
   BarChart3,
   Award,
+  Video,
+  Play,
+  Film,
   MapPinned,
   PieChart,
 } from 'lucide-react';
@@ -108,6 +111,7 @@ export default function AdminDashboardPage() {
     offerPercentage: number;
     description: string;
     images: string[];
+    videoUrl?: string;
     variants: Array<{ size: string; stock: number; sku?: string }>;
     deliveryFeeType: 'default' | 'free' | 'custom';
     customDeliveryFee: number;
@@ -126,6 +130,7 @@ export default function AdminDashboardPage() {
     offerPercentage: 20,
     description: '',
     images: ['https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=900&auto=format&fit=crop&q=80'],
+    videoUrl: '',
     variants: [
       { size: 'Standard', stock: 25, sku: 'PROD-01' },
     ],
@@ -135,6 +140,7 @@ export default function AdminDashboardPage() {
   const [newProductImageUrl, setNewProductImageUrl] = useState<string>('');
   const [productFeedback, setProductFeedback] = useState<string>('');
   const [isUploadingImage, setIsUploadingImage] = useState<boolean>(false);
+  const [isUploadingVideo, setIsUploadingVideo] = useState<boolean>(false);
   const [adminPreviewDistrict, setAdminPreviewDistrict] = useState<string>('Colombo');
 
   const openAddProductModal = (sourceType: 'dropship' | 'own') => {
@@ -159,6 +165,7 @@ export default function AdminDashboardPage() {
       deliveryFeeType: 'default',
       customDeliveryFee: 350,
       images: ['/nookmint_images/hero.png'],
+      videoUrl: '',
     });
     setIsAddingProduct(true);
   };
@@ -532,6 +539,40 @@ export default function AdminDashboardPage() {
     });
   };
 
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setIsUploadingVideo(true);
+      setProductFeedback('Uploading product showcase video to Supabase Storage...');
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('bucket', 'products');
+
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await res.json();
+        if (data.success && data.url) {
+          setProductForm((prev) => ({
+            ...prev,
+            videoUrl: data.url,
+          }));
+          setProductFeedback('Product video uploaded successfully to Supabase Storage!');
+          setTimeout(() => setProductFeedback(''), 3000);
+        } else {
+          setProductFeedback(data.message || 'Failed to upload video');
+        }
+      } catch (err: any) {
+        console.error('Video upload error:', err);
+        setProductFeedback('Failed to upload video. Please try again.');
+      } finally {
+        setIsUploadingVideo(false);
+      }
+    }
+  };
+
   const handleToggleNewArrival = async (productId: string, currentStatus: boolean) => {
     try {
       const res = await fetch('/api/admin/products', {
@@ -605,6 +646,7 @@ export default function AdminDashboardPage() {
             offerPercentage: Number(productForm.offerPercentage),
             description: productForm.description,
             images: productForm.images,
+            videoUrl: productForm.videoUrl || undefined,
             variants: productForm.variants,
             deliveryFeeType: productForm.deliveryFeeType,
             customDeliveryFee: Number(productForm.customDeliveryFee),
@@ -1738,6 +1780,7 @@ Total COD Amount: Rs. ${order.grandTotal}`;
                                 deliveryFeeType: product.deliveryFeeType || 'default',
                                 customDeliveryFee: product.customDeliveryFee || 350,
                                 images: product.images && product.images.length > 0 ? [...product.images] : ['/nookmint_images/hero.png'],
+                                videoUrl: product.videoUrl || '',
                               });
                               setIsAddingProduct(true);
                             }}
@@ -4232,6 +4275,75 @@ Facebook Page: NookMint`;
                       </span>
                     </div>
                   ))}
+                </div>
+
+                {/* 4.2 Product Video Showcase (Optional) */}
+                <div className="mt-4 pt-3.5 border-t border-slate-200/80 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <Film className="w-4 h-4 text-emerald-700" />
+                      <span>Product Video Showcase (Optional)</span>
+                    </label>
+                    <span className="text-[10px] text-slate-400 font-medium">MP4 up to 50MB</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500">
+                    Add a hands-on unboxing, feature showcase, or video clip. Appears with a play button in the storefront gallery.
+                  </p>
+
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <label className={`cursor-pointer px-4 py-2.5 ${isUploadingVideo ? 'bg-emerald-700' : 'bg-slate-800 hover:bg-slate-900'} text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-xs shrink-0`}>
+                      <Video className={`w-4 h-4 ${isUploadingVideo ? 'animate-bounce text-emerald-300' : ''}`} />
+                      <span>{isUploadingVideo ? 'Uploading Video to Supabase...' : '+ Upload Video (MP4)'}</span>
+                      <input
+                        type="file"
+                        accept="video/mp4,video/webm,video/quicktime"
+                        disabled={isUploadingVideo}
+                        onChange={handleVideoUpload}
+                        className="hidden"
+                      />
+                    </label>
+
+                    <div className="flex-1 flex gap-2">
+                      <input
+                        type="text"
+                        value={productForm.videoUrl || ''}
+                        onChange={(e) => setProductForm((prev) => ({ ...prev, videoUrl: e.target.value }))}
+                        placeholder="Or paste video URL (https://... or .mp4)"
+                        className="flex-1 px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-[#064E3B]"
+                      />
+                      {productForm.videoUrl && (
+                        <button
+                          type="button"
+                          onClick={() => setProductForm((prev) => ({ ...prev, videoUrl: '' }))}
+                          className="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Video Active Preview */}
+                  {productForm.videoUrl && (
+                    <div className="p-3 rounded-2xl bg-slate-900 text-white flex items-center justify-between gap-3 shadow-xs">
+                      <div className="flex items-center gap-2.5 overflow-hidden">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center shrink-0">
+                          <Play className="w-4 h-4 text-white fill-white ml-0.5" />
+                        </div>
+                        <div className="overflow-hidden">
+                          <div className="text-xs font-bold text-emerald-300">Video Attached</div>
+                          <div className="text-[10px] text-slate-400 truncate max-w-xs">{productForm.videoUrl}</div>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setProductForm((prev) => ({ ...prev, videoUrl: '' }))}
+                        className="text-xs text-red-400 hover:text-red-300 font-bold px-2 py-1 rounded hover:bg-white/10 transition-colors cursor-pointer"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 

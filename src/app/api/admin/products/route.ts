@@ -107,6 +107,7 @@ export async function POST(req: NextRequest) {
       deliveryFeeType: deliveryFeeType || 'default',
       customDeliveryFee: typeof customDeliveryFee === 'number' ? customDeliveryFee : undefined,
       images: images && images.length > 0 ? images : ['https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=900&auto=format&fit=crop&q=80'],
+      videoUrl: body.videoUrl || undefined,
       variants: productVariants,
       rating: 5.0,
       reviewCount: 1,

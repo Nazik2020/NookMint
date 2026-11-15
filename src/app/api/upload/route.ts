@@ -31,11 +31,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Limit to 10MB
-    const MAX_SIZE = 10 * 1024 * 1024;
+    // Limit to 50MB (supports high-res images and product showcase MP4 videos)
+    const MAX_SIZE = 50 * 1024 * 1024;
     if (file.size > MAX_SIZE) {
       return NextResponse.json(
-        { success: false, message: 'File size exceeds maximum allowed 10MB limit.' },
+        { success: false, message: 'File size exceeds maximum allowed 50MB limit.' },
         { status: 400 }
       );
     }

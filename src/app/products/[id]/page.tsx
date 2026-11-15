@@ -40,9 +40,9 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
       </nav>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-        {/* Left Column: Interactive Product Gallery */}
+        {/* Left Column: Interactive Product Gallery (Images & Video Showcase) */}
         <div className="lg:col-span-7">
-          <ProductGallery images={product.images} title={product.title} />
+          <ProductGallery images={product.images} title={product.title} videoUrl={product.videoUrl} />
         </div>
 
         {/* Right Column: Details & Purchasing Actions */}
