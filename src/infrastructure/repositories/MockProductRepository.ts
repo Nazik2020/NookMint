@@ -950,8 +950,10 @@ export class MockProductRepository implements IProductRepository {
         const matchesSubcategory = (product.subcategory || '').toLowerCase().includes(q);
         const matchesBrand = (product.brand || '').toLowerCase().includes(q);
         const matchesDesc = (product.description || '').toLowerCase().includes(q);
+        const matchesSku = (product.sku || '').toLowerCase().includes(q) || (product.id || '').toLowerCase().includes(q);
+        const matchesVariantSku = product.variants?.some((v) => (v.sku || '').toLowerCase().includes(q));
 
-        if (!matchesTitle && !matchesCategory && !matchesSubcategory && !matchesBrand && !matchesDesc) {
+        if (!matchesTitle && !matchesCategory && !matchesSubcategory && !matchesBrand && !matchesDesc && !matchesSku && !matchesVariantSku) {
           return false;
         }
       }

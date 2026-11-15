@@ -177,43 +177,6 @@ export const Navbar: React.FC = () => {
             </nav>
           </div>
 
-          {/* Quick Service Links */}
-          <div className="space-y-2 pt-2 border-t border-slate-100">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block px-1">
-              Customer Care &amp; Orders
-            </span>
-            <div className="grid grid-cols-2 gap-2 text-xs font-semibold text-slate-700">
-              <Link
-                href="/dashboard"
-                onClick={() => setMobileMenuOpen(false)}
-                className="p-3 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center gap-2 border border-slate-100"
-              >
-                <span>📦 Track Parcel</span>
-              </Link>
-              <Link
-                href="/delivery"
-                onClick={() => setMobileMenuOpen(false)}
-                className="p-3 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center gap-2 border border-slate-100"
-              >
-                <span>🚚 COD Info</span>
-              </Link>
-              <Link
-                href="/returns"
-                onClick={() => setMobileMenuOpen(false)}
-                className="p-3 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center gap-2 border border-slate-100"
-              >
-                <span>🔄 Easy Return</span>
-              </Link>
-              <Link
-                href="/contact"
-                onClick={() => setMobileMenuOpen(false)}
-                className="p-3 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center gap-2 border border-slate-100"
-              >
-                <span>📞 Contact</span>
-              </Link>
-            </div>
-          </div>
-
           {/* WhatsApp Direct Order Concierge */}
           <div className="pt-2">
             <a

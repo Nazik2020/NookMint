@@ -76,6 +76,8 @@ export default function AdminDashboardPage() {
   const [settings, setSettings] = useState<StoreSettings | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [productSearchQuery, setProductSearchQuery] = useState<string>('');
+  const [skuSearchQuery, setSkuSearchQuery] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
   // Selected Order for Modal
@@ -947,11 +949,19 @@ export default function AdminDashboardPage() {
 
   // Filtered Orders
   const filteredOrders = orders.filter((o) => {
+    const q = searchQuery.toLowerCase().trim();
     const matchesSearch =
-      o.orderNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      o.shippingAddress?.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      o.shippingAddress?.phone?.includes(searchQuery) ||
-      o.shippingAddress?.city?.toLowerCase().includes(searchQuery.toLowerCase());
+      !q ||
+      o.orderNumber?.toLowerCase().includes(q) ||
+      o.shippingAddress?.fullName?.toLowerCase().includes(q) ||
+      o.shippingAddress?.phone?.includes(q) ||
+      o.shippingAddress?.city?.toLowerCase().includes(q) ||
+      o.items?.some((i: any) =>
+        i.product?.title?.toLowerCase().includes(q) ||
+        (i.product?.sku && i.product.sku.toLowerCase().includes(q)) ||
+        (i.selectedVariant?.sku && i.selectedVariant.sku.toLowerCase().includes(q)) ||
+        (i.product?.id && i.product.id.toLowerCase().includes(q))
+      );
 
     if (!matchesSearch) return false;
 
@@ -1405,9 +1415,16 @@ export default function AdminDashboardPage() {
                             </td>
 
                             <td className="py-4 px-6">
-                              <span className="font-bold text-slate-800">
-                                {order.items?.reduce((s: number, i: any) => s + i.quantity, 0)} pcs
-                              </span>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="font-bold text-slate-800">
+                                  {order.items?.reduce((s: number, i: any) => s + i.quantity, 0)} pcs
+                                </span>
+                                {(order.items?.[0]?.product?.sku || order.items?.[0]?.selectedVariant?.sku) && (
+                                  <span className="font-mono text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                    {order.items[0].product?.sku || order.items[0].selectedVariant?.sku}
+                                  </span>
+                                )}
+                              </div>
                               <span className="text-[10px] text-slate-400 block truncate max-w-[140px]">
                                 {order.items?.[0]?.product?.title}
                               </span>
@@ -1573,6 +1590,28 @@ Total COD Amount: Rs. ${order.grandTotal}`;
               </div>
             </div>
 
+            {/* Real-Time Product & SKU Search Bar */}
+            <div className="relative w-full">
+              <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                value={productSearchQuery}
+                onChange={(e) => setProductSearchQuery(e.target.value)}
+                placeholder="Search products by title, product code / SKU (e.g. AZ-4040, gadget-01), or description..."
+                className="w-full pl-11 pr-10 py-3 rounded-2xl bg-white border border-slate-200/90 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#064E3B] shadow-2xs"
+              />
+              {productSearchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setProductSearchQuery('')}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+                  title="Clear search"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
             {/* Inventory Sourcing & Category Filter Bar */}
             <div className="space-y-2.5">
               {/* Row 1: Sourcing Channels (Dropship vs In-House) */}
@@ -1684,6 +1723,16 @@ Total COD Amount: Rs. ${order.grandTotal}`;
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {products
                 .filter((p) => {
+                  if (productSearchQuery.trim()) {
+                    const q = productSearchQuery.toLowerCase().trim();
+                    const matches =
+                      p.title?.toLowerCase().includes(q) ||
+                      (p.sku && p.sku.toLowerCase().includes(q)) ||
+                      p.id?.toLowerCase().includes(q) ||
+                      p.category?.toLowerCase().includes(q) ||
+                      (p.description && p.description.toLowerCase().includes(q));
+                    if (!matches) return false;
+                  }
                   if (productSourceFilter === 'dropship' && (p.sourceType || 'dropship') !== 'dropship') return false;
                   if (productSourceFilter === 'own' && p.sourceType !== 'own') return false;
                   if (productCategoryFilter === 'popular') return p.isBestSeller === true;
@@ -2359,7 +2408,7 @@ Total COD Amount: Rs. ${order.grandTotal}`;
 
             {/* TOP PERFORMING DROPSHIP SKUS & PROFIT MARGIN TABLE */}
             <div className="bg-white rounded-3xl border border-slate-200/80 shadow-2xs overflow-hidden">
-              <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="p-6 border-b border-slate-100 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
                 <div>
                   <h3 className="text-base font-extrabold text-slate-900 font-serif">
                     Top Dropship Catalog SKUs & Profit Realization
@@ -2368,9 +2417,39 @@ Total COD Amount: Rs. ${order.grandTotal}`;
                     Calculated net earnings for each item when delivered via A to Z Traders Cash on Delivery.
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-xl">
-                    {scopedProducts.length} Products Monitored
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+                  {/* Real-Time SKU & Product Search Input */}
+                  <div className="relative w-full sm:w-72">
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="text"
+                      value={skuSearchQuery}
+                      onChange={(e) => setSkuSearchQuery(e.target.value)}
+                      placeholder="Search by SKU code or product title..."
+                      className="w-full pl-8.5 pr-7 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#064E3B]"
+                    />
+                    {skuSearchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setSkuSearchQuery('')}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                        title="Clear SKU search"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                  <span className="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-xl text-center whitespace-nowrap">
+                    {scopedProducts.filter((product) => {
+                      if (!skuSearchQuery.trim()) return true;
+                      const q = skuSearchQuery.toLowerCase().trim();
+                      return (
+                        product.title?.toLowerCase().includes(q) ||
+                        (product.sku && product.sku.toLowerCase().includes(q)) ||
+                        product.id?.toLowerCase().includes(q) ||
+                        product.category?.toLowerCase().includes(q)
+                      );
+                    }).length} of {scopedProducts.length} Monitored
                   </span>
                 </div>
               </div>
@@ -2389,7 +2468,18 @@ Total COD Amount: Rs. ${order.grandTotal}`;
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 font-medium">
-                    {scopedProducts.slice(0, 10).map((product) => {
+                    {scopedProducts
+                      .filter((product) => {
+                        if (!skuSearchQuery.trim()) return true;
+                        const q = skuSearchQuery.toLowerCase().trim();
+                        return (
+                          product.title?.toLowerCase().includes(q) ||
+                          (product.sku && product.sku.toLowerCase().includes(q)) ||
+                          product.id?.toLowerCase().includes(q) ||
+                          product.category?.toLowerCase().includes(q)
+                        );
+                      })
+                      .map((product) => {
                       const wholesale = product.costPrice || Math.round(product.sellingPrice * 0.7);
                       const profit = product.sellingPrice - wholesale;
                       const marginPct = product.sellingPrice > 0 ? Math.round((profit / product.sellingPrice) * 100) : 30;
@@ -3491,10 +3581,10 @@ Facebook Page: NookMint`;
                 {/* Field 8: Product Codes / SKUs */}
                 <div className="p-2.5 rounded-xl bg-white border border-emerald-100 flex items-center justify-between gap-2 shadow-2xs sm:col-span-2 lg:col-span-3">
                   <div className="truncate">
-                    <span className="text-[10px] font-bold text-slate-400 block uppercase">iSales Product Code / SKU</span>
+                    <span className="text-[10px] font-bold text-slate-400 block uppercase">Product Code / SKU</span>
                     <span className="font-mono font-bold text-emerald-800 text-[11px] truncate block">
                       {selectedOrder.items
-                        ?.map((i: any) => `${i.selectedVariant?.sku || i.product.id || 'N/A'} (Qty: ${i.quantity})`)
+                        ?.map((i: any) => `${i.product?.sku || i.selectedVariant?.sku || i.product?.id || 'N/A'} (Qty: ${i.quantity})`)
                         .join(' | ')}
                     </span>
                   </div>
@@ -3502,7 +3592,7 @@ Facebook Page: NookMint`;
                     type="button"
                     onClick={() =>
                       copyToClipboard(
-                        selectedOrder.items?.map((i: any) => i.selectedVariant?.sku || i.product.id).join(', ') || '',
+                        selectedOrder.items?.map((i: any) => i.product?.sku || i.selectedVariant?.sku || i.product?.id).join(', ') || '',
                         'skus'
                       )
                     }
@@ -3769,9 +3859,16 @@ Facebook Page: NookMint`;
                         className="w-12 h-14 object-cover rounded-xl bg-slate-50 border border-slate-100"
                       />
                       <div>
-                        <h5 className="font-bold text-slate-900">{item.product?.title}</h5>
-                        <div className="text-[11px] text-slate-400">
-                          Size: <strong className="text-slate-700">{item.selectedSize}</strong> • Qty: {item.quantity}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h5 className="font-bold text-slate-900">{item.product?.title}</h5>
+                          {(item.product?.sku || item.selectedVariant?.sku) && (
+                            <span className="font-mono text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
+                              SKU: {item.product?.sku || item.selectedVariant?.sku}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[11px] text-slate-500 mt-0.5">
+                          Size: <strong className="text-slate-700">{item.selectedSize}</strong> • Qty: <strong className="text-slate-700">{item.quantity}</strong>
                         </div>
                       </div>
                     </div>
@@ -3913,18 +4010,18 @@ Facebook Page: NookMint`;
 
                   <div>
                     <label className="text-[11px] font-bold text-slate-700 block mb-1">
-                      {productForm.sourceType === 'own' ? 'Internal SKU *' : 'iSales Code (SKU) *'}
+                      {productForm.sourceType === 'own' ? 'Product Code / Internal SKU *' : 'iSales Product Code / SKU *'}
                     </label>
                     <input
                       type="text"
                       required
                       value={productForm.sku}
                       onChange={(e) => setProductForm({ ...productForm, sku: e.target.value })}
-                      placeholder={productForm.sourceType === 'own' ? 'e.g. OWN-MUG-01' : 'e.g. EAR-ANC-WHT'}
+                      placeholder={productForm.sourceType === 'own' ? 'e.g. OWN-MUG-01' : 'e.g. AZ-4040'}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono font-bold text-[#064E3B] bg-slate-50 focus:ring-2 focus:ring-[#064E3B]"
                     />
                     <span className="text-[10px] text-slate-400 block mt-0.5">
-                      {productForm.sourceType === 'own' ? 'Your stock tracking ID' : 'Used to copy into iSales order'}
+                      Used in Order Details, Analytics &amp; Storefront Search
                     </span>
                   </div>
                 </div>

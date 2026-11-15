@@ -59,7 +59,11 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
             <span>NOOKMINT CURATED CATALOGUE</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight font-serif">
-            {resolvedParams.category ? resolvedParams.category : 'All Products & Departments'}
+            {resolvedParams.q
+              ? `Search Results for "${resolvedParams.q}"`
+              : resolvedParams.category
+              ? resolvedParams.category
+              : 'All Products & Departments'}
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 max-w-2xl leading-relaxed">
             Showing <strong className="text-slate-900 font-bold">{products.length}</strong> verified products across household essentials, kitchenware, gardening tools, and smart audio gadgets. 100% Cash on Delivery (COD) islandwide across Sri Lanka.
