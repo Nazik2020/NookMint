@@ -1512,7 +1512,7 @@ Order Source: NookMint Website
 Payment Method: COD
 Order Note: ${order.shippingAddress?.landmark || order.orderNumber}
 Mark for Print WB: Marked as print Waybill Only
-Product Codes / SKUs: ${order.items?.map((i: any) => i.selectedVariant?.sku || i.product.id).join(', ')}
+Product Codes / SKUs: ${order.items?.map((i: any) => i.product?.sku || i.selectedVariant?.sku || i.product?.id).join(', ')}
 Total Quantity: ${order.items?.reduce((s: number, i: any) => s + i.quantity, 0)}
 Total COD Amount: Rs. ${order.grandTotal}`;
                                     copyToClipboard(isalesText, `row-${order.id}`);
@@ -3326,8 +3326,8 @@ Total COD Amount: Rs. ${order.grandTotal}`;
       {/* ORDER ACTION MODAL */}
       {/* ============================================================= */}
       {selectedOrder && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 my-8 space-y-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-4 sm:p-8 shadow-2xl border border-slate-200 my-4 sm:my-8 space-y-5 sm:space-y-6 max-h-[92vh] overflow-y-auto">
             {/* Header */}
             <div className="flex items-start justify-between border-b border-slate-100 pb-4">
               <div>
@@ -3887,8 +3887,8 @@ Facebook Page: NookMint`;
       {/* PRODUCT ADD / EDIT MODAL (A to Z Traders Dropshipping Aligned) */}
       {/* ============================================================= */}
       {isAddingProduct && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 my-8 space-y-6 max-h-[92vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-4 sm:p-8 shadow-2xl border border-slate-200 my-4 sm:my-8 space-y-5 sm:space-y-6 max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div>
                 <span className={`text-[10px] font-black uppercase tracking-wider block ${productForm.sourceType === 'own' ? 'text-purple-700' : 'text-[#064E3B]'}`}>
