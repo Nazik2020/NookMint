@@ -125,18 +125,18 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           )}
 
           {/* Value Props Row */}
-          <div className="grid grid-cols-3 gap-3 pt-2 text-center text-[11px] text-slate-600 font-medium">
-            <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-1">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-2 text-center text-[10px] sm:text-[11px] text-slate-600 font-medium">
+            <div className="p-2.5 sm:p-3 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-1">
               <Truck className="w-4 h-4 mx-auto text-emerald-700" />
-              <span>Islandwide Delivery</span>
+              <span className="block leading-tight">Islandwide Delivery</span>
             </div>
-            <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-1">
+            <div className="p-2.5 sm:p-3 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-1">
               <ShieldCheck className="w-4 h-4 mx-auto text-emerald-600" />
-              <span>Authentic Quality</span>
+              <span className="block leading-tight">Authentic Quality</span>
             </div>
-            <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-1">
+            <div className="p-2.5 sm:p-3 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-1">
               <RotateCcw className="w-4 h-4 mx-auto text-amber-600" />
-              <span>Easy Return Check</span>
+              <span className="block leading-tight">Easy Return Check</span>
             </div>
           </div>
         </div>

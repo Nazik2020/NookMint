@@ -59,7 +59,7 @@ export default function TermsPage() {
         <section className="space-y-2">
           <h2 className="text-base font-black text-slate-900">5. Contact Information</h2>
           <p>
-            For questions regarding our terms, reach out via email at <strong>support@nookmint.lk</strong> or phone <strong>+94 78 784 4914</strong>.
+            For questions regarding our terms, reach out via email at <strong>support@nookmint.lk</strong> or phone <strong>+94 71 489 7262</strong>.
           </p>
         </section>
       </div>

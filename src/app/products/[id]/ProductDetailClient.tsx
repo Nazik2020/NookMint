@@ -26,6 +26,9 @@ import {
   Home,
   CheckCircle2,
   Zap,
+  X,
+  Share2,
+  Copy,
 } from 'lucide-react';
 import { SRI_LANKA_DISTRICTS } from '@/core/constants/SriLankaDistricts';
 import { formatLKR } from '@/shared/utils/currency';
@@ -37,6 +40,9 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
   const [selectedColor, setSelectedColor] = useState<string>(product.colors?.[0]?.name || '');
   const [quantity, setQuantity] = useState<number>(1);
   const [isAdded, setIsAdded] = useState(false);
+  const [showCartToast, setShowCartToast] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [selectedDistrict, setSelectedDistrict] = useState<string>('Colombo');
   const [storeDelivery, setStoreDelivery] = useState<any>(null);
 
@@ -129,7 +135,15 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
     if (!selectedSize || stockCount <= 0 || product.inquiryOnly) return;
     addToCart(product, selectedSize, quantity);
     setIsAdded(true);
-    setTimeout(() => setIsAdded(false), 2000);
+    setShowCartToast(true);
+
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
+    toastTimeoutRef.current = setTimeout(() => {
+      setIsAdded(false);
+      setShowCartToast(false);
+    }, 6000);
   };
 
   // Direct 1-Click Cash on Delivery Order Submission
@@ -200,7 +214,7 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
     }
   };
 
-  const whatsappInquiryUrl = `https://wa.me/94787844914?text=${encodeURIComponent(
+  const whatsappInquiryUrl = `https://wa.me/94714897262?text=${encodeURIComponent(
     `Hello NookMint! 👋\n` +
       `I would like to ${product.inquiryOnly ? 'request a quotation / consultation for' : 'order'}:\n` +
       `📦 Product: ${product.title}\n` +
@@ -211,6 +225,42 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
       `💰 Listed Price: ${formatLKR(product.sellingPrice)}\n` +
       `📍 Delivery to: ${selectedDistrict}\n` +
       `Please let me know availability and delivery schedule. Thank you!`
+  )}`;
+
+  const handleShare = async () => {
+    const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+    const shareTitle = `${product.title} | NookMint`;
+    const shareText = `Check out ${product.title} on NookMint for ${formatLKR(product.sellingPrice)} with Cash on Delivery Islandwide across Sri Lanka!`;
+
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: shareTitle,
+          text: shareText,
+          url: shareUrl,
+        });
+        return;
+      } catch (err: any) {
+        if (err?.name === 'AbortError') return;
+      }
+    }
+
+    // Fallback: Copy direct URL to clipboard
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(shareUrl);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2500);
+      }
+    } catch {
+      // Fallback
+    }
+  };
+
+  const shareOnWhatsAppUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(
+    `Check out this on NookMint: ${product.title} (${formatLKR(product.sellingPrice)})\n100% Cash on Delivery across Sri Lanka!\n👉 Buy directly here: ${
+      typeof window !== 'undefined' ? window.location.href : ''
+    }`
   )}`;
 
   return (
@@ -383,8 +433,41 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
             className="w-full h-11 px-4 rounded-2xl font-bold text-xs bg-emerald-50 hover:bg-emerald-100/80 text-[#064E3B] border border-emerald-200/80 transition-all flex items-center justify-center gap-2 text-center"
           >
             <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>Order or Inquire via WhatsApp (+94 78 784 4914)</span>
+            <span>Order or Inquire via WhatsApp (+94 71 489 7262)</span>
           </a>
+
+          {/* Share & Recommend Product Row */}
+          <div className="flex items-center gap-2 pt-0.5">
+            <button
+              type="button"
+              onClick={handleShare}
+              className="flex-1 h-10 px-3.5 rounded-2xl border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-700 font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-2xs hover:border-slate-300 active:scale-98 cursor-pointer"
+              title="Share product with friends"
+            >
+              {isCopied ? (
+                <>
+                  <Check className="w-4 h-4 text-emerald-600 stroke-[3]" />
+                  <span className="text-emerald-700">Link Copied to Clipboard!</span>
+                </>
+              ) : (
+                <>
+                  <Share2 className="w-4 h-4 text-slate-600" />
+                  <span>Share Product</span>
+                </>
+              )}
+            </button>
+
+            <a
+              href={shareOnWhatsAppUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="h-10 px-3.5 rounded-2xl border border-emerald-200/90 bg-emerald-50 hover:bg-emerald-100/80 text-[#064E3B] font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs shrink-0 active:scale-98"
+              title="Send product directly on WhatsApp"
+            >
+              <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Share on WhatsApp</span>
+            </a>
+          </div>
 
           {/* ⚡ INSTANT FAST CASH ON DELIVERY (COD) ORDER FORM */}
           {!product.inquiryOnly && !isSizeOutOfStock && showFastCodForm && (
@@ -697,6 +780,43 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
           <div className="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
             <span>⚡ Estimated Arrival: <strong className="text-slate-800">{deliveryInfo.eta}</strong></span>
             <span className="text-slate-400">Islandwide Tracked Delivery</span>
+          </div>
+        </div>
+      )}
+
+      {/* 🛒 Real-time Mobile "Added to Cart" Toast Alert */}
+      {showCartToast && (
+        <div className="fixed bottom-4 left-3 right-3 sm:left-auto sm:right-6 sm:bottom-6 sm:max-w-md z-50 bg-[#064E3B] text-white p-3.5 sm:p-4 rounded-2xl shadow-2xl border border-emerald-400/40 flex items-center justify-between gap-3 animate-slideUp backdrop-blur-sm">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0 border border-white/20">
+              <ShoppingBag className="w-5 h-5 text-emerald-300" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-xs font-black text-white flex items-center gap-1.5">
+                <Check className="w-3.5 h-3.5 text-emerald-300 stroke-[3]" />
+                <span>Added to Cart!</span>
+              </div>
+              <p className="text-[11px] text-emerald-100 truncate mt-0.5">
+                {quantity}x {product.title}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              href="/cart"
+              className="px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-1 active:scale-95"
+            >
+              <span>View Cart</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+            <button
+              type="button"
+              onClick={() => setShowCartToast(false)}
+              className="w-7 h-7 rounded-lg text-emerald-200 hover:text-white hover:bg-white/10 flex items-center justify-center transition-colors"
+              aria-label="Dismiss notification"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
         </div>
       )}

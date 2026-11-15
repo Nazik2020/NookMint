@@ -15,13 +15,13 @@ export const AnnouncementBar: React.FC = () => {
         <div className="hidden md:flex items-center gap-4 text-emerald-100/90 text-[11px]">
           <span className="text-emerald-400/60">•</span>
           <a
-            href="https://wa.me/94787844914?text=Hello%20NookMint"
+            href="https://wa.me/94714897262?text=Hello%20NookMint"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 hover:text-white transition-colors"
           >
             <MessageCircle className="w-3.5 h-3.5 text-emerald-300" />
-            <span>WhatsApp Orders: +94 78 784 4914</span>
+            <span>WhatsApp Orders: +94 71 489 7262</span>
           </a>
         </div>
       </div>

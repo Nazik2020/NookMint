@@ -151,13 +151,13 @@ export default function CustomerDashboardPage() {
 
         <div className="flex flex-col sm:flex-row items-center gap-3 z-10 w-full md:w-auto">
           <a
-            href="https://wa.me/94787844914?text=Hello%20NookMint,%20I%20have%20an%20order%20inquiry"
+            href="https://wa.me/94714897262?text=Hello%20NookMint,%20I%20have%20an%20order%20inquiry"
             target="_blank"
             rel="noopener noreferrer"
             className="w-full sm:w-auto px-5 py-3.5 bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs font-extrabold rounded-xl transition-all shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2 cursor-pointer"
           >
             <MessageCircle className="w-4 h-4" />
-            <span>WhatsApp Support (+94 78 784 4914)</span>
+            <span>WhatsApp Support (+94 71 489 7262)</span>
           </a>
 
           <Link
@@ -365,7 +365,7 @@ export default function CustomerDashboardPage() {
 
                         <div className="flex flex-wrap items-center gap-2">
                           <a
-                            href={`https://wa.me/94787844914?text=${encodeURIComponent(
+                            href={`https://wa.me/94714897262?text=${encodeURIComponent(
                               `Hello NookMint! 👋\nI am inquiring about my Order #${order.orderNumber}.\nCustomer: ${order.shippingAddress.fullName}\nPhone: ${order.shippingAddress.phone}\nPlease let me know the status of my order and WhatsApp invoice.`
                             )}`}
                             target="_blank"
@@ -500,7 +500,7 @@ export default function CustomerDashboardPage() {
                       View Order Receipt
                     </Link>
                     <a
-                      href={`https://wa.me/94787844914?text=Hello%20NookMint,%20inquiring%20about%20Order%20%23${resOrder.orderNumber}`}
+                      href={`https://wa.me/94714897262?text=Hello%20NookMint,%20inquiring%20about%20Order%20%23${resOrder.orderNumber}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-4 py-2 bg-[#25D366] text-white text-xs font-bold rounded-xl hover:bg-[#20bd5a] transition-colors flex items-center gap-1.5"
@@ -570,13 +570,13 @@ export default function CustomerDashboardPage() {
                 <span className="text-slate-500 text-[11px]">Our WhatsApp support is active daily.</span>
               </div>
               <a
-                href="https://wa.me/94787844914?text=Hi%20NookMint!%20I%20have%20a%20question%20about%20Cash%20on%20Delivery%20orders."
+                href="https://wa.me/94714897262?text=Hi%20NookMint!%20I%20have%20a%20question%20about%20Cash%20on%20Delivery%20orders."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-4 py-2 bg-[#25D366] hover:bg-[#20bd5a] text-white font-extrabold text-xs rounded-xl shadow-xs flex items-center justify-center gap-1.5 shrink-0"
               >
                 <MessageCircle className="w-4 h-4" />
-                <span>WhatsApp +94 78 784 4914</span>
+                <span>WhatsApp +94 71 489 7262</span>
               </a>
             </div>
           </div>

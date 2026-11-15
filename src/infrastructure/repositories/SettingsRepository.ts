@@ -43,8 +43,8 @@ export class SettingsRepository {
           districtRates: [...DEFAULT_DISTRICT_RATES],
         },
         contact: {
-          phone: '+94 78 784 4914',
-          whatsapp: '94787844914',
+          phone: '+94 71 489 7262',
+          whatsapp: '94714897262',
           address: 'NookMint Operations Center, Colombo, Sri Lanka',
           email: 'support@nookmint.lk',
           workingHours: 'Mon - Sat: 8:30 AM - 7:30 PM | Direct Orders & WhatsApp 24/7',
@@ -72,8 +72,8 @@ export class SettingsRepository {
           districtRates: [...DEFAULT_DISTRICT_RATES],
         },
         contact: stored?.contact || {
-          phone: '+94 78 784 4914',
-          whatsapp: '94787844914',
+          phone: '+94 71 489 7262',
+          whatsapp: '94714897262',
           address: 'Innovative Consultants HQ, High-Level Road, Colombo, Sri Lanka',
           email: 'orders@innovative.lk',
           workingHours: 'Mon - Sat: 8:30 AM - 7:30 PM | Direct Orders & WhatsApp 24/7',

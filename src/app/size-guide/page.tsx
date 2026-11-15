@@ -275,7 +275,7 @@ export default function SizeGuidePage() {
           <p className="text-xs text-slate-500">
             Still unsure about the best size for your little one?{' '}
             <a
-              href="https://wa.me/94787844914?text=Hello%20NookMint!%20Could%20you%20help%20me%20choose%20the%20right%20size?"
+              href="https://wa.me/94714897262?text=Hello%20NookMint!%20Could%20you%20help%20me%20choose%20the%20right%20size?"
               target="_blank"
               rel="noopener noreferrer"
               className="font-bold text-blue-600 hover:underline inline-flex items-center gap-1"

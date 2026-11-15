@@ -144,7 +144,7 @@ export const OrderSuccessClient: React.FC<{ order: Order }> = ({ order }) => {
         {/* 4. Action Buttons */}
         <div className="pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-center gap-3">
           <a
-            href={`https://wa.me/94787844914?text=${whatsappMessage}`}
+            href={`https://wa.me/94714897262?text=${whatsappMessage}`}
             target="_blank"
             rel="noopener noreferrer"
             className="w-full sm:w-auto px-6 py-3.5 bg-[#25D366] hover:bg-[#20bd5a] text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2"

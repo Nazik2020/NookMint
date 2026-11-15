@@ -60,7 +60,7 @@ const FAQ_DATA: FAQItem[] = [
     category: 'returns',
     question: 'What is your product return and replacement policy?',
     answer:
-      'We offer an effortless replacement policy for all household items, kitchenware, gardening tools, and smart gadgets. If your package arrives damaged or defective, simply notify our WhatsApp support desk at +94 78 784 4914 within 7 days with a short photo/video. We promptly dispatch a replacement unit or coordinate an immediate resolution.',
+      'We offer an effortless replacement policy for all household items, kitchenware, gardening tools, and smart gadgets. If your package arrives damaged or defective, simply notify our WhatsApp support desk at +94 71 489 7262 within 7 days with a short photo/video. We promptly dispatch a replacement unit or coordinate an immediate resolution.',
   },
   {
     category: 'fabric',
@@ -245,7 +245,7 @@ export default function FAQPage() {
           </p>
           <div className="pt-1">
             <a
-              href="https://wa.me/94787844914?text=Hello%20NookMint!%20I%20have%20a%20question%20about%20my%20order"
+              href="https://wa.me/94714897262?text=Hello%20NookMint!%20I%20have%20a%20question%20about%20my%20order"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-6 py-3 bg-[#25D366] hover:bg-[#20bd5a] text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md shadow-emerald-500/20 active:scale-98"

@@ -76,7 +76,7 @@ export const HeroSection: React.FC = () => {
             </Link>
 
             <a
-              href="https://wa.me/94787844914?text=Hello%20NookMint%2C%20I%20would%20like%20to%20order"
+              href="https://wa.me/94714897262?text=Hello%20NookMint%2C%20I%20would%20like%20to%20order"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-3 sm:py-3.5 bg-white/95 hover:bg-white text-slate-800 hover:text-[#004D40] border border-slate-200/90 font-bold text-xs sm:text-sm rounded-xl shadow-2xs hover:shadow-xs transition-all active:scale-98 text-center"

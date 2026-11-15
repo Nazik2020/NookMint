@@ -58,7 +58,7 @@ export default function PrivacyPage() {
         <section className="space-y-2">
           <h2 className="text-base font-black text-slate-900">5. Contact Our Privacy Team</h2>
           <p>
-            If you wish to review, update, or request the deletion of your order contact record, please reach out to us at <strong>orders@innovative.lk</strong> or WhatsApp <strong>+94 78 784 4914</strong>.
+            If you wish to review, update, or request the deletion of your order contact record, please reach out to us at <strong>orders@innovative.lk</strong> or WhatsApp <strong>+94 71 489 7262</strong>.
           </p>
         </section>
       </div>

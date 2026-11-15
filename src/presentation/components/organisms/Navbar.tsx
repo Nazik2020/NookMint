@@ -180,13 +180,13 @@ export const Navbar: React.FC = () => {
           {/* WhatsApp Direct Order Concierge */}
           <div className="pt-2">
             <a
-              href="https://wa.me/94787844914?text=Hello%20NookMint%2C%20I%20would%20like%20to%20order"
+              href="https://wa.me/94714897262?text=Hello%20NookMint%2C%20I%20would%20like%20to%20order"
               target="_blank"
               rel="noopener noreferrer"
               className="w-full py-3.5 bg-[#25D366] hover:bg-[#20bd5a] text-white font-extrabold text-xs uppercase tracking-wider rounded-2xl flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 active:scale-98"
             >
               <MessageCircle className="w-4.5 h-4.5" />
-              <span>Order on WhatsApp (+94 78 784 4914)</span>
+              <span>Order on WhatsApp (+94 71 489 7262)</span>
             </a>
           </div>
 
@@ -233,7 +233,7 @@ export const Navbar: React.FC = () => {
           <div className="flex items-center gap-4 sm:gap-6">
             {/* WhatsApp Direct Ordering */}
             <a
-              href="https://wa.me/94787844914?text=Hello%20NookMint%2C%20I%20would%20like%20to%20order"
+              href="https://wa.me/94714897262?text=Hello%20NookMint%2C%20I%20would%20like%20to%20order"
               target="_blank"
               rel="noopener noreferrer"
               className="hidden sm:inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700 hover:text-emerald-700 transition-colors"

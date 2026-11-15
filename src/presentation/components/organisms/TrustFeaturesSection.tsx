@@ -51,7 +51,7 @@ export const TrustFeaturesSection: React.FC = () => {
 
           <div className="pt-2 border-t border-white/10">
             <a
-              href="https://wa.me/94787844914?text=Hello%20NookMint%2C%20I%20have%20a%20question%20about%20my%20order."
+              href="https://wa.me/94714897262?text=Hello%20NookMint%2C%20I%20have%20a%20question%20about%20my%20order."
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-300 hover:text-white transition-colors"

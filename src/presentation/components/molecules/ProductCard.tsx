@@ -40,7 +40,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     setTimeout(() => setIsAdded(false), 1500);
   };
 
-  const whatsappInquiryUrl = `https://wa.me/94787844914?text=${encodeURIComponent(
+  const whatsappInquiryUrl = `https://wa.me/94714897262?text=${encodeURIComponent(
     `Hello! I would like to order: ${product.title} (${formatLKR(product.sellingPrice)})`
   )}`;
 
@@ -75,7 +75,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             className="object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
             loading="lazy"
             decoding="async"
-            unoptimized
+            unoptimized={imgSrc.startsWith('http') && !imgSrc.includes('unsplash.com') && !imgSrc.includes('supabase.co')}
             onError={() => {
               const fallback = LOCAL_FALLBACKS[product.id] || '/nookmint_images/hero.png';
               if (imgSrc !== fallback) {

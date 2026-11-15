@@ -26,7 +26,7 @@ export default function ReturnsPage() {
             </p>
             <div className="pt-2">
               <a
-                href="https://wa.me/94787844914?text=Hello%20NookMint!%20I%20would%20like%20to%20request%20an%20exchange%20or%20return%20for%20my%20order"
+                href="https://wa.me/94714897262?text=Hello%20NookMint!%20I%20would%20like%20to%20request%20an%20exchange%20or%20return%20for%20my%20order"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-[#25D366] hover:bg-[#20bd5a] text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md shadow-emerald-500/20 active:scale-98"
@@ -58,7 +58,7 @@ export default function ReturnsPage() {
             </span>
             <h3 className="font-serif font-black text-base text-slate-900">Notify Us on WhatsApp</h3>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Send a quick message to our team at <strong>+94 78 784 4914</strong> with your Order Number (e.g. NM-2026-XXXX) and issue details.
+              Send a quick message to our team at <strong>+94 71 489 7262</strong> with your Order Number (e.g. NM-2026-XXXX) and issue details.
             </p>
           </div>
 

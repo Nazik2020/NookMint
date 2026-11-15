@@ -2,6 +2,7 @@
 const nextConfig = {
   output: 'standalone',
   reactStrictMode: true,
+  devIndicators: false,
   images: {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [360, 480, 640, 750, 828, 1080, 1200, 1920],

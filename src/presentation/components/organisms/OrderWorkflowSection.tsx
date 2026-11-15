@@ -74,7 +74,7 @@ export const OrderWorkflowSection: React.FC = () => {
           </div>
 
           <a
-            href="https://wa.me/94787844914?text=Hello%20NookMint%2C%20I%20have%20a%20question%20about%20an%20order"
+            href="https://wa.me/94714897262?text=Hello%20NookMint%2C%20I%20have%20a%20question%20about%20an%20order"
             target="_blank"
             rel="noopener noreferrer"
             className="px-5 py-2.5 bg-[#004D40] hover:bg-[#00382E] text-white font-bold text-xs sm:text-sm rounded-xl transition-all shadow-xs hover:scale-101 active:scale-98 flex items-center gap-2 shrink-0"

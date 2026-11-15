@@ -205,8 +205,8 @@ export const CodCheckoutForm: React.FC = () => {
       {/* Checkout Form */}
       <form onSubmit={handleSubmit} className="lg:col-span-7 space-y-6">
         {/* Step 1: Delivery Address */}
-        <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200/80 shadow-2xs space-y-5">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="bg-white p-4.5 sm:p-7 rounded-3xl border border-slate-200/80 shadow-2xs space-y-5">
+          <div className="flex flex-col xs:flex-row sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 border-b border-slate-100 pb-3">
             <h2 className="text-base font-bold text-slate-900 font-serif flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-[#064E3B] text-white text-xs flex items-center justify-center font-sans font-extrabold">
                 1
@@ -387,31 +387,31 @@ export const CodCheckoutForm: React.FC = () => {
         </div>
 
         {/* Step 2: Payment Mode - Strictly 100% Cash on Delivery (COD) */}
-        <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200/80 shadow-2xs space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="bg-white p-4.5 sm:p-7 rounded-3xl border border-slate-200/80 shadow-2xs space-y-4">
+          <div className="flex flex-col xs:flex-row sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 border-b border-slate-100 pb-3">
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-[#004D40] text-white text-xs flex items-center justify-center font-sans font-extrabold">
+              <span className="w-6 h-6 rounded-full bg-[#004D40] text-white text-xs flex items-center justify-center font-sans font-extrabold shrink-0">
                 2
               </span>
               <span>Payment Mode</span>
             </h2>
-            <span className="text-[11px] font-extrabold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
+            <span className="text-[10px] sm:text-[11px] font-extrabold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 sm:py-1 rounded-md border border-emerald-200 self-start xs:self-auto sm:self-auto">
               100% Cash on Delivery (COD)
             </span>
           </div>
 
-          <div className="p-4 sm:p-5 rounded-2xl border-2 border-emerald-600/30 bg-emerald-50/50 flex items-start gap-3.5">
-            <Banknote className="w-6 h-6 text-[#004D40] shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="font-extrabold text-sm sm:text-base text-slate-900">
+          <div className="p-3.5 sm:p-5 rounded-2xl border-2 border-emerald-600/30 bg-emerald-50/50 flex items-start gap-3">
+            <Banknote className="w-5 h-5 sm:w-6 sm:h-6 text-[#004D40] shrink-0 mt-0.5" />
+            <div className="space-y-1.5 flex-1 min-w-0">
+              <div className="flex flex-col xs:flex-row xs:items-center gap-1.5 sm:gap-2">
+                <span className="font-extrabold text-xs sm:text-base text-slate-900">
                   Cash on Delivery (Doorstep Payment)
                 </span>
-                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 uppercase">
+                <span className="text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 uppercase tracking-wide w-fit">
                   Zero Advance Payment
                 </span>
               </div>
-              <p className="text-xs text-slate-600 leading-relaxed">
+              <p className="text-[11px] sm:text-xs text-slate-600 leading-relaxed">
                 Pay cash to our courier partner at your doorstep only after receiving and inspecting your package. No bank deposit or credit card needed!
               </p>
             </div>
@@ -428,30 +428,35 @@ export const CodCheckoutForm: React.FC = () => {
         <button
           type="submit"
           disabled={isSubmitting || items.length === 0}
-          className="w-full py-4 bg-[#EA580C] hover:bg-[#C2410C] disabled:opacity-50 text-white font-extrabold uppercase tracking-wider rounded-2xl shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-600 active:scale-98"
+          className="w-full px-4 py-3.5 sm:py-4 bg-[#EA580C] hover:bg-[#C2410C] disabled:opacity-50 text-white rounded-2xl shadow-lg shadow-orange-500/25 transition-all flex flex-col items-center justify-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-600 active:scale-[0.99] cursor-pointer"
         >
           {isSubmitting ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Submitting Your Order...</span>
-            </>
+            <div className="flex items-center justify-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin text-white" />
+              <span className="font-extrabold text-xs sm:text-sm uppercase tracking-wider">Submitting Your Order...</span>
+            </div>
           ) : hasDropship ? (
             <>
-              <MessageCircle className="w-4 h-4 text-emerald-300" />
-              <span>Confirm Order (Invoice will be sent to your WhatsApp)</span>
+              <div className="flex items-center justify-center gap-2 font-black text-xs sm:text-sm uppercase tracking-wider">
+                <MessageCircle className="w-4.5 h-4.5 text-emerald-200 shrink-0 fill-emerald-200/20" />
+                <span>Confirm Cash on Delivery Order</span>
+              </div>
+              <span className="text-[10px] sm:text-[11px] text-amber-100 font-medium normal-case tracking-normal">
+                Courier fee &amp; official invoice will be sent to your WhatsApp
+              </span>
             </>
           ) : (
-            <>
-              <ShieldCheck className="w-4 h-4" />
-              <span>Confirm Cash on Delivery Order • {formatLKR(finalGrandTotal)}</span>
-            </>
+            <div className="flex items-center justify-center gap-2">
+              <ShieldCheck className="w-4.5 h-4.5 text-emerald-200 shrink-0" />
+              <span className="font-black text-xs sm:text-sm uppercase tracking-wider">Confirm Cash on Delivery Order • {formatLKR(finalGrandTotal)}</span>
+            </div>
           )}
         </button>
       </form>
 
       {/* Order Summary Sidebar */}
       <div className="lg:col-span-5 space-y-4">
-        <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200/80 shadow-2xs space-y-4">
+        <div className="bg-white p-4.5 sm:p-7 rounded-3xl border border-slate-200/80 shadow-2xs space-y-4">
           <h3 className="font-extrabold text-sm text-slate-900 border-b border-slate-100 pb-3 font-serif">
             Order Summary ({summary.itemsCount} Items)
           </h3>
@@ -465,6 +470,7 @@ export const CodCheckoutForm: React.FC = () => {
                     alt={item.product.title}
                     fill
                     sizes="56px"
+                    unoptimized={item.product.images[0]?.startsWith('http') && !item.product.images[0]?.includes('unsplash.com') && !item.product.images[0]?.includes('supabase.co')}
                     className="object-cover object-top"
                   />
                 </div>
@@ -514,14 +520,14 @@ export const CodCheckoutForm: React.FC = () => {
               </div>
             )}
 
-            <div className="pt-3 border-t border-slate-200 flex justify-between items-baseline">
-              <div>
+            <div className="pt-3 border-t border-slate-200 flex justify-between items-baseline gap-3">
+              <div className="min-w-0 pr-1">
                 <span className="text-sm font-black text-slate-900 font-serif">Total Payable:</span>
                 <p className="text-[10px] text-slate-500 font-medium">
                   {hasDropship ? 'Product price only • Courier fee on WhatsApp invoice' : 'All taxes & packaging included'}
                 </p>
               </div>
-              <span className="text-lg font-black text-slate-900 font-sans tracking-tight">
+              <span className="text-base sm:text-lg font-black text-slate-900 font-mono tracking-tight shrink-0 whitespace-nowrap text-right">
                 {formatLKR(finalGrandTotal)}
               </span>
             </div>

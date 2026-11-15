@@ -43,7 +43,7 @@ export const Footer: React.FC = () => {
             <h4 className="font-extrabold text-xs sm:text-sm tracking-wider uppercase text-white">Help</h4>
             <ul className="space-y-2 text-xs sm:text-sm text-emerald-100/80 font-normal">
               <li><Link href="/delivery" className="hover:text-white transition-colors">How to Order (COD)</Link></li>
-              <li><a href="https://wa.me/94787844914?text=Hello%20NookMint,%20I%20would%20like%20to%20check%20my%20order%20status" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Order Inquiries (WhatsApp)</a></li>
+              <li><a href="https://wa.me/94714897262?text=Hello%20NookMint,%20I%20would%20like%20to%20check%20my%20order%20status" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Order Inquiries (WhatsApp)</a></li>
               <li><Link href="/faq" className="hover:text-white transition-colors">FAQs</Link></li>
               <li><Link href="/returns" className="hover:text-white transition-colors">Return Policy</Link></li>
             </ul>
@@ -66,7 +66,7 @@ export const Footer: React.FC = () => {
             <ul className="space-y-2.5 text-xs sm:text-sm text-emerald-100/80 font-normal">
               <li>
                 <a
-                  href="https://wa.me/94787844914?text=Hello%20NookMint%2C%20I%20have%20an%20inquiry"
+                  href="https://wa.me/94714897262?text=Hello%20NookMint%2C%20I%20have%20an%20inquiry"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 hover:text-white transition-colors"
@@ -77,11 +77,11 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <a
-                  href="tel:+94787844914"
+                  href="tel:+94714897262"
                   className="flex items-center gap-2 hover:text-white transition-colors"
                 >
                   <Phone className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
-                  <span>+94 78 784 4914</span>
+                  <span>+94 71 489 7262</span>
                 </a>
               </li>
               <li>

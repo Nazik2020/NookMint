@@ -12,7 +12,7 @@ export const WhatsAppButton: React.FC = () => {
   return (
     <aside aria-label="WhatsApp Order Concierge" className="fixed bottom-5 right-5 sm:bottom-7 sm:right-7 z-50 group">
       <a
-        href="https://wa.me/94787844914?text=Hello%20NookMint!%20I%20would%20like%20to%20place%20an%20order%20or%20inquire%20about%20products."
+        href="https://wa.me/94714897262?text=Hello%20NookMint!%20I%20would%20like%20to%20place%20an%20order%20or%20inquire%20about%20products."
         target="_blank"
         rel="noopener noreferrer"
         className="flex items-center gap-2.5 px-4 py-3 bg-[#128C7E] hover:bg-[#075E54] text-white font-bold text-xs rounded-full shadow-lg shadow-emerald-950/20 transition-all hover:scale-105 active:scale-95 border-2 border-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"

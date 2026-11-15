@@ -22,7 +22,7 @@ export const WhatsAppSupportBar: React.FC = () => {
 
         {/* Right Button matching Reference Image 1 */}
         <a
-          href="https://wa.me/94787844914?text=Hello%20Your%20Brand%2C%20I%20have%20a%20question%20about%20my%20order"
+          href="https://wa.me/94714897262?text=Hello%20Your%20Brand%2C%20I%20have%20a%20question%20about%20my%20order"
           target="_blank"
           rel="noopener noreferrer"
           className="px-5 py-2.5 bg-[#004D40] hover:bg-[#00382E] text-white font-bold text-xs sm:text-sm rounded-lg transition-all shadow-2xs flex items-center gap-2 shrink-0"

@@ -67,7 +67,7 @@ export default function ContactPage() {
           <div className="lg:col-span-5 space-y-5">
             {/* WhatsApp Primary Card */}
             <a
-              href="https://wa.me/94787844914?text=Hello%20NookMint!%20I%20have%20an%20order%20inquiry"
+              href="https://wa.me/94714897262?text=Hello%20NookMint!%20I%20have%20an%20order%20inquiry"
               target="_blank"
               rel="noopener noreferrer"
               className="block p-6 rounded-3xl bg-emerald-50 border border-emerald-200/80 hover:border-emerald-500 transition-all group shadow-2xs"
@@ -83,7 +83,7 @@ export default function ContactPage() {
                   <h3 className="font-extrabold text-base text-slate-900">
                     Chat on WhatsApp
                   </h3>
-                  <p className="text-xs text-slate-700 font-mono font-bold">+94 78 784 4914</p>
+                  <p className="text-xs text-slate-700 font-mono font-bold">+94 71 489 7262</p>
                 </div>
               </div>
               <p className="text-xs text-slate-600 mt-3 pt-3 border-t border-emerald-200/60 leading-relaxed">
