@@ -1,54 +1,54 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Calendar, Clock, ArrowRight, Sparkles, BookOpen, Heart } from 'lucide-react';
+import { Calendar, Clock, ArrowRight, BookOpen, Layers } from 'lucide-react';
 
 export const metadata = {
-  title: 'The LittleStyles Journal | Parenting, Organic Fabrics & Kids Fashion Sri Lanka',
-  description: 'Care guides, tropical styling tips, and parenting insights from LittleStyles Sri Lanka.',
+  title: 'Insights & Guides | Innovative Consultants',
+  description: 'Guides on multi-category sourcing, Cash on Delivery fulfillment, and Sri Lankan retail operations.',
 };
 
 export default function BlogIndexPage() {
   const articles = [
     {
-      slug: 'why-pure-organic-cotton-matters',
-      title: 'Why 100% Pure Organic Cotton is Essential for Tropical Baby Skin',
-      excerpt: 'Discover why breathable, chemical-free GOTS organic cotton keeps infants and toddlers rash-free and cool under Sri Lankan tropical humidity.',
-      date: 'October 20, 2026',
+      slug: 'multi-category-commerce-guide',
+      title: 'How Multi-Category E-Commerce Simplifies Everyday Living',
+      excerpt: 'Discover how combining groceries, household goods, fashion, and personal electric mobility on a single platform eliminates checkout friction.',
+      date: 'November 02, 2026',
       readTime: '4 min read',
-      tag: 'FABRIC SCIENCE',
-      tagColor: 'bg-emerald-50 text-emerald-800 border-emerald-200',
-      image: '/images/products/floral-dress.jpg',
-    },
-    {
-      slug: 'how-to-choose-the-right-size-for-toddlers',
-      title: 'Sizing Your Little One: The Sri Lankan Parents Guide to Perfect Fit',
-      excerpt: 'Kids grow fast! Learn our practical tips for measuring chest, torso, and inseam to choose outfits with plenty of room for play.',
-      date: 'October 16, 2026',
-      readTime: '3 min read',
-      tag: 'FIT & SIZING',
-      tagColor: 'bg-[#FFF0F3] text-[#FF758F] border-rose-200/80',
-      image: '/images/products/bomber-jacket.jpg',
+      tag: 'COMMERCE & RETAIL',
+      tagColor: 'bg-blue-50 text-blue-700 border-blue-200',
+      image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&auto=format&fit=crop&q=80',
     },
     {
       slug: 'doorstep-cod-guide-across-all-25-districts',
       title: 'How Cash on Delivery (COD) Works Across Sri Lanka',
-      excerpt: 'Step-by-step walkthrough of doorstep courier verification, package handover, and hassle-free 30-day size swaps.',
-      date: 'October 12, 2026',
+      excerpt: 'Step-by-step walkthrough of doorstep courier verification, package handover, and zero-advance payment safety.',
+      date: 'October 28, 2026',
       readTime: '5 min read',
-      tag: 'SHOPPING GUIDE',
-      tagColor: 'bg-amber-50 text-amber-800 border-amber-200',
-      image: '/images/products/baby-knit-romper.jpg',
+      tag: 'LOGISTICS & COD',
+      tagColor: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+      image: 'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?w=800&auto=format&fit=crop&q=80',
     },
     {
-      slug: 'festive-pastels-kids-occasion-wear',
-      title: 'Pastel Perfection: Styling Kids for Birthdays, Weddings & Family Milestones',
-      excerpt: 'Soft dusky corals, sage greens, and honey golds that keep your child comfortable and photogenic from morning celebrations to bedtime.',
-      date: 'October 08, 2026',
+      slug: 'tri-ply-cookware-maintenance',
+      title: 'The Chef’s Guide: Maintaining Tri-Ply Induction Cookware for Decades',
+      excerpt: 'Proper seasoning, heat control, and washing techniques for 18/10 stainless steel pots and pans.',
+      date: 'October 22, 2026',
+      readTime: '3 min read',
+      tag: 'HOME ESSENTIALS',
+      tagColor: 'bg-amber-50 text-amber-800 border-amber-200',
+      image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&auto=format&fit=crop&q=80',
+    },
+    {
+      slug: 'electric-vehicles-urban-mobility-sri-lanka',
+      title: 'The Future of Commuting: Electric Scooters & E-Bikes in Sri Lanka',
+      excerpt: 'Cost per kilometer calculations, lithium battery longevity, and how personal electric mobility is changing urban travel in Colombo.',
+      date: 'October 15, 2026',
       readTime: '4 min read',
-      tag: 'STYLE & INSPIRATION',
-      tagColor: 'bg-blue-50 text-blue-800 border-blue-200',
-      image: '/images/products/heart-sweatshirt.jpg',
+      tag: 'SMART MOBILITY',
+      tagColor: 'bg-teal-50 text-teal-800 border-teal-200',
+      image: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=800&auto=format&fit=crop&q=80',
     },
   ];
 
@@ -56,95 +56,73 @@ export default function BlogIndexPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 space-y-12">
       {/* Header */}
       <div className="text-center max-w-2xl mx-auto space-y-3">
-        <span className="text-[11px] font-black uppercase tracking-[0.2em] text-[#FF758F] bg-[#FFF0F3] px-3.5 py-1 rounded-full border border-rose-100 inline-block">
-          THE LITTLESTYLES JOURNAL
+        <span className="text-[11px] font-black uppercase tracking-[0.2em] text-blue-700 bg-blue-50 px-3.5 py-1 rounded-full border border-blue-200/80 inline-block">
+          INNOVATIVE INSIGHTS & JOURNAL
         </span>
-        <h1 className="text-3xl sm:text-5xl font-black text-slate-900 font-serif tracking-tight">
-          Parenting & Style Stories
+        <h1 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+          Articles, Guides & Stories
         </h1>
         <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
-          Expert care tips, fabric insights, and thoughtful advice for dressing happy, confident little adventurers in Sri Lanka.
+          Expert shopping guides, product care insights, and practical advice on ordering essentials across Sri Lanka.
         </p>
       </div>
 
       {/* Featured Articles Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {articles.map((art) => (
+        {articles.map((article) => (
           <article
-            key={art.slug}
-            className="group bg-white rounded-3xl border border-slate-200/80 shadow-2xs overflow-hidden flex flex-col justify-between hover:shadow-md transition-all duration-300"
+            key={article.slug}
+            className="group bg-white rounded-3xl overflow-hidden border border-slate-200/80 shadow-2xs hover:shadow-md transition-all flex flex-col"
           >
-            <div>
-              {/* Image Frame */}
-              <div className="relative aspect-16/9 bg-[#FAF6F3] overflow-hidden">
-                <Image
-                  src={art.image}
-                  alt={art.title}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-cover object-top group-hover:scale-104 transition-transform duration-500 ease-out"
-                />
-                <span className={`absolute top-4 left-4 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-2xs ${art.tagColor}`}>
-                  {art.tag}
-                </span>
-              </div>
+            <div className="relative h-60 w-full overflow-hidden bg-slate-100">
+              <Image
+                src={article.image}
+                alt={article.title}
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover object-center group-hover:scale-104 transition-transform duration-500"
+              />
+              <span className={`absolute top-3 left-3 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md border shadow-xs ${article.tagColor}`}>
+                {article.tag}
+              </span>
+            </div>
 
-              {/* Content */}
-              <div className="p-6 sm:p-7 space-y-3">
-                <div className="flex items-center gap-3 text-xs text-slate-400 font-medium">
-                  <span className="flex items-center gap-1.5">
+            <div className="p-6 sm:p-7 flex-1 flex flex-col justify-between space-y-3">
+              <div className="space-y-2">
+                <div className="flex items-center gap-3 text-slate-400 text-xs font-medium">
+                  <span className="flex items-center gap-1">
                     <Calendar className="w-3.5 h-3.5" />
-                    <span>{art.date}</span>
+                    <span>{article.date}</span>
                   </span>
                   <span>•</span>
-                  <span className="flex items-center gap-1.5">
+                  <span className="flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5" />
-                    <span>{art.readTime}</span>
+                    <span>{article.readTime}</span>
                   </span>
                 </div>
 
-                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 font-serif leading-snug group-hover:text-[#FF758F] transition-colors">
-                  {art.title}
+                <h2 className="text-lg sm:text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors leading-snug">
+                  {article.title}
                 </h2>
 
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
-                  {art.excerpt}
+                <p className="text-xs text-slate-600 leading-relaxed font-normal">
+                  {article.excerpt}
                 </p>
               </div>
-            </div>
 
-            <div className="px-6 sm:px-7 pb-6 sm:pb-7 pt-2 border-t border-slate-100 flex items-center justify-between">
-              <Link
-                href="/products"
-                className="text-xs font-extrabold uppercase tracking-wider text-[#FF758F] hover:text-[#E0486D] flex items-center gap-1.5 transition-colors"
-              >
-                <span>Explore Related Outfits</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-              <span className="text-[11px] text-slate-400 font-medium">LittleStyles Atelier</span>
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                <Link
+                  href="/products"
+                  className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                >
+                  <span>Explore Catalogue</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+                <span className="text-[11px] text-slate-400 font-medium">NookMint</span>
+              </div>
             </div>
           </article>
         ))}
-      </div>
-
-      {/* Newsletter Banner */}
-      <div className="rounded-3xl bg-[#FAF6F3] p-8 sm:p-12 border border-slate-200/80 text-center space-y-4 max-w-2xl mx-auto">
-        <div className="w-12 h-12 rounded-2xl bg-white text-[#FF758F] flex items-center justify-center mx-auto shadow-2xs">
-          <Heart className="w-6 h-6 stroke-[1.8]" />
-        </div>
-        <h3 className="font-serif font-black text-2xl text-slate-900">Join the LittleStyles Parenting Circle</h3>
-        <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-          Be the first to receive secret seasonal drops, organic care guides, and exclusive discount codes right in your inbox.
-        </p>
-        <div className="pt-2">
-          <Link
-            href="/products"
-            className="inline-flex items-center gap-2 px-7 py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-xs"
-          >
-            <span>Explore All Outfits</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
       </div>
     </div>
   );

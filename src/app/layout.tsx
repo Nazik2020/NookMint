@@ -5,8 +5,8 @@ import { Navbar } from '@/presentation/components/organisms/Navbar';
 import { Footer } from '@/presentation/components/organisms/Footer';
 
 export const metadata: Metadata = {
-  title: 'LittleStyles | Luxury Kids Boutique • Sri Lanka COD',
-  description: 'Handcrafted kids wear, organic cotton rompers, party frocks & daily comfortable clothing with Islandwide Cash on Delivery across Sri Lanka.',
+  title: 'NookMint | Home, Garden & Smart Tech Gadgets • Sri Lanka COD',
+  description: 'NookMint - Online ordering store for household essentials, kitchenware, home & garden supplies, and smart audio gadgets like earbuds & wireless mics. Islandwide Cash on Delivery across Sri Lanka.',
 };
 
 export const viewport: Viewport = {
@@ -22,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="overflow-x-hidden w-full max-w-full">
-      <body className="min-h-screen flex flex-col bg-white text-slate-900 antialiased overflow-x-hidden w-full max-w-full selection:bg-rose-100 selection:text-rose-900">
+      <body className="min-h-screen flex flex-col bg-white text-slate-900 antialiased overflow-x-hidden w-full max-w-full selection:bg-blue-100 selection:text-blue-900">
         <CartProvider>
           <Navbar />
           <main className="flex-1">{children}</main>

@@ -45,7 +45,7 @@ export const ProductGallery: React.FC<ProductGalleryProps> = ({ images, title })
         {/* Counter Badge */}
         {safeImages.length > 1 && (
           <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-slate-900/70 backdrop-blur-xs text-white text-[11px] font-mono font-bold flex items-center gap-1.5 shadow-sm z-10">
-            <Eye className="w-3.5 h-3.5 text-[#FF758F]" />
+            <Eye className="w-3.5 h-3.5 text-emerald-400" />
             <span>{selectedIndex + 1} / {safeImages.length}</span>
           </div>
         )}
@@ -56,20 +56,20 @@ export const ProductGallery: React.FC<ProductGalleryProps> = ({ images, title })
             <button
               type="button"
               onClick={handlePrev}
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white text-slate-800 flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110 focus:opacity-100 z-10"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/95 hover:bg-white text-slate-800 flex items-center justify-center shadow-md sm:opacity-0 sm:group-hover:opacity-100 opacity-90 transition-all duration-200 hover:scale-110 focus:opacity-100 z-10 cursor-pointer"
               title="Previous photo"
               aria-label="Previous photo"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-5 h-5 text-slate-800" />
             </button>
             <button
               type="button"
               onClick={handleNext}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white text-slate-800 flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110 focus:opacity-100 z-10"
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/95 hover:bg-white text-slate-800 flex items-center justify-center shadow-md sm:opacity-0 sm:group-hover:opacity-100 opacity-90 transition-all duration-200 hover:scale-110 focus:opacity-100 z-10 cursor-pointer"
               title="Next photo"
               aria-label="Next photo"
             >
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRight className="w-5 h-5 text-slate-800" />
             </button>
           </>
         )}
@@ -85,7 +85,7 @@ export const ProductGallery: React.FC<ProductGalleryProps> = ({ images, title })
               onClick={() => setSelectedIndex(idx)}
               className={`relative aspect-square rounded-2xl overflow-hidden border-2 bg-white transition-all p-0.5 group ${
                 selectedIndex === idx
-                  ? 'border-[#FF758F] ring-3 ring-[#FF758F]/20 shadow-xs scale-102'
+                  ? 'border-[#064E3B] ring-3 ring-[#064E3B]/20 shadow-xs scale-102'
                   : 'border-slate-200 hover:border-slate-300 opacity-70 hover:opacity-100'
               }`}
               title={`View photo ${idx + 1}`}

@@ -28,5 +28,10 @@ next-env.d.ts
 .DS_Store
 Thumbs.db
 
+# Large media
+*.mp4
+*.zip
+*.tar.gz
+
 # Scripts
 scripts/

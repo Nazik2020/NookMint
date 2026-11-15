@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f8faf9"/>
+    </radialGradient>
+    <linearGradient id="ceramicGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#849b7a"/>
+      <stop offset="25%" stop-color="#9eb694"/>
+      <stop offset="65%" stop-color="#738a6a"/>
+      <stop offset="100%" stop-color="#55694d"/>
+    </linearGradient>
+    <linearGradient id="rimGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#55694d"/>
+      <stop offset="50%" stop-color="#9eb694"/>
+      <stop offset="100%" stop-color="#405139"/>
+    </linearGradient>
+    <radialGradient id="interiorGrad" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#3c4c36"/>
+      <stop offset="100%" stop-color="#243020"/>
+    </radialGradient>
+    <filter id="shadow" x="-20%" y="-10%" width="140%" height="130%">
+      <feDropShadow dx="0" dy="14" stdDeviation="10" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+
+  <rect width="400" height="400" fill="url(#bgGrad)"/>
+
+  <!-- Ground Shadow -->
+  <ellipse cx="195" cy="350" rx="90" ry="14" fill="#000000" opacity="0.12"/>
+  <ellipse cx="190" cy="349" rx="65" ry="8" fill="#000000" opacity="0.16"/>
+
+  <g filter="url(#shadow)">
+    <!-- Ergonomic Ceramic Loop Handle on Right matching Reference Image 1 -->
+    <path d="M 235 155 Q 305 160 305 225 Q 305 295 235 295" fill="none" stroke="url(#ceramicGrad)" stroke-width="26" stroke-linecap="round"/>
+    <path d="M 235 155 Q 305 160 305 225 Q 305 295 235 295" fill="none" stroke="#55694d" stroke-width="26" stroke-linecap="round" opacity="0.3"/>
+    <!-- Handle Highlight -->
+    <path d="M 240 160 Q 295 165 295 225 Q 295 285 240 290" fill="none" stroke="#c2d5bb" stroke-width="3" stroke-linecap="round" opacity="0.6"/>
+
+    <!-- Ceramic Mug Body -->
+    <path d="M 125 125 L 255 125 Q 260 280 245 330 Q 240 345 190 345 Q 140 345 135 330 Q 120 280 125 125 Z" fill="url(#ceramicGrad)" stroke="#4d5f46" stroke-width="1.5"/>
+
+    <!-- Vertical Glaze Reflection -->
+    <path d="M 148 135 Q 142 240 148 325" fill="none" stroke="#d5e3cf" stroke-width="12" stroke-linecap="round" opacity="0.35"/>
+    <path d="M 152 145 Q 147 240 152 315" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
+
+    <!-- Mug Rim & Interior -->
+    <ellipse cx="190" cy="125" rx="65" ry="22" fill="url(#rimGrad)" stroke="#405139" stroke-width="1.5"/>
+    <ellipse cx="190" cy="125" rx="58" ry="17" fill="url(#interiorGrad)"/>
+
+    <!-- Fresh Steaming Tea / Coffee surface inside -->
+    <ellipse cx="190" cy="128" rx="52" ry="13" fill="#451a03"/>
+    <ellipse cx="190" cy="128" rx="46" ry="10" fill="#78350f" opacity="0.8"/>
+    <!-- Liquid reflection -->
+    <path d="M 165 126 Q 185 130 205 126" fill="none" stroke="#b45309" stroke-width="2" opacity="0.6"/>
+
+    <!-- Bottom Ceramic Foot Ring -->
+    <path d="M 140 338 Q 190 350 240 338" fill="none" stroke="#364331" stroke-width="3"/>
+  </g>
+</svg>

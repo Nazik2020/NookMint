@@ -34,45 +34,45 @@ const FAQ_DATA: FAQItem[] = [
   },
   {
     category: 'payment',
-    question: 'How do I pay via direct Bank Transfer (BOC, Commercial Bank, HNB)?',
+    question: 'Do I need to pay any advance deposit or bank transfer for Cash on Delivery?',
     answer:
-      'Select "Direct Bank Transfer" during checkout to reserve your items. You will receive our official corporate bank accounts (Commercial Bank, Bank of Ceylon, and Hatton National Bank) along with your unique order reference (e.g. LS-2026-XXXX). After transferring via mobile banking, ATM deposit, or bank counter, simply take a photo or screenshot of your receipt slip and upload it in your Customer Dashboard or WhatsApp it to our team at +94 77 123 4567. We verify and dispatch within 24 hours.',
+      'No! At NookMint, we require zero advance payment or deposit slips. You pay 100% of the listed order total in cash directly to the courier representative when they hand over the package to your doorstep. No credit cards, bank accounts, or deposit receipts are required.',
   },
   {
     category: 'payment',
     question: 'Do I need to create an account or sign in to order?',
     answer:
-      'No! LittleStyles operates strictly on a hassle-free guest checkout model. You do not need to create an account, remember passwords, or sign in. You can track your order anytime using your Order Reference or your phone number via our Customer Dashboard.',
+      'No! NookMint operates strictly on a hassle-free guest checkout model. You do not need to create an account, remember passwords, or sign in. You can track your order anytime using your Order Reference or your phone number via our Customer Dashboard.',
   },
   {
     category: 'shipping',
     question: 'What are the delivery charges and timelines?',
     answer:
-      'Colombo 01-15 delivery is Rs. 350 (Same-Day / Next-Day delivery). Greater Colombo & Western Province (Gampaha, Kalutara) is Rs. 400 (1-2 business days). All other outstation districts across Sri Lanka are Rs. 500 (2-4 business days). Orders over Rs. 5,000 enjoy 100% FREE Islandwide Delivery.',
+      'Colombo 01-15 delivery is Rs. 350 (Same-Day / Next-Day delivery). Western Province (Gampaha, Kalutara) is Rs. 400 (1-2 business days). All other outstation districts across Sri Lanka are Rs. 500 (2-4 business days). Orders over Rs. 5,000 enjoy 100% FREE Islandwide Delivery.',
   },
   {
     category: 'shipping',
     question: 'Which courier services deliver the parcels?',
     answer:
-      'We partner with premier Sri Lankan express logistics providers including Prompt Xpress, Domex Courier, and Pronto. Every parcel receives a unique courier consignment tracking number provided via SMS and updated on your Customer Dashboard.',
+      'We partner with premier Sri Lankan express logistics providers including Prompt Xpress, Domex Courier, and Pronto. Every parcel receives a unique courier consignment tracking number updated on your Customer Dashboard.',
   },
   {
     category: 'returns',
-    question: 'What is your size exchange and returns policy?',
+    question: 'What is your product return and replacement policy?',
     answer:
-      'We offer an effortless 30-day size exchange guarantee. If an outfit does not fit your child perfectly, simply contact our WhatsApp support at +94 77 123 4567 or visit our Returns page. Our courier will bring the replacement size right to your doorstep and collect the original unworn garment simultaneously.',
+      'We offer an effortless replacement policy for all household items, kitchenware, gardening tools, and smart gadgets. If your package arrives damaged or defective, simply notify our WhatsApp support desk at +94 78 784 4914 within 7 days with a short photo/video. We promptly dispatch a replacement unit or coordinate an immediate resolution.',
   },
   {
     category: 'fabric',
-    question: 'Are your fabrics safe for newborns and sensitive toddler skin?',
+    question: 'How do you guarantee product quality across your catalog?',
     answer:
-      'Absolutely! 100% of our baby rompers, sleepwear, and everyday kids clothing are woven from certified GOTS (Global Organic Textile Standard) organic cotton. Our garments are completely free of formaldehyde, heavy metals, azo dyes, and chemical pesticides, keeping your child comfortable in Sri Lanka’s warm, tropical climate.',
+      'Every product on NookMint is thoroughly inspected before courier dispatch. Kitchenware is verified for food-grade BPA-free materials, gardening tools feature durable high-carbon steel construction, and all smart audio gadgets and earbuds undergo power and audio quality checks.',
   },
   {
     category: 'fabric',
-    question: 'How should I wash and care for LittleStyles garments?',
+    question: 'Do smart gadgets (earbuds, wireless mics) come with warranty?',
     answer:
-      'We recommend washing in cold water on a gentle machine cycle using baby-safe, mild detergent. Turn garments inside out to preserve delicate pastel hues and hand embroidery. Air dry flat in shade. Avoid tumble drying on high heat to prevent cotton shrinkage.',
+      'Yes! All electronics and smart tech gadgets on NookMint include a 6-month seller warranty covering manufacturing defects. If you ever experience issues with charging, connectivity, or audio pickup, our WhatsApp support team provides immediate assistance.',
   },
 ];
 
@@ -103,7 +103,7 @@ export default function FAQPage() {
               Frequently Asked Questions
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
-              Find instant answers about Islandwide Cash on Delivery, manual bank verification, 25-district delivery timelines, and our 30-day doorstep size swap guarantee.
+              Find instant answers about Islandwide Cash on Delivery, zero advance payment policy, 25-district delivery timelines, and order tracking.
             </p>
 
             {/* Search Input Bar */}
@@ -113,7 +113,7 @@ export default function FAQPage() {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search questions (e.g. COD, bank slip, delivery)..."
+                placeholder="Search questions (e.g. COD, delivery fee, tracking)..."
                 className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF758F] focus:border-transparent transition-all shadow-inner"
               />
             </div>
@@ -121,8 +121,8 @@ export default function FAQPage() {
 
           <div className="lg:col-span-5 relative h-64 sm:h-80 lg:h-full min-h-[280px] bg-slate-100">
             <Image
-              src="/images/products/baby-knit-romper.jpg"
-              alt="LittleStyles parent care & FAQ"
+              src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&auto=format&fit=crop&q=80"
+              alt="NookMint Help & FAQ"
               fill
               sizes="(max-width: 1024px) 100vw, 40vw"
               className="object-cover object-center"
@@ -155,7 +155,7 @@ export default function FAQPage() {
             }`}
           >
             <Banknote className="w-3.5 h-3.5" />
-            <span>COD & Bank Payments</span>
+            <span>Cash on Delivery (COD)</span>
           </button>
           <button
             type="button"
@@ -200,7 +200,7 @@ export default function FAQPage() {
           {filteredFaqs.length === 0 ? (
             <div className="bg-white rounded-3xl p-10 text-center border border-slate-200/80 shadow-2xs space-y-2">
               <p className="font-bold text-slate-900 text-sm">No questions matched your search.</p>
-              <p className="text-xs text-slate-500">Try searching for &quot;COD&quot;, &quot;exchange&quot;, or &quot;bank transfer&quot;.</p>
+              <p className="text-xs text-slate-500">Try searching for &quot;COD&quot;, &quot;delivery&quot;, or &quot;tracking&quot;.</p>
             </div>
           ) : (
             filteredFaqs.map((faq, index) => {
@@ -241,11 +241,11 @@ export default function FAQPage() {
             Have a Specific Question?
           </h3>
           <p className="text-xs text-emerald-800 max-w-md mx-auto leading-relaxed">
-            Our Colombo customer care stylists are available 7 days a week on WhatsApp to assist with sizes, delivery status, and custom orders.
+            Our order support desk is available on WhatsApp to assist with product specs, delivery status, and order assistance.
           </p>
           <div className="pt-1">
             <a
-              href="https://wa.me/94771234567?text=Hello%20LittleStyles!%20I%20have%20a%20question%20about%20my%20order"
+              href="https://wa.me/94787844914?text=Hello%20NookMint!%20I%20have%20a%20question%20about%20my%20order"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-6 py-3 bg-[#25D366] hover:bg-[#20bd5a] text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md shadow-emerald-500/20 active:scale-98"

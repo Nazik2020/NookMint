@@ -6,24 +6,31 @@ import Image from 'next/image';
 import { Product } from '@/core/entities/Product';
 import { formatLKR } from '@/shared/utils/currency';
 import { useCart } from '@/presentation/context/CartContext';
-import { Heart, ShoppingBag, Check } from 'lucide-react';
+import { ShoppingCart, Check, MessageSquare } from 'lucide-react';
 
 interface ProductCardProps {
   product: Product;
 }
 
-/**
- * ProductCard Molecule
- * Clean, borderless boutique presentation matching the reference design:
- * seamless studio framing (no dark borders/outlines), delicate wishlist heart,
- * price typography, and color swatches.
- */
+// High-resolution studio photography fallbacks (zero blur, ultra sharp)
+const LOCAL_FALLBACKS: Record<string, string> = {
+  'pop-03': '/images1/pexels-ron-lach-10557898.jpg',
+  'pop-04': '/images1/pexels-theo-cold-814199886-34005929.jpg',
+  'pop-05': '/images1/pexels-ron-lach-10388755.jpg',
+  'new-02': '/images1/pexels-vlada-karpovich-3958200.jpg',
+  'new-04': '/images1/pexels-izafi-38539045.jpg',
+};
+
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addToCart } = useCart();
-  const [selectedSize] = useState<string>(product.variants[0]?.size || '2-3Y');
-  const [selectedColor, setSelectedColor] = useState<string>(product.colors?.[0]?.hex || '');
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
+  const initialImg =
+    product.images?.[0] ||
+    LOCAL_FALLBACKS[product.id] ||
+    '/nookmint_images/hero.png';
+  const [imgSrc, setImgSrc] = useState<string>(initialImg);
+
+  const selectedSize = product.variants?.[0]?.size || 'Standard';
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -33,122 +40,120 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     setTimeout(() => setIsAdded(false), 1500);
   };
 
-  const handleWishlistToggle = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsWishlisted(!isWishlisted);
-  };
-
-  const calculatedDiscount = product.mrp > product.sellingPrice ? Math.round(((product.mrp - product.sellingPrice) / product.mrp) * 100) : 0;
-  const discountPercent = typeof product.offerPercentage === 'number' && product.offerPercentage > 0 ? product.offerPercentage : calculatedDiscount;
+  const whatsappInquiryUrl = `https://wa.me/94787844914?text=${encodeURIComponent(
+    `Hello! I would like to order: ${product.title} (${formatLKR(product.sellingPrice)})`
+  )}`;
 
   return (
-    <div className="group flex flex-col h-full bg-white rounded-2xl overflow-hidden border-0 border-transparent shadow-none hover:shadow-md transition-all duration-300 select-none">
-      {/* 1. Studio Product Image Frame (Unified 4:5 Aspect Ratio, completely borderless) */}
-      <Link
-        href={`/products/${product.id}`}
-        className="relative aspect-4/5 rounded-2xl overflow-hidden bg-[#FAF6F3] border-0 block group-hover:shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF758F]"
-        aria-label={`View details for ${product.title}`}
-      >
-        <Image
-          src={product.images[0]}
-          alt={product.title}
-          fill
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className="object-cover object-top group-hover:scale-103 transition-transform duration-500 ease-out"
-          loading="lazy"
-        />
-
-        {/* Offer Percentage Badge */}
-        {discountPercent > 0 && (
-          <span className="absolute top-2.5 left-2.5 bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs tracking-wider uppercase">
-            {discountPercent}% OFF
-          </span>
-        )}
-
-        {/* Wishlist Outline Heart Button matching Reference Image */}
-        <button
-          type="button"
-          onClick={handleWishlistToggle}
-          aria-label={isWishlisted ? `Remove ${product.title} from wishlist` : `Add ${product.title} to wishlist`}
-          className="absolute top-2.5 right-2.5 w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[#FF758F] hover:scale-110 transition-transform"
-        >
-          <Heart
-            className={`w-4 h-4 sm:w-4.5 sm:h-4.5 stroke-[1.6] ${
-              isWishlisted ? 'fill-[#FF758F] text-[#FF758F]' : 'text-[#FF758F]/80 hover:text-[#FF758F]'
-            }`}
-          />
-        </button>
-
-        {/* Quick Add Floating Pill on Hover */}
-        <div className="absolute inset-x-2.5 bottom-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          <button
-            type="button"
-            onClick={handleQuickAdd}
-            className={`w-full py-2 px-3 rounded-xl font-bold text-[11px] shadow-sm transition-all flex items-center justify-center gap-1.5 ${
-              isAdded
-                ? 'bg-emerald-600 text-white'
-                : 'bg-white/95 backdrop-blur-sm text-slate-800 hover:bg-[#FF758F] hover:text-white active:scale-95'
-            }`}
-          >
-            {isAdded ? (
-              <>
-                <Check className="w-3 h-3 text-white" />
-                <span>Added</span>
-              </>
-            ) : (
-              <>
-                <ShoppingBag className="w-3 h-3" />
-                <span>Add to Bag</span>
-              </>
-            )}
-          </button>
+    <div className="group relative flex flex-col h-full bg-white rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-slate-300 transition-all duration-300 transform-gpu will-change-transform">
+      {/* 1. Image Frame Area with Responsive Aspect Ratio & Badges */}
+      <div className="relative aspect-[4/3] w-full bg-[#FAF6F3] p-2.5 sm:p-3 flex items-center justify-center overflow-hidden">
+        {/* Badges on Top */}
+        <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1 items-start">
+          {product.isNewArrival && (
+            <span className="px-2 py-0.5 rounded-md bg-amber-500 text-white font-black text-[9px] sm:text-[10px] uppercase tracking-wider shadow-2xs">
+              ★ New
+            </span>
+          )}
+          {product.offerPercentage && product.offerPercentage > 0 && (
+            <span className="px-2 py-0.5 rounded-md bg-emerald-700 text-white font-extrabold text-[9px] sm:text-[10px] tracking-wide shadow-2xs">
+              {product.offerPercentage}% OFF
+            </span>
+          )}
         </div>
-      </Link>
 
-      {/* 2. Card Info Details */}
-      <div className="pt-2.5 pb-1 flex-1 flex flex-col justify-between space-y-1">
-        <div>
-          {/* Title */}
-          <Link href={`/products/${product.id}`} className="block">
-            <h3 className="font-semibold text-xs sm:text-[13px] text-slate-800 leading-snug line-clamp-1 hover:text-[#FF758F] transition-colors">
+        <Link
+          href={`/products/${product.id}`}
+          className="relative block w-full h-full rounded-xl overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#064E3B]"
+          aria-label={`View details for ${product.title}`}
+        >
+          <Image
+            src={imgSrc}
+            alt={product.title}
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className="object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
+            loading="lazy"
+            decoding="async"
+            unoptimized
+            onError={() => {
+              const fallback = LOCAL_FALLBACKS[product.id] || '/nookmint_images/hero.png';
+              if (imgSrc !== fallback) {
+                setImgSrc(fallback);
+              }
+            }}
+          />
+        </Link>
+      </div>
+
+      {/* 2. Content & Pricing Details with Consistent Vertical Alignment */}
+      <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between space-y-2.5">
+        <div className="space-y-1">
+          {/* Subcategory / Department */}
+          <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider line-clamp-1">
+            {product.subcategory || product.category}
+          </span>
+
+          {/* Product Title (2-line clamp with min-height for equal row height across grid) */}
+          <Link href={`/products/${product.id}`} className="block group-hover:text-[#064E3B] transition-colors">
+            <h3
+              className="font-bold text-xs sm:text-[13px] text-slate-900 leading-snug line-clamp-2 min-h-[34px] sm:min-h-[38px]"
+              title={product.title}
+            >
               {product.title}
             </h3>
           </Link>
 
-          {/* Clean Price */}
-          <div className="mt-1 flex items-baseline gap-1.5 flex-wrap">
-            <span className="font-bold text-xs sm:text-sm text-slate-900 tracking-tight">
+          {/* Pricing format */}
+          <div className="flex items-baseline gap-2 pt-1 flex-wrap">
+            <span className="font-black text-sm sm:text-base text-slate-900 tracking-tight font-serif">
               {formatLKR(product.sellingPrice)}
             </span>
-            {discountPercent > 0 && product.mrp > product.sellingPrice && (
-              <span className="text-[10px] sm:text-xs text-slate-400 line-through">
+            {product.mrp && product.mrp > product.sellingPrice && (
+              <span className="text-[11px] text-slate-400 line-through font-mono">
                 {formatLKR(product.mrp)}
               </span>
             )}
           </div>
         </div>
 
-        {/* 3 Circular Color Swatch Dots matching Reference Image */}
-        {product.colors && product.colors.length > 0 && (
-          <div className="flex items-center gap-1.5 pt-0.5" role="radiogroup" aria-label="Available Colors">
-            {product.colors.map((color) => (
-              <button
-                key={color.hex}
-                type="button"
-                onClick={() => setSelectedColor(color.hex)}
-                className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full border border-slate-200/80 transition-all ${
-                  selectedColor === color.hex
-                    ? 'ring-1.5 ring-[#FF758F] ring-offset-1 scale-110'
-                    : 'hover:scale-110'
-                }`}
-                style={{ backgroundColor: color.hex }}
-                title={color.name}
-                aria-label={color.name}
-              />
-            ))}
-          </div>
-        )}
+        {/* 3. Action Button: Full-width in Deep Forest Green #064E3B */}
+        <div className="pt-1">
+          {product.inquiryOnly ? (
+            <a
+              href={whatsappInquiryUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full flex items-center justify-center gap-1.5 py-2 sm:py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-colors shadow-2xs cursor-pointer"
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>Inquire via WhatsApp</span>
+            </a>
+          ) : (
+            <button
+              type="button"
+              onClick={handleQuickAdd}
+              aria-label={`Add ${product.title} to cart`}
+              className={`w-full flex items-center justify-center gap-1.5 py-2 sm:py-2.5 px-3 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer shadow-2xs ${
+                isAdded
+                  ? 'bg-emerald-700 text-white shadow-emerald-200'
+                  : 'bg-[#064E3B] hover:bg-[#04382A] text-white hover:shadow-xs active:scale-98'
+              }`}
+            >
+              {isAdded ? (
+                <>
+                  <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>Added!</span>
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="w-3.5 h-3.5 stroke-[2.2]" />
+                  <span>Add to Cart</span>
+                </>
+              )}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

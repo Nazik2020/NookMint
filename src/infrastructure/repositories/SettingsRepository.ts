@@ -16,13 +16,10 @@ const DEFAULT_DISTRICT_RATES = [
 ];
 
 export const DEFAULT_CATEGORY_ITEMS: StoreCategoryItem[] = [
-  { id: 'cat-dresses', name: 'Dresses & Frocks', image: '/images/categories/girls.jpg' },
-  { id: 'cat-rompers', name: 'Rompers & Onesies', image: '/images/categories/baby.jpg' },
-  { id: 'cat-tshirts', name: 'T-Shirts & Tops', image: '/images/categories/boys.jpg' },
-  { id: 'cat-pants', name: 'Pants & Shorts', image: 'https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=600&auto=format&fit=crop&q=80' },
-  { id: 'cat-sleepwear', name: 'Sleepwear & Pyjamas', image: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=600&auto=format&fit=crop&q=80' },
-  { id: 'cat-ethnic', name: 'Festive & Ethnic Wear', image: '/images/categories/outfits.jpg' },
-  { id: 'cat-accessories', name: 'Accessories & Shoes', image: '/images/categories/accessories.jpg' },
+  { id: 'cat-household', name: 'Household & Daily Items', image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&auto=format&fit=crop&q=80' },
+  { id: 'cat-kitchen', name: 'Household & Kitchen', image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=600&auto=format&fit=crop&q=80' },
+  { id: 'cat-garden', name: 'Home & Garden', image: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&auto=format&fit=crop&q=80' },
+  { id: 'cat-gadgets', name: 'Smart Gadgets & Audio', image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&auto=format&fit=crop&q=80' },
 ];
 
 const DEFAULT_CATEGORIES = DEFAULT_CATEGORY_ITEMS.map((c) => c.name);
@@ -46,11 +43,11 @@ export class SettingsRepository {
           districtRates: [...DEFAULT_DISTRICT_RATES],
         },
         contact: {
-          phone: '077 123 4567',
-          whatsapp: '94771234567',
-          address: 'No. 45, Galle Road, Colombo 03, Sri Lanka',
-          email: 'orders@littlestyles.lk',
-          workingHours: 'Mon - Sat: 9:00 AM - 8:00 PM | Sun: 10:00 AM - 6:00 PM',
+          phone: '+94 78 784 4914',
+          whatsapp: '94787844914',
+          address: 'NookMint Operations Center, Colombo, Sri Lanka',
+          email: 'support@nookmint.lk',
+          workingHours: 'Mon - Sat: 8:30 AM - 7:30 PM | Direct Orders & WhatsApp 24/7',
         },
         categories: [...DEFAULT_CATEGORIES],
         categoryDetails: [...DEFAULT_CATEGORY_ITEMS],
@@ -75,11 +72,11 @@ export class SettingsRepository {
           districtRates: [...DEFAULT_DISTRICT_RATES],
         },
         contact: stored?.contact || {
-          phone: '077 123 4567',
-          whatsapp: '94771234567',
-          address: 'No. 45, Galle Road, Colombo 03, Sri Lanka',
-          email: 'orders@littlestyles.lk',
-          workingHours: 'Mon - Sat: 9:00 AM - 8:00 PM | Sun: 10:00 AM - 6:00 PM',
+          phone: '+94 78 784 4914',
+          whatsapp: '94787844914',
+          address: 'Innovative Consultants HQ, High-Level Road, Colombo, Sri Lanka',
+          email: 'orders@innovative.lk',
+          workingHours: 'Mon - Sat: 8:30 AM - 7:30 PM | Direct Orders & WhatsApp 24/7',
         },
         categories: stored?.categories || [...DEFAULT_CATEGORIES],
         categoryDetails: stored?.categoryDetails || [...DEFAULT_CATEGORY_ITEMS],

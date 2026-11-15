@@ -1,40 +1,55 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Product } from '@/core/entities/Product';
 import { useCart } from '@/presentation/context/CartContext';
 import { SizeSelector } from '@/presentation/components/molecules/SizeSelector';
+import { PaymentMethod } from '@/shared/types/common';
 import {
   ShoppingBag,
   Check,
   ArrowRight,
   MessageCircle,
-  HelpCircle,
   Plus,
   Minus,
-  Sparkles,
-  ShieldCheck,
-  X,
   Truck,
   RotateCcw,
   MapPin,
+  Sparkles,
+  ShieldCheck,
   Banknote,
-  Building2,
+  Loader2,
+  Phone,
+  User,
+  Home,
+  CheckCircle2,
 } from 'lucide-react';
 import { SRI_LANKA_DISTRICTS } from '@/core/constants/SriLankaDistricts';
 import { formatLKR } from '@/shared/utils/currency';
 
 export const ProductDetailClient: React.FC<{ product: Product }> = ({ product }) => {
+  const router = useRouter();
   const { addToCart } = useCart();
-  const [selectedSize, setSelectedSize] = useState<string>(product.variants[0]?.size || '2-3Y');
+  const [selectedSize, setSelectedSize] = useState<string>(product.variants[0]?.size || 'Standard');
   const [selectedColor, setSelectedColor] = useState<string>(product.colors?.[0]?.name || '');
   const [quantity, setQuantity] = useState<number>(1);
   const [isAdded, setIsAdded] = useState(false);
-  const [showSizeModal, setShowSizeModal] = useState(false);
-  const [sizeUnit, setSizeUnit] = useState<'cm' | 'in'>('in');
   const [selectedDistrict, setSelectedDistrict] = useState<string>('Colombo');
   const [storeDelivery, setStoreDelivery] = useState<any>(null);
+
+  // Fast COD Form State
+  const fastCodFormRef = useRef<HTMLDivElement>(null);
+  const [showFastCodForm, setShowFastCodForm] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [phone1, setPhone1] = useState('');
+  const [phone2, setPhone2] = useState('');
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('Colombo 03');
+  const [orderNote, setOrderNote] = useState('');
+  const [isSubmittingCod, setIsSubmittingCod] = useState(false);
+  const [codError, setCodError] = useState('');
 
   useEffect(() => {
     fetch('/api/settings')
@@ -45,6 +60,22 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
         }
       })
       .catch(() => {});
+
+    // Try loading saved address
+    try {
+      const saved = localStorage.getItem('innovative_saved_address');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.fullName) setFullName(parsed.fullName);
+        if (parsed.phone) setPhone1(parsed.phone);
+        if (parsed.alternatePhone) setPhone2(parsed.alternatePhone);
+        if (parsed.addressLine1) setAddress(parsed.addressLine1);
+        if (parsed.city) setCity(parsed.city);
+        if (parsed.district) setSelectedDistrict(parsed.district);
+      }
+    } catch {
+      // Ignore
+    }
   }, []);
 
   const getProductDeliveryInfo = (district: string) => {
@@ -71,24 +102,114 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
 
   const deliveryInfo = getProductDeliveryInfo(selectedDistrict);
 
+  const handleDistrictChange = (newDistrict: string) => {
+    setSelectedDistrict(newDistrict);
+    const matched = SRI_LANKA_DISTRICTS.find((d) => d.district === newDistrict);
+    if (matched && matched.majorTowns.length > 0) {
+      setCity(matched.majorTowns[0]);
+    }
+  };
+
+  const currentVariant = product.variants?.find((v) => v.size === selectedSize) || product.variants?.[0] || {
+    sku: product.id,
+    size: 'Standard',
+    stock: 10,
+    price: product.sellingPrice,
+  };
+  const stockCount = currentVariant ? (currentVariant.stock ?? 0) : 0;
+  const isSizeOutOfStock = stockCount <= 0 && !product.inquiryOnly;
+
+  const isDropship = (product.sourceType || 'dropship') === 'dropship';
+  const currentDistrictObj = SRI_LANKA_DISTRICTS.find((d) => d.district === selectedDistrict);
+  const itemTotal = product.sellingPrice * quantity;
+  const totalPayable = isDropship ? itemTotal : itemTotal + deliveryInfo.fee;
+
   const handleAddToCart = () => {
-    if (!selectedSize || stockCount <= 0) return;
+    if (!selectedSize || stockCount <= 0 || product.inquiryOnly) return;
     addToCart(product, selectedSize, quantity);
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
   };
 
-  const currentVariant = product.variants?.find((v) => v.size === selectedSize);
-  const stockCount = currentVariant ? (currentVariant.stock ?? 0) : 0;
-  const isSizeOutOfStock = stockCount <= 0;
+  // Direct 1-Click Cash on Delivery Order Submission
+  const handleFastCodSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCodError('');
 
-  const whatsappInquiryUrl = `https://wa.me/94771234567?text=${encodeURIComponent(
-    `Hello LittleStyles! 🌸\nI am interested in ordering:\n` +
-      `👗 Product: ${product.title}\n` +
-      `📏 Size: ${selectedSize}\n` +
+    if (!fullName.trim() || !phone1.trim() || !address.trim() || !city.trim()) {
+      setCodError('Please fill in your Name, Phone Number, and Delivery Address.');
+      return;
+    }
+
+    const cleanPhone = phone1.replace(/[^0-9]/g, '');
+    if (cleanPhone.length < 9 || cleanPhone.length > 12) {
+      setCodError('Please enter a valid Sri Lankan mobile number (e.g. 0771234567).');
+      return;
+    }
+
+    setIsSubmittingCod(true);
+
+    try {
+      const shippingAddress = {
+        fullName: fullName.trim(),
+        phone: phone1.trim(),
+        alternatePhone: phone2.trim(),
+        addressLine1: address.trim(),
+        addressLine2: '',
+        landmark: orderNote.trim(),
+        city: city.trim(),
+        district: selectedDistrict,
+        state: currentDistrictObj?.province || 'Western Province',
+        pincode: '00000',
+      };
+
+      // Save locally for future orders
+      try {
+        localStorage.setItem('innovative_saved_address', JSON.stringify(shippingAddress));
+      } catch {
+        // Ignore
+      }
+
+      const orderItem = {
+        product,
+        selectedVariant: currentVariant,
+        quantity,
+      };
+
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: [orderItem],
+          shippingAddress,
+          paymentMethod: PaymentMethod.COD,
+          isCodOtpConfirmed: true,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to place order. Please try again.');
+      }
+
+      router.push(`/order-success/${data.order.id}`);
+    } catch (err: any) {
+      setCodError(err.message || 'Something went wrong. Please try again or order via WhatsApp.');
+      setIsSubmittingCod(false);
+    }
+  };
+
+  const whatsappInquiryUrl = `https://wa.me/94787844914?text=${encodeURIComponent(
+    `Hello NookMint! 👋\n` +
+      `I would like to ${product.inquiryOnly ? 'request a quotation / consultation for' : 'order'}:\n` +
+      `📦 Product: ${product.title}\n` +
+      `📌 SKU / Code: ${currentVariant.sku || product.id}\n` +
+      `📌 Option: ${selectedSize}\n` +
       `${selectedColor ? `🎨 Color: ${selectedColor}\n` : ''}` +
-      `💰 Price: ${formatLKR(product.sellingPrice)}\n` +
-      `Please let me know if this is in stock for delivery. Thank you!`
+      `🔢 Quantity: ${quantity}\n` +
+      `💰 Listed Price: ${formatLKR(product.sellingPrice)}\n` +
+      `📍 Delivery to: ${selectedDistrict}\n` +
+      `Please let me know availability and delivery schedule. Thank you!`
   )}`;
 
   return (
@@ -97,365 +218,482 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
       {product.colors && product.colors.length > 0 && (
         <div className="space-y-2.5">
           <div className="flex items-center justify-between text-xs">
-            <span className="font-bold text-slate-800">
-              Color Shade: <span className="text-[#FF758F] font-semibold">{selectedColor || product.colors[0].name}</span>
-            </span>
+            <span className="font-bold text-slate-800">Color Option:</span>
+            <span className="text-slate-500 font-semibold">{selectedColor}</span>
           </div>
-          <div className="flex items-center gap-2.5" role="radiogroup" aria-label="Available color shades">
-            {product.colors.map((c) => (
+          <div className="flex items-center gap-2" role="radiogroup" aria-label="Available Colors">
+            {product.colors.map((color) => (
               <button
-                key={c.name}
+                key={color.hex}
                 type="button"
-                onClick={() => setSelectedColor(c.name)}
-                className={`w-8 h-8 rounded-full border-2 transition-all p-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF758F] ${
-                  selectedColor === c.name || (!selectedColor && c === product.colors![0])
-                    ? 'border-[#FF758F] ring-2 ring-[#FF758F]/30 scale-110'
-                    : 'border-slate-200 hover:border-slate-300'
+                onClick={() => setSelectedColor(color.name)}
+                className={`w-7 h-7 rounded-full border border-slate-300 transition-all ${
+                  selectedColor === color.name
+                    ? 'ring-2 ring-blue-600 ring-offset-2 scale-110'
+                    : 'hover:scale-105'
                 }`}
-                title={c.name}
-                aria-label={c.name}
-              >
-                <span
-                  className="w-full h-full rounded-full block border border-black/10"
-                  style={{ backgroundColor: c.hex }}
-                />
-              </button>
+                style={{ backgroundColor: color.hex }}
+                title={color.name}
+                aria-label={color.name}
+              />
             ))}
           </div>
         </div>
       )}
 
-      {/* 2. Size Selector with Size Guide Button */}
-      <div className="space-y-2.5">
-        <div className="flex items-center justify-between text-xs">
-          <span className="font-bold text-slate-800">Select Age / Size:</span>
-          <button
-            type="button"
-            onClick={() => setShowSizeModal(true)}
-            className="text-[11px] font-bold text-[#FF758F] hover:underline flex items-center gap-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#FF758F] rounded"
-          >
-            <HelpCircle className="w-3.5 h-3.5" />
-            <span>Size Chart & Fit Guide</span>
-          </button>
-        </div>
-
-        <SizeSelector
-          variants={product.variants}
-          selectedSize={selectedSize}
-          onSelectSize={setSelectedSize}
-        />
-
-        {/* Stock Status Badge */}
-        {isSizeOutOfStock ? (
-          <div className="flex items-center gap-2 text-[11px] font-bold text-rose-600 pt-1">
-            <span className="w-2 h-2 rounded-full bg-rose-500" />
-            <span>Size {selectedSize} is currently sold out. Please choose another size.</span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2 text-[11px] font-semibold text-emerald-700 pt-1">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>In Stock ({stockCount} units available in size {selectedSize})</span>
-          </div>
-        )}
-
-        {/* Fitting Note from Seller */}
-        {product.sizeNotes && (
-          <div className="text-[11px] text-slate-600 bg-amber-50/70 p-2.5 rounded-xl border border-amber-200/80 leading-relaxed">
-            📏 <strong>Fitting Advice:</strong> {product.sizeNotes}
-          </div>
-        )}
-      </div>
-
-      {/* 3. Quantity Counter */}
-      <div className="flex items-center gap-4 text-xs font-bold text-slate-800">
-        <span>Quantity:</span>
-        <div className="flex items-center border border-slate-200/90 rounded-xl bg-[#FAF9F7] overflow-hidden">
-          <button
-            type="button"
-            disabled={isSizeOutOfStock}
-            onClick={() => setQuantity(Math.max(1, quantity - 1))}
-            className="w-10 h-10 flex items-center justify-center hover:bg-slate-200/70 disabled:opacity-40 text-slate-700 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#FF758F]"
-            title="Decrease Quantity"
-            aria-label="Decrease quantity"
-          >
-            <Minus className="w-3.5 h-3.5" />
-          </button>
-          <span className="w-10 text-center font-bold text-sm text-slate-900">{isSizeOutOfStock ? 0 : quantity}</span>
-          <button
-            type="button"
-            disabled={isSizeOutOfStock || quantity >= stockCount}
-            onClick={() => setQuantity(Math.min(stockCount, quantity + 1))}
-            className="w-10 h-10 flex items-center justify-center hover:bg-slate-200/70 disabled:opacity-40 text-slate-700 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#FF758F]"
-            title="Increase Quantity"
-            aria-label="Increase quantity"
-          >
-            <Plus className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </div>
-
-      {/* 4. Action Buttons */}
-      <div className="space-y-3 pt-2">
-        <div className="flex flex-col sm:flex-row gap-3">
-          <button
-            type="button"
-            disabled={isSizeOutOfStock}
-            onClick={handleAddToCart}
-            className={`flex-1 py-4 px-6 rounded-2xl font-extrabold text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF758F] disabled:opacity-50 disabled:cursor-not-allowed ${
-              isAdded
-                ? 'bg-emerald-600 text-white shadow-emerald-200'
-                : isSizeOutOfStock
-                ? 'bg-slate-200 text-slate-500 shadow-none'
-                : 'bg-[#FF758F] hover:bg-[#F0627D] text-white shadow-[#FF758F]/25 hover:scale-101 active:scale-98'
-            }`}
-          >
-            {isAdded ? (
-              <>
-                <Check className="w-4 h-4 text-white" />
-                <span>Added to Shopping Bag!</span>
-              </>
-            ) : isSizeOutOfStock ? (
-              <span>Out of Stock</span>
-            ) : (
-              <>
-                <ShoppingBag className="w-4 h-4" />
-                <span>Add to Shopping Bag</span>
-              </>
-            )}
-          </button>
-
-          <Link
-            href={isSizeOutOfStock ? '#' : '/checkout'}
-            onClick={(e) => {
-              if (isSizeOutOfStock) {
-                e.preventDefault();
-                return;
-              }
-              if (selectedSize) addToCart(product, selectedSize, quantity);
-            }}
-            className={`py-4 px-8 rounded-2xl font-extrabold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-xs text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${
-              isSizeOutOfStock
-                ? 'opacity-40 cursor-not-allowed bg-slate-200 text-slate-500'
-                : 'bg-slate-900 hover:bg-slate-800 text-white hover:scale-101 active:scale-98'
-            }`}
-          >
-            <span>Buy Now</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-
-        {/* WhatsApp Quick Order Button */}
-        <a
-          href={whatsappInquiryUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-full py-3.5 px-4 rounded-2xl font-bold text-xs bg-[#25D366]/10 hover:bg-[#25D366]/20 text-emerald-900 border border-[#25D366]/30 transition-all flex items-center justify-center gap-2 text-center"
-        >
-          <MessageCircle className="w-4 h-4 text-[#25D366]" />
-          <span>Ask or Order via WhatsApp (+94 77 123 4567)</span>
-        </a>
-      </div>
-
-      {/* Interactive Delivery Estimator for this product */}
-      <div className="p-4 rounded-3xl bg-[#FAF6F3] border border-rose-100/90 space-y-3 text-xs">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 font-bold text-slate-900">
-            <Truck className="w-4 h-4 text-[#FF758F]" />
-            <span>Delivery & Courier to Your District</span>
-          </div>
-          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-            COD Available
-          </span>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-          <div className="relative flex-1">
-            <MapPin className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <select
-              value={selectedDistrict}
-              onChange={(e) => setSelectedDistrict(e.target.value)}
-              className="w-full pl-8 pr-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#FF758F]"
-            >
-              {SRI_LANKA_DISTRICTS.map((d) => (
-                <option key={d.district} value={d.district}>
-                  {d.district} ({d.province})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 flex items-center justify-between sm:justify-start gap-2">
-            <span className="text-slate-500 text-[11px]">Fee:</span>
-            <span className={`font-black font-mono text-sm ${deliveryInfo.isFree ? 'text-emerald-700' : 'text-slate-900'}`}>
-              {deliveryInfo.text}
+      {/* 2. Variant / Option Selector (Only if multiple options exist) */}
+      {product.variants && product.variants.length > 1 ? (
+        <div className="space-y-2.5">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-bold text-slate-800">
+              Select Option / Model:
+            </span>
+            <span className="text-xs font-semibold text-slate-500">
+              {stockCount > 0 ? (
+                <span className="text-emerald-600 font-bold">✓ {stockCount} in stock</span>
+              ) : product.inquiryOnly ? (
+                <span className="text-blue-600 font-bold">Inquiry Available</span>
+              ) : (
+                <span className="text-red-500 font-bold">Out of Stock</span>
+              )}
             </span>
           </div>
-        </div>
 
-        <div className="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
-          <span>⚡ Estimated Arrival: <strong className="text-slate-800">{deliveryInfo.eta}</strong></span>
-          <span className="text-slate-400">via Domex / Prompt Xpress</span>
+          <SizeSelector
+            variants={product.variants}
+            selectedSize={selectedSize}
+            onSelectSize={(size) => {
+              setSelectedSize(size);
+              setShowFastCodForm(true);
+            }}
+          />
         </div>
-      </div>
+      ) : (
+        <div className="flex items-center justify-between text-xs p-3 rounded-2xl bg-slate-50/80 border border-slate-200">
+          <span className="font-bold text-slate-700">Stock Availability:</span>
+          {stockCount > 0 ? (
+            <span className="text-emerald-700 font-extrabold flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <span>In Stock ({stockCount} units available for islandwide dispatch)</span>
+            </span>
+          ) : (
+            <span className="text-red-600 font-bold">Out of Stock</span>
+          )}
+        </div>
+      )}
 
-      {/* Trust Badges Bar */}
-      <div className="grid grid-cols-2 gap-3 pt-2 text-xs text-slate-600">
-        <div className="p-3 rounded-2xl bg-white border border-slate-200/80 flex items-center gap-2.5">
-          <Truck className="w-4 h-4 text-[#FF758F] shrink-0" />
-          <span className="font-medium text-[11px]">Islandwide COD & Delivery</span>
+      {/* 3. EV / Inquiry Workflow Notice */}
+      {product.inquiryOnly ? (
+        <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 space-y-3">
+          <div className="flex items-center gap-2 text-blue-900 font-bold text-xs">
+            <Sparkles className="w-4 h-4 text-blue-600" />
+            <span>High-Value & Mobility Direct Inquiry Workflow</span>
+          </div>
+          <p className="text-xs text-slate-600 leading-relaxed">
+            Due to customized technical specifications, warranty coverage, and regional registration, electric vehicles are coordinated directly via quotation.
+          </p>
+          <a
+            href={whatsappInquiryUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full py-3.5 px-4 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-all flex items-center justify-center gap-2 text-center"
+          >
+            <MessageCircle className="w-4 h-4" />
+            <span>Request Formal Quotation on WhatsApp</span>
+          </a>
         </div>
-        <div className="p-3 rounded-2xl bg-white border border-slate-200/80 flex items-center gap-2.5">
-          <RotateCcw className="w-4 h-4 text-emerald-600 shrink-0" />
-          <span className="font-medium text-[11px]">30-Day Easy Size Swap</span>
-        </div>
-      </div>
+      ) : (
+        /* Regular E-Commerce Cart & WhatsApp Order Actions */
+        <div className="space-y-3 pt-1">
+          {/* Primary High-Converting CTA: Full-Width Order Now Button */}
+          <button
+            type="button"
+            disabled={isSizeOutOfStock}
+            onClick={() => {
+              setShowFastCodForm(true);
+              setTimeout(() => {
+                fastCodFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }, 100);
+            }}
+            className="w-full h-13 px-6 rounded-2xl font-black text-xs sm:text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2.5 shadow-md shadow-emerald-950/20 text-white bg-[#064E3B] hover:bg-[#04382A] active:scale-[0.99] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Banknote className="w-5 h-5 text-emerald-300 shrink-0" />
+            <span>⚡ Order Now (Cash on Delivery)</span>
+          </button>
 
-      {/* Mobile Sticky Purchase Bar */}
-      <div className="sm:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200/90 p-3 z-40 shadow-lg flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <div className="text-[11px] font-bold text-slate-500 truncate">{product.title}</div>
-          <div className="text-sm font-extrabold text-slate-900">{formatLKR(product.sellingPrice)}</div>
-        </div>
-        <button
-          type="button"
-          onClick={handleAddToCart}
-          className="px-6 py-3 rounded-xl bg-[#FF758F] hover:bg-[#F0627D] text-white font-extrabold text-xs uppercase tracking-wider shrink-0 shadow-sm active:scale-95"
-        >
-          {isAdded ? 'Added ✓' : 'Add to Bag'}
-        </button>
-      </div>
-
-      {/* Size Guide Modal */}
-      {showSizeModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-5 animate-scaleUp">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF758F] block">
-                  LITTLESTYLES SIZING GUIDE
-                </span>
-                <h3 className="font-serif font-black text-xl text-slate-900">
-                  Sri Lankan Kids Wear Size Chart
-                </h3>
-              </div>
+          {/* Secondary Row: Quantity Selector + Add to Cart Button */}
+          <div className="flex items-center gap-3">
+            {/* Quantity Selector */}
+            <div className="flex items-center border border-slate-200 rounded-2xl h-11 px-1 bg-white shrink-0">
               <button
                 type="button"
-                onClick={() => setShowSizeModal(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:text-slate-900 flex items-center justify-center text-sm font-bold"
-                aria-label="Close size guide"
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                disabled={quantity <= 1 || isSizeOutOfStock}
+                className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                aria-label="Decrease quantity"
               >
-                ✕
+                <Minus className="w-3.5 h-3.5" />
+              </button>
+              <span className="w-10 text-center text-xs font-black text-slate-900">{quantity}</span>
+              <button
+                type="button"
+                onClick={() => setQuantity(Math.min(stockCount || 10, quantity + 1))}
+                disabled={quantity >= (stockCount || 10) || isSizeOutOfStock}
+                className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                aria-label="Increase quantity"
+              >
+                <Plus className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            {/* Custom Uploaded Size Chart Image or Standard Table */}
-            {product.sizeChartImage ? (
-              <div className="space-y-3">
-                <div className="rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 p-2 text-center">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={product.sizeChartImage}
-                    alt={`${product.title} Size Chart`}
-                    className="w-full h-auto max-h-96 object-contain rounded-xl mx-auto cursor-pointer hover:opacity-95"
-                    onClick={() => {
-                      const w = window.open('');
-                      if (w) w.document.write(`<img src="${product.sizeChartImage}" style="max-width:100%;height:auto;margin:auto;display:block;" />`);
-                    }}
-                    title="Click to view full size"
-                  />
-                  <p className="text-[10px] text-slate-400 mt-1">Click image to expand full size</p>
+            {/* Add to Cart Button */}
+            <button
+              type="button"
+              disabled={isSizeOutOfStock}
+              onClick={handleAddToCart}
+              className={`flex-1 h-11 px-5 rounded-2xl font-extrabold text-xs uppercase tracking-wider border transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                isAdded
+                  ? 'bg-emerald-700 text-white border-emerald-700 shadow-sm'
+                  : 'bg-white hover:bg-slate-50 text-slate-900 border-slate-300 hover:border-slate-400 shadow-2xs'
+              }`}
+            >
+              {isAdded ? (
+                <>
+                  <Check className="w-4 h-4 text-white" />
+                  <span>Added to Cart!</span>
+                </>
+              ) : isSizeOutOfStock ? (
+                <span>Out of Stock</span>
+              ) : (
+                <>
+                  <ShoppingBag className="w-4 h-4 text-slate-700" />
+                  <span>Add to Cart</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Tertiary Action: Direct WhatsApp Order Link */}
+          <a
+            href={whatsappInquiryUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full h-11 px-4 rounded-2xl font-bold text-xs bg-emerald-50 hover:bg-emerald-100/80 text-[#064E3B] border border-emerald-200/80 transition-all flex items-center justify-center gap-2 text-center"
+          >
+            <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>Order or Inquire via WhatsApp (+94 78 784 4914)</span>
+          </a>
+
+          {/* ⚡ INSTANT FAST CASH ON DELIVERY (COD) ORDER FORM */}
+          {!product.inquiryOnly && !isSizeOutOfStock && showFastCodForm && (
+            <div
+              ref={fastCodFormRef}
+              className="mt-6 rounded-3xl bg-gradient-to-b from-[#F0FDF4] to-[#FBF8F3] border-2 border-emerald-500/30 p-5 sm:p-6 shadow-md shadow-emerald-950/5 space-y-4 animate-fadeIn"
+            >
+              <div className="flex items-start justify-between gap-3 border-b border-emerald-200/80 pb-3.5">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <h3 className="font-black text-slate-900 text-sm sm:text-base flex items-center gap-1.5">
+                      <span>⚡ Fast Cash on Delivery Order</span>
+                    </h3>
+                  </div>
+                  <p className="text-[11px] text-slate-600 mt-0.5">
+                    Order directly in 10 seconds. No card or bank deposit needed — pay cash upon courier delivery.
+                  </p>
                 </div>
+                <span className="shrink-0 px-2.5 py-1 rounded-full bg-emerald-700 text-white font-extrabold text-[10px] tracking-wide uppercase">
+                  100% COD
+                </span>
               </div>
-            ) : (
-              <>
-                {/* Unit Toggle cm <-> in */}
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-medium text-slate-600">Toggle Measurement Unit:</span>
-                  <div className="flex rounded-xl bg-slate-100 p-1 border border-slate-200">
-                    <button
-                      type="button"
-                      onClick={() => setSizeUnit('in')}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                        sizeUnit === 'in' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900'
-                      }`}
-                    >
-                      Inches (&quot;)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSizeUnit('cm')}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                        sizeUnit === 'cm' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900'
-                      }`}
-                    >
-                      Centimeters (cm)
-                    </button>
+
+              {codError && (
+                <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold">
+                  ⚠️ {codError}
+                </div>
+              )}
+
+              <form onSubmit={handleFastCodSubmit} className="space-y-3.5">
+                {/* 1. Customer Name */}
+                <div>
+                  <label className="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-1">
+                    Your Full Name <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <User className="w-3.5 h-3.5 text-emerald-700 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="text"
+                      required
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="e.g. Kasun Perera"
+                      className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                    />
                   </div>
                 </div>
 
-                <div className="overflow-x-auto text-xs rounded-2xl border border-slate-100">
-                  <table className="w-full text-left">
-                    <thead className="bg-[#FAF8F5] text-slate-800 font-extrabold text-[11px] border-b border-slate-200/80">
-                      <tr>
-                        <th className="py-2.5 px-3">Size</th>
-                        <th className="py-2.5 px-3">Age Group</th>
-                        <th className="py-2.5 px-3">Chest ({sizeUnit})</th>
-                        <th className="py-2.5 px-3">Child Height ({sizeUnit})</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 text-slate-600">
-                      {(product.sizeChartType === 'baby'
-                        ? [
-                            { size: '0-3M', age: '0-3 Months', chestIn: '16"', chestCm: '40 cm', hIn: '22-24"', hCm: '56-62 cm' },
-                            { size: '3-6M', age: '3-6 Months', chestIn: '17"', chestCm: '43 cm', hIn: '24-27"', hCm: '62-68 cm' },
-                            { size: '6-12M', age: '6-12 Months', chestIn: '18"', chestCm: '46 cm', hIn: '27-31"', hCm: '68-80 cm' },
-                            { size: '12-18M', age: '12-18 Months', chestIn: '19"', chestCm: '48 cm', hIn: '31-34"', hCm: '80-86 cm' },
-                            { size: '18-24M', age: '18-24 Months', chestIn: '20"', chestCm: '51 cm', hIn: '34-36"', hCm: '86-92 cm' },
-                          ]
-                        : product.sizeChartType === 'junior'
-                        ? [
-                            { size: '6-7Y', age: '6-7 Years', chestIn: '25"', chestCm: '63 cm', hIn: '46-48"', hCm: '116-122 cm' },
-                            { size: '7-8Y', age: '7-8 Years', chestIn: '26"', chestCm: '66 cm', hIn: '48-50"', hCm: '122-128 cm' },
-                            { size: '9-10Y', age: '9-10 Years', chestIn: '28"', chestCm: '71 cm', hIn: '53-55"', hCm: '134-140 cm' },
-                            { size: '11-12Y', age: '11-12 Years', chestIn: '30"', chestCm: '76 cm', hIn: '57-60"', hCm: '146-152 cm' },
-                          ]
-                        : [
-                            { size: '2-3Y', age: '2-3 Years', chestIn: '21"', chestCm: '53 cm', hIn: '36-38"', hCm: '92-98 cm' },
-                            { size: '3-4Y', age: '3-4 Years', chestIn: '22"', chestCm: '56 cm', hIn: '38-41"', hCm: '98-104 cm' },
-                            { size: '4-5Y', age: '4-5 Years', chestIn: '23"', chestCm: '58 cm', hIn: '41-43"', hCm: '104-110 cm' },
-                            { size: '5-6Y', age: '5-6 Years', chestIn: '24"', chestCm: '61 cm', hIn: '43-46"', hCm: '110-116 cm' },
-                          ]
-                      ).map((row) => (
-                        <tr key={row.size} className="hover:bg-slate-50/60">
-                          <td className="py-2 px-3 font-bold text-slate-900">{row.size}</td>
-                          <td className="py-2 px-3">{row.age}</td>
-                          <td className="py-2 px-3">{sizeUnit === 'in' ? row.chestIn : row.chestCm}</td>
-                          <td className="py-2 px-3">{sizeUnit === 'in' ? row.hIn : row.hCm}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                {/* 2. Contact Numbers Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-1">
+                      WhatsApp Mobile Number <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <Phone className="w-3.5 h-3.5 text-emerald-700 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <input
+                        type="tel"
+                        required
+                        value={phone1}
+                        onChange={(e) => setPhone1(e.target.value)}
+                        placeholder="07X XXXXXXX"
+                        className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1">
+                      Backup Mobile Number <span className="text-slate-400 font-normal lowercase">(optional)</span>
+                    </label>
+                    <div className="relative">
+                      <Phone className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <input
+                        type="tel"
+                        value={phone2}
+                        onChange={(e) => setPhone2(e.target.value)}
+                        placeholder="07X XXXXXXX"
+                        className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                      />
+                    </div>
+                  </div>
                 </div>
-              </>
-            )}
 
-            {product.sizeNotes && (
-              <div className="p-3.5 rounded-2xl bg-rose-50/60 border border-rose-200 text-rose-900 text-xs">
-                📏 <strong>Fitting Advice from Boutique:</strong> {product.sizeNotes}
-              </div>
-            )}
+                {/* 3. Delivery Address */}
+                <div>
+                  <label className="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-1">
+                    Delivery Address (House / Street / Road) <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Home className="w-3.5 h-3.5 text-emerald-700 absolute left-3 top-3 pointer-events-none" />
+                    <textarea
+                      required
+                      rows={2}
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      placeholder="House / Unit number, street name, building..."
+                      className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 bg-white text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                    />
+                  </div>
+                </div>
 
-            <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200 text-amber-900 text-[11px] leading-relaxed">
-              💡 <strong>Tip for Parents:</strong> If your child is between sizes or has chubby cheeks and arms, we recommend choosing one size up for longer wear and tropical breathing room.
+                {/* 4. Town / City (and District for Own Inventory) */}
+                {isDropship ? (
+                  <div>
+                    <label className="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-1">
+                      Town / City <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <MapPin className="w-3.5 h-3.5 text-emerald-700 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <input
+                        type="text"
+                        required
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        placeholder="e.g. Maharagama, Nugegoda, Kandy, Galle..."
+                        className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-1">
+                        District <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={selectedDistrict}
+                        onChange={(e) => handleDistrictChange(e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                      >
+                        {SRI_LANKA_DISTRICTS.map((d) => (
+                          <option key={d.district} value={d.district}>
+                            {d.district} ({d.province})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-1">
+                        Town / City <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        placeholder="e.g. Maharagama, Kandy..."
+                        className="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* 5. Optional Landmark / Note */}
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1">
+                    Order Note / Delivery Landmark <span className="text-slate-400 font-normal lowercase">(optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={orderNote}
+                    onChange={(e) => setOrderNote(e.target.value)}
+                    placeholder="e.g. Near clock tower, call before arriving..."
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                  />
+                </div>
+
+                {/* Price Breakdown Calculation */}
+                <div className="p-3.5 rounded-2xl bg-white/90 border border-emerald-200/90 space-y-2 text-xs">
+                  <div className="flex justify-between text-slate-600">
+                    <span>Product Price ({quantity}x):</span>
+                    <span className="font-semibold text-slate-900">{formatLKR(itemTotal)}</span>
+                  </div>
+
+                  {isDropship ? (
+                    <>
+                      <div className="flex justify-between items-center text-slate-600">
+                        <span>Courier Delivery:</span>
+                        <span className="font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-[11px]">
+                          Invoiced via WhatsApp
+                        </span>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200/80 text-[11px] text-amber-900 leading-relaxed">
+                        <strong>💡 Official Invoice Notice:</strong> Only product price is charged here ({formatLKR(itemTotal)}). Courier delivery fee based on your destination will be calculated and provided on your official WhatsApp invoice before courier dispatch.
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex justify-between items-center text-slate-600">
+                        <span>Courier Delivery ({selectedDistrict}):</span>
+                        <span className={`font-semibold ${deliveryInfo.isFree ? 'text-emerald-700' : 'text-slate-900'}`}>
+                          {deliveryInfo.text}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center text-[11px] text-emerald-800 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-200">
+                        <span className="flex items-center gap-1 font-bold">
+                          <Truck className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Estimated Delivery:</span>
+                        </span>
+                        <span className="font-extrabold">{deliveryInfo.eta || '1 - 2 Business Days'}</span>
+                      </div>
+                    </>
+                  )}
+
+                  <div className="pt-2 border-t border-slate-200 flex justify-between items-baseline font-black">
+                    <div>
+                      <span className="text-slate-900 text-xs">Total Order Value:</span>
+                      {isDropship && <span className="block text-[10px] text-slate-500 font-medium">Product price only</span>}
+                    </div>
+                    <span className="text-base font-mono text-emerald-800">{formatLKR(totalPayable)}</span>
+                  </div>
+                </div>
+
+                {/* Submit COD Order Button */}
+                <button
+                  type="submit"
+                  disabled={isSubmittingCod}
+                  className="w-full py-4 px-6 rounded-2xl bg-[#064E3B] hover:bg-[#04382A] active:scale-98 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg shadow-emerald-950/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {isSubmittingCod ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Submitting Order...</span>
+                    </>
+                  ) : isDropship ? (
+                    <>
+                      <MessageCircle className="w-4 h-4 text-emerald-300 shrink-0" />
+                      <span>Confirm Order (Invoice will be sent to your WhatsApp)</span>
+                    </>
+                  ) : (
+                    <>
+                      <Banknote className="w-5 h-5" />
+                      <span>Confirm Cash on Delivery Order • {formatLKR(totalPayable)}</span>
+                    </>
+                  )}
+                </button>
+
+                {/* Assurance Badges */}
+                <div className="grid grid-cols-2 gap-2 pt-1 text-[11px] text-slate-600">
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>Zero Advance Payment</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>Pay Cash Upon Delivery</span>
+                  </div>
+                </div>
+              </form>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Delivery Section */}
+      {isDropship ? (
+        <div className="p-4 rounded-3xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5">
+            <Truck className="w-4 h-4 text-emerald-700 shrink-0" />
+            <div>
+              <div className="font-bold text-slate-900">Islandwide COD Delivery via Courier</div>
+              <div className="text-[11px] text-slate-500">Delivered via Prompt Xpress & Domex • Invoice with courier fee sent via WhatsApp</div>
+            </div>
+          </div>
+          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 shrink-0">
+            100% COD
+          </span>
+        </div>
+      ) : (
+        /* Interactive Delivery Estimator for Own In-House Products */
+        <div className="p-4 rounded-3xl bg-slate-50 border border-slate-200/80 space-y-3 text-xs">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 font-bold text-slate-900">
+              <Truck className="w-4 h-4 text-emerald-700" />
+              <span>Estimated Courier & Delivery to Your District</span>
+            </div>
+            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+              COD Available
+            </span>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+            <div className="relative flex-1">
+              <MapPin className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <select
+                value={selectedDistrict}
+                onChange={(e) => handleDistrictChange(e.target.value)}
+                className="w-full pl-8 pr-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#064E3B]"
+              >
+                {SRI_LANKA_DISTRICTS.map((d) => (
+                  <option key={d.district} value={d.district}>
+                    {d.district} ({d.province})
+                  </option>
+                ))}
+              </select>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setShowSizeModal(false)}
-              className="w-full py-3 bg-slate-900 text-white font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-slate-800 transition-colors"
-            >
-              Close Guide
-            </button>
+            <div className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 flex items-center justify-between sm:justify-start gap-2">
+              <span className="text-slate-500 text-[11px]">Fee:</span>
+              <span className={`font-black font-mono text-sm ${deliveryInfo.isFree ? 'text-emerald-700' : 'text-slate-900'}`}>
+                {deliveryInfo.text}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
+            <span>⚡ Estimated Arrival: <strong className="text-slate-800">{deliveryInfo.eta}</strong></span>
+            <span className="text-slate-400">Islandwide Tracked Delivery</span>
           </div>
         </div>
       )}

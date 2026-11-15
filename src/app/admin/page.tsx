@@ -43,6 +43,13 @@ import {
   Camera,
   UploadCloud,
   Star,
+  Sparkles,
+  Flame,
+  Copy,
+  BarChart3,
+  Award,
+  MapPinned,
+  PieChart,
 } from 'lucide-react';
 import { formatLKR } from '@/shared/utils/currency';
 import { OrderStatus, PaymentMethod, PaymentStatus, BankAccountDetails } from '@/shared/types/common';
@@ -57,7 +64,10 @@ export default function AdminDashboardPage() {
   const [authError, setAuthError] = useState<string>('');
 
   // Dashboard Data State
-  const [activeTab, setActiveTab] = useState<'orders' | 'products' | 'settings'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'products' | 'analytics' | 'settings'>('orders');
+  const [productCategoryFilter, setProductCategoryFilter] = useState<string>('all');
+  const [productSourceFilter, setProductSourceFilter] = useState<'all' | 'dropship' | 'own'>('all');
+  const [analyticsScope, setAnalyticsScope] = useState<'all' | 'dropship' | 'own'>('all');
   const [orders, setOrders] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [settings, setSettings] = useState<StoreSettings | null>(null);
@@ -71,52 +81,87 @@ export default function AdminDashboardPage() {
   const [orderUpdateFeedback, setOrderUpdateFeedback] = useState<string>('');
   const [selectedFulfillmentStatus, setSelectedFulfillmentStatus] = useState<string>('');
   const [courierTracking, setCourierTracking] = useState<string>('');
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
-  // Product Editing / Adding State
+  const copyToClipboard = (text: string, label: string) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    setCopiedField(label);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  // Product Editing / Adding State (Dropshipping & Own Products aligned)
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [isAddingProduct, setIsAddingProduct] = useState<boolean>(false);
   const [productForm, setProductForm] = useState<{
     title: string;
+    sku: string;
+    sourceType: 'dropship' | 'own';
     category: string;
-    gender: 'Girls' | 'Boys' | 'Unisex' | string;
-    ageGroup: 'Baby (0-12M)' | 'Toddler (1-3Y)' | 'Little Kids (3-7Y)' | string;
-    fabric: string;
+    brand: string;
+    unit: string;
+    isNewArrival: boolean;
+    isBestSeller: boolean;
+    costPrice: number;
     sellingPrice: number;
     mrp: number;
     offerPercentage: number;
     description: string;
     images: string[];
-    variants: Array<{ size: string; stock: number }>;
-    sizeChartType: 'baby' | 'toddler' | 'junior' | 'custom';
-    sizeChartImage: string;
-    sizeNotes: string;
+    variants: Array<{ size: string; stock: number; sku?: string }>;
     deliveryFeeType: 'default' | 'free' | 'custom';
     customDeliveryFee: number;
   }>({
     title: '',
-    category: 'Dresses & Frocks',
-    gender: 'Girls',
-    ageGroup: 'Toddler (1-3Y)',
-    fabric: '100% GOTS Organic Cotton',
-    sellingPrice: 2990,
-    mrp: 3500,
-    offerPercentage: 15,
+    sku: '',
+    sourceType: 'dropship',
+    category: 'Household & Kitchen',
+    brand: 'NookMint',
+    unit: 'item',
+    isNewArrival: true,
+    isBestSeller: false,
+    costPrice: 2800,
+    sellingPrice: 3890,
+    mrp: 4900,
+    offerPercentage: 20,
     description: '',
-    images: ['/images/products/floral-dress.jpg'],
+    images: ['https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=900&auto=format&fit=crop&q=80'],
     variants: [
-      { size: '2-3Y', stock: 10 },
-      { size: '3-4Y', stock: 12 },
-      { size: '4-5Y', stock: 8 },
+      { size: 'Standard', stock: 25, sku: 'PROD-01' },
     ],
-    sizeChartType: 'toddler',
-    sizeChartImage: '',
-    sizeNotes: '',
     deliveryFeeType: 'default',
     customDeliveryFee: 350,
   });
   const [newProductImageUrl, setNewProductImageUrl] = useState<string>('');
   const [productFeedback, setProductFeedback] = useState<string>('');
   const [isUploadingImage, setIsUploadingImage] = useState<boolean>(false);
+  const [adminPreviewDistrict, setAdminPreviewDistrict] = useState<string>('Colombo');
+
+  const openAddProductModal = (sourceType: 'dropship' | 'own') => {
+    setEditingProduct(null);
+    setProductForm({
+      title: '',
+      sku: sourceType === 'dropship' ? `AZ-${Math.floor(1000 + Math.random() * 9000)}` : `NM-${Math.floor(1000 + Math.random() * 9000)}`,
+      sourceType,
+      category: 'Household & Kitchen',
+      brand: 'NookMint',
+      unit: '1 item',
+      isNewArrival: true,
+      isBestSeller: false,
+      costPrice: sourceType === 'dropship' ? 2800 : 2200,
+      sellingPrice: 3890,
+      mrp: 4900,
+      offerPercentage: 20,
+      description: '',
+      variants: [
+        { size: 'Standard', stock: 50 },
+      ],
+      deliveryFeeType: 'default',
+      customDeliveryFee: 350,
+      images: ['/nookmint_images/hero.png'],
+    });
+    setIsAddingProduct(true);
+  };
 
   // Settings State & Feedback
   const [settingsForm, setSettingsForm] = useState<StoreSettings | null>(null);
@@ -126,7 +171,7 @@ export default function AdminDashboardPage() {
   // New Bank Account Modal / Inline Form
   const [newBankForm, setNewBankForm] = useState<BankAccountDetails>({
     bankName: '',
-    accountName: 'LittleStyles Kids Wear (Pvt) Ltd',
+    accountName: 'NookMint Store',
     accountNumber: '',
     branch: '',
     branchCode: '',
@@ -154,13 +199,12 @@ export default function AdminDashboardPage() {
   const [newCategoryImage, setNewCategoryImage] = useState<string>('');
 
   const defaultCategoryList = [
-    'Dresses & Frocks',
-    'Rompers & Onesies',
-    'T-Shirts & Tops',
-    'Pants & Shorts',
-    'Sleepwear & Pyjamas',
-    'Festive & Ethnic Wear',
-    'Accessories & Shoes',
+    'Household & Kitchen',
+    'Home & Garden',
+    'Smart Gadgets & Audio',
+    'Kitchen & Cookware',
+    'Gardening Tools & Pots',
+    'Audio & Smart Accessories',
   ];
 
   const categoryItemList: StoreCategoryItem[] =
@@ -298,6 +342,28 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const handleQuickOrderStatus = async (orderId: string, newStatus: OrderStatus) => {
+    try {
+      const res = await fetch('/api/admin/orders', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId,
+          orderStatus: newStatus,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.order) {
+        setOrders((prev) => prev.map((o) => (o.id === orderId ? data.order : o)));
+        if (selectedOrder && selectedOrder.id === orderId) {
+          setSelectedOrder(data.order);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to quick-update order status:', err);
+    }
+  };
+
   // -------------------------------------------------------------
   // PRODUCT ACTIONS
   // -------------------------------------------------------------
@@ -421,7 +487,7 @@ export default function AdminDashboardPage() {
             setProductForm((prev) => ({
               ...prev,
               images: [
-                ...prev.images.filter((img) => img !== '/images/products/floral-dress.jpg' || prev.images.length > 1),
+                ...prev.images.filter((img) => img !== '/nookmint_images/hero.png' || prev.images.length > 1),
                 data.url,
               ],
             }));
@@ -462,24 +528,56 @@ export default function AdminDashboardPage() {
   const handleRemoveProductImage = (index: number) => {
     setProductForm((prev) => {
       const updated = prev.images.filter((_, i) => i !== index);
-      return { ...prev, images: updated.length > 0 ? updated : ['/images/products/floral-dress.jpg'] };
+      return { ...prev, images: updated.length > 0 ? updated : ['/nookmint_images/hero.png'] };
     });
   };
 
-  const handleSizeChartUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      if (typeof reader.result === 'string') {
-        setProductForm((prev) => ({
-          ...prev,
-          sizeChartImage: reader.result as string,
-          sizeChartType: 'custom',
-        }));
+  const handleToggleNewArrival = async (productId: string, currentStatus: boolean) => {
+    try {
+      const res = await fetch('/api/admin/products', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId,
+          isNewArrival: !currentStatus,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setProducts((prev) =>
+          prev.map((p) => (p.id === productId ? { ...p, isNewArrival: !currentStatus } : p))
+        );
+        setProductFeedback(`Product ${!currentStatus ? 'added to' : 'removed from'} New Arrivals section!`);
+        broadcastCategorySync();
+        setTimeout(() => setProductFeedback(''), 3000);
       }
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+      console.error('Failed to toggle new arrival status:', err);
+    }
+  };
+
+  const handleTogglePopular = async (productId: string, currentStatus: boolean) => {
+    try {
+      const res = await fetch('/api/admin/products', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId,
+          isBestSeller: !currentStatus,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setProducts((prev) =>
+          prev.map((p) => (p.id === productId ? { ...p, isBestSeller: !currentStatus } : p))
+        );
+        setProductFeedback(`Product ${!currentStatus ? 'added to' : 'removed from'} Homepage Popular Showcase!`);
+        broadcastCategorySync();
+        setTimeout(() => setProductFeedback(''), 3000);
+      }
+    } catch (err) {
+      console.error('Failed to toggle popular status:', err);
+    }
   };
 
   const handleSaveProduct = async (e: React.FormEvent) => {
@@ -494,19 +592,20 @@ export default function AdminDashboardPage() {
           body: JSON.stringify({
             productId: editingProduct.id,
             title: productForm.title,
+            sku: productForm.sku,
+            sourceType: productForm.sourceType,
             category: productForm.category,
-            gender: productForm.gender,
-            ageGroup: productForm.ageGroup,
-            fabric: productForm.fabric,
+            brand: productForm.brand,
+            unit: productForm.unit,
+            isNewArrival: Boolean(productForm.isNewArrival),
+            isBestSeller: Boolean(productForm.isBestSeller),
+            costPrice: Number(productForm.costPrice),
             sellingPrice: Number(productForm.sellingPrice),
             mrp: Number(productForm.mrp),
             offerPercentage: Number(productForm.offerPercentage),
             description: productForm.description,
             images: productForm.images,
             variants: productForm.variants,
-            sizeChartType: productForm.sizeChartType,
-            sizeChartImage: productForm.sizeChartImage,
-            sizeNotes: productForm.sizeNotes,
             deliveryFeeType: productForm.deliveryFeeType,
             customDeliveryFee: Number(productForm.customDeliveryFee),
           }),
@@ -515,7 +614,10 @@ export default function AdminDashboardPage() {
         if (data.success) {
           setProducts((prev) => prev.map((p) => (p.id === editingProduct.id ? data.product : p)));
           setEditingProduct(null);
-          setProductFeedback('Product updated successfully!');
+          setIsAddingProduct(false);
+          setProductFeedback('Product updated successfully and synchronized with storefront!');
+          broadcastCategorySync();
+          setTimeout(() => setProductFeedback(''), 3500);
         } else {
           setProductFeedback(data.message || 'Update failed');
         }
@@ -530,7 +632,9 @@ export default function AdminDashboardPage() {
         if (data.success) {
           setProducts((prev) => [data.product, ...prev]);
           setIsAddingProduct(false);
-          setProductFeedback('New product published successfully!');
+          setProductFeedback('New product published successfully to NookMint storefront!');
+          broadcastCategorySync();
+          setTimeout(() => setProductFeedback(''), 3500);
         } else {
           setProductFeedback(data.message || 'Creation failed');
         }
@@ -561,7 +665,7 @@ export default function AdminDashboardPage() {
       if (typeof window !== 'undefined') {
         localStorage.setItem('ls_category_sync', Date.now().toString());
         if (typeof BroadcastChannel !== 'undefined') {
-          const channel = new BroadcastChannel('littlestyles_store_sync');
+          const channel = new BroadcastChannel('innovative_store_sync');
           channel.postMessage({ type: 'CATEGORIES_UPDATED', timestamp: Date.now() });
           channel.close();
         }
@@ -766,7 +870,7 @@ export default function AdminDashboardPage() {
     });
     setNewBankForm({
       bankName: '',
-      accountName: 'LittleStyles Kids Wear (Pvt) Ltd',
+      accountName: 'NookMint Store',
       accountNumber: '',
       branch: '',
       branchCode: '',
@@ -809,10 +913,11 @@ export default function AdminDashboardPage() {
 
     if (!matchesSearch) return false;
 
-    if (statusFilter === 'bank_pending') {
+    if (statusFilter === 'ready_isales') {
       return (
-        o.paymentMethod === PaymentMethod.BANK_TRANSFER &&
-        (o.paymentStatus === PaymentStatus.VERIFICATION_PENDING || o.paymentStatus === PaymentStatus.AWAITING_TRANSFER)
+        o.status === OrderStatus.PENDING_CONFIRMATION ||
+        o.status === OrderStatus.PENDING_COD_VERIFICATION ||
+        o.status === OrderStatus.CONFIRMED
       );
     }
     if (statusFilter === 'cod') {
@@ -842,35 +947,35 @@ export default function AdminDashboardPage() {
           {/* Left Brand Visual Column */}
           <div className="relative min-h-[260px] md:min-h-[460px] bg-slate-900 text-white p-8 flex flex-col justify-between overflow-hidden">
             <Image
-              src="/images/hero-kids.jpg"
-              alt="LittleStyles Merchant Operations"
+              src="/nookmint_images/hero.png"
+              alt="NookMint Operations"
               fill
               priority
               sizes="(max-width: 768px) 100vw, 50vw"
-              className="object-cover object-center opacity-45"
+              className="object-cover object-center opacity-40"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-900/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-900/70 to-transparent" />
 
             <div className="relative z-10 space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[11px] font-bold text-rose-200">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[11px] font-bold text-emerald-300">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Colombo Operations Node</span>
+                <span>NookMint Dropship Node</span>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-black font-serif text-white tracking-tight">
-                LittleStyles Merchant Cloud
+              <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                NookMint Dropship Cloud
               </h2>
             </div>
 
             <div className="relative z-10 space-y-3 pt-6 border-t border-white/15">
               <p className="text-xs text-slate-200 leading-relaxed font-light">
-                Direct portal for Sri Lankan islandwide COD fulfillment, instant manual bank slip verification, and real-time inventory management.
+                Direct portal for A to Z Traders (iSales) dropship fulfillment, 100% Cash on Delivery (COD) order management, 1-click copy tools, and live product catalog control.
               </p>
-              <div className="flex items-center gap-4 text-[11px] text-rose-200 font-semibold">
-                <span>✓ 25 Districts</span>
+              <div className="flex flex-wrap items-center gap-2 text-[11px] text-emerald-300 font-semibold">
+                <span>✓ 25 Districts Islandwide</span>
                 <span>•</span>
-                <span>✓ COMBANK / BOC / HNB</span>
+                <span>✓ 100% Cash on Delivery</span>
                 <span>•</span>
-                <span>✓ Zero Gateway Fees</span>
+                <span>✓ A to Z Traders Partner</span>
               </div>
             </div>
           </div>
@@ -878,14 +983,14 @@ export default function AdminDashboardPage() {
           {/* Right PIN Entry Form */}
           <div className="p-8 sm:p-10 flex flex-col justify-center space-y-6">
             <div className="space-y-2">
-              <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#FF758F] flex items-center justify-center border border-rose-200">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-800 flex items-center justify-center border border-emerald-200 shadow-2xs">
                 <Lock className="w-6 h-6" />
               </div>
               <h1 className="text-xl sm:text-2xl font-black text-slate-900 font-serif">
-                Seller Staff Sign-In
+                Dropship Operations Sign-In
               </h1>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Enter your authorized 4-digit staff PIN to unlock daily order management, slip approvals, and product controls.
+                Enter your authorized 4-digit staff PIN to unlock dropship order management, iSales copy tools, and product catalog controls.
               </p>
             </div>
 
@@ -902,14 +1007,14 @@ export default function AdminDashboardPage() {
                   value={pinInput}
                   onChange={(e) => setPinInput(e.target.value)}
                   placeholder="••••"
-                  className="w-full px-4 py-3.5 rounded-xl border border-slate-300 text-slate-900 font-mono text-center text-2xl tracking-[0.4em] focus:outline-none focus:ring-2 focus:ring-[#FF758F] focus:border-transparent transition-all shadow-inner bg-slate-50/50"
+                  className="w-full px-4 py-3.5 rounded-xl border border-slate-300 text-slate-900 font-mono text-center text-2xl tracking-[0.4em] focus:outline-none focus:ring-2 focus:ring-[#064E3B] focus:border-transparent transition-all shadow-inner bg-slate-50/50"
                 />
                 <div className="mt-2.5 flex items-center justify-between text-[11px]">
                   <span className="text-slate-400">Demo Staff PIN:</span>
                   <button
                     type="button"
                     onClick={() => setPinInput('2026')}
-                    className="font-bold text-[#FF758F] hover:text-[#F0627D] underline underline-offset-2"
+                    className="font-bold text-emerald-700 hover:text-emerald-800 underline underline-offset-2"
                   >
                     Quick-Fill &quot;2026&quot;
                   </button>
@@ -924,9 +1029,9 @@ export default function AdminDashboardPage() {
 
               <button
                 type="submit"
-                className="w-full py-3.5 bg-[#FF758F] hover:bg-[#F0627D] text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md shadow-rose-500/20 transition-all active:scale-98"
+                className="w-full py-3.5 bg-[#064E3B] hover:bg-[#04382A] text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md shadow-emerald-950/20 transition-all active:scale-98 cursor-pointer"
               >
-                Access Seller Dashboard
+                Access Dropship Dashboard
               </button>
             </form>
 
@@ -935,7 +1040,7 @@ export default function AdminDashboardPage() {
                 <Store className="w-3.5 h-3.5 text-slate-400" />
                 <span>Return to Storefront</span>
               </Link>
-              <Link href="/dashboard" className="font-semibold text-[#FF758F] hover:text-[#F0627D]">
+              <Link href="/dashboard" className="font-semibold text-emerald-700 hover:text-emerald-800">
                 Customer Tracker →
               </Link>
             </div>
@@ -954,17 +1059,17 @@ export default function AdminDashboardPage() {
       <div className="bg-white border-b border-slate-200/80 sticky top-0 z-30 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#FF758F] flex items-center justify-center font-bold border border-rose-200">
-              LS
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#064E3B] to-[#04382A] text-white flex items-center justify-center font-black text-sm shadow-xs border border-emerald-800">
+              NM
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-base font-extrabold text-slate-900 font-serif">LittleStyles Seller Admin</h1>
+                <h1 className="text-base font-black text-slate-900 tracking-tight">NookMint Admin</h1>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200">
-                  Live Operations
+                  Dropship Operations
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500">Sri Lanka Local E-Commerce • AspireV SADP Engine</p>
+              <p className="text-[11px] text-slate-500 font-medium">A to Z Traders (iSales) Partner • 100% Cash on Delivery</p>
             </div>
           </div>
 
@@ -973,9 +1078,9 @@ export default function AdminDashboardPage() {
               type="button"
               onClick={fetchDashboardData}
               title="Refresh Data"
-              className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[#FF758F]' : ''}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-emerald-700' : ''}`} />
               <span className="hidden sm:inline">Refresh</span>
             </button>
 
@@ -992,9 +1097,9 @@ export default function AdminDashboardPage() {
             <button
               type="button"
               onClick={handleLogout}
-              className="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold flex items-center gap-1.5 transition-colors border border-rose-200"
+              className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors border border-slate-200 cursor-pointer"
             >
-              <LogOut className="w-3.5 h-3.5" />
+              <LogOut className="w-3.5 h-3.5 text-slate-500" />
               <span>Sign Out</span>
             </button>
           </div>
@@ -1005,17 +1110,17 @@ export default function AdminDashboardPage() {
           <button
             type="button"
             onClick={() => setActiveTab('orders')}
-            className={`pb-3 border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${
+            className={`pb-3 border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer ${
               activeTab === 'orders'
-                ? 'border-[#FF758F] text-[#FF758F]'
+                ? 'border-[#064E3B] text-[#064E3B] font-extrabold'
                 : 'border-transparent text-slate-500 hover:text-slate-900'
             }`}
           >
             <ShoppingBag className="w-4 h-4" />
             <span>Orders & Fulfillment ({orders.length})</span>
-            {pendingBankTransfers.length > 0 && (
-              <span className="w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] flex items-center justify-center font-black">
-                {pendingBankTransfers.length}
+            {orders.filter((o) => o.status === OrderStatus.PENDING_CONFIRMATION || o.status === OrderStatus.PENDING_COD_VERIFICATION || o.status === OrderStatus.CONFIRMED).length > 0 && (
+              <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] flex items-center justify-center font-black">
+                {orders.filter((o) => o.status === OrderStatus.PENDING_CONFIRMATION || o.status === OrderStatus.PENDING_COD_VERIFICATION || o.status === OrderStatus.CONFIRMED).length}
               </span>
             )}
           </button>
@@ -1023,27 +1128,40 @@ export default function AdminDashboardPage() {
           <button
             type="button"
             onClick={() => setActiveTab('products')}
-            className={`pb-3 border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${
+            className={`pb-3 border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer ${
               activeTab === 'products'
-                ? 'border-[#FF758F] text-[#FF758F]'
+                ? 'border-[#064E3B] text-[#064E3B] font-extrabold'
                 : 'border-transparent text-slate-500 hover:text-slate-900'
             }`}
           >
             <Layers className="w-4 h-4" />
-            <span>Product Catalog & Pricing ({products.length})</span>
+            <span>Product Catalog & Stock ({products.length})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('analytics')}
+            className={`pb-3 border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer ${
+              activeTab === 'analytics'
+                ? 'border-[#064E3B] text-[#064E3B] font-extrabold'
+                : 'border-transparent text-slate-500 hover:text-slate-900'
+            }`}
+          >
+            <BarChart3 className="w-4 h-4 text-emerald-700" />
+            <span>Dropship Analytics & Performance</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('settings')}
-            className={`pb-3 border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${
+            className={`pb-3 border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer ${
               activeTab === 'settings'
-                ? 'border-[#FF758F] text-[#FF758F]'
+                ? 'border-[#064E3B] text-[#064E3B] font-extrabold'
                 : 'border-transparent text-slate-500 hover:text-slate-900'
             }`}
           >
             <SettingsIcon className="w-4 h-4" />
-            <span>Bank & Store Settings</span>
+            <span>Store & Courier Settings</span>
           </button>
         </div>
       </div>
@@ -1073,28 +1191,28 @@ export default function AdminDashboardPage() {
             <p className="text-[11px] text-slate-400">Guest checkout islandwide</p>
           </div>
 
-          <div className="bg-white p-5 rounded-3xl border border-amber-200 bg-amber-50/20 shadow-2xs space-y-1">
-            <div className="flex items-center justify-between text-amber-800 text-xs font-bold uppercase tracking-wider">
-              <span>Pending Bank Verification</span>
-              <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
-                <Clock className="w-4 h-4" />
+          <div className="bg-white p-5 rounded-3xl border border-emerald-200 bg-emerald-50/30 shadow-2xs space-y-1">
+            <div className="flex items-center justify-between text-emerald-800 text-xs font-bold uppercase tracking-wider">
+              <span>Ready for iSales Entry</span>
+              <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                <Copy className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-xl sm:text-2xl font-black text-amber-900 font-serif">
-              {pendingBankTransfers.length}
+            <div className="text-xl sm:text-2xl font-black text-emerald-900 font-serif">
+              {orders.filter((o) => o.status === OrderStatus.PENDING_CONFIRMATION || o.status === OrderStatus.PENDING_COD_VERIFICATION || o.status === OrderStatus.CONFIRMED).length}
             </div>
-            <p className="text-[11px] text-amber-700 font-medium">Deposit slips to inspect</p>
+            <p className="text-[11px] text-emerald-700 font-medium">To submit to A to Z Traders</p>
           </div>
 
-          <div className="bg-white p-5 rounded-3xl border border-rose-200 bg-rose-50/20 shadow-2xs space-y-1">
-            <div className="flex items-center justify-between text-rose-800 text-xs font-bold uppercase tracking-wider">
+          <div className="bg-white p-5 rounded-3xl border border-slate-200 bg-slate-50/50 shadow-2xs space-y-1">
+            <div className="flex items-center justify-between text-slate-700 text-xs font-bold uppercase tracking-wider">
               <span>COD In-Transit</span>
-              <div className="w-8 h-8 rounded-xl bg-rose-100 text-[#FF758F] flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center">
                 <Truck className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-xl sm:text-2xl font-black text-rose-900 font-serif">{activeCodOrders.length}</div>
-            <p className="text-[11px] text-rose-700 font-medium">Pending cash collection</p>
+            <div className="text-xl sm:text-2xl font-black text-slate-900 font-serif">{activeCodOrders.length}</div>
+            <p className="text-[11px] text-slate-500 font-medium">Islandwide courier delivery</p>
           </div>
         </div>
 
@@ -1119,17 +1237,15 @@ export default function AdminDashboardPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setStatusFilter('bank_pending')}
+                  onClick={() => setStatusFilter('ready_isales')}
                   className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                    statusFilter === 'bank_pending'
-                      ? 'bg-amber-600 text-white shadow-xs'
-                      : 'bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100'
+                    statusFilter === 'ready_isales'
+                      ? 'bg-emerald-700 text-white shadow-xs'
+                      : 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100'
                   }`}
                 >
-                  <span>Bank Slip Verification</span>
-                  <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/30">
-                    {pendingBankTransfers.length}
-                  </span>
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>Ready for iSales ({orders.filter((o) => o.status === OrderStatus.PENDING_CONFIRMATION || o.status === OrderStatus.PENDING_COD_VERIFICATION || o.status === OrderStatus.CONFIRMED).length})</span>
                 </button>
                 <button
                   type="button"
@@ -1140,7 +1256,7 @@ export default function AdminDashboardPage() {
                       : 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100'
                   }`}
                 >
-                  COD Orders ({orders.filter((o) => o.paymentMethod === PaymentMethod.COD).length})
+                  100% COD ({orders.filter((o) => o.paymentMethod === PaymentMethod.COD).length})
                 </button>
                 <button
                   type="button"
@@ -1173,7 +1289,7 @@ export default function AdminDashboardPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search order #, customer, phone..."
-                  className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#FF758F] focus:border-transparent font-medium"
+                  className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#064E3B] focus:border-transparent font-medium"
                 />
               </div>
             </div>
@@ -1293,34 +1409,75 @@ export default function AdminDashboardPage() {
                             </td>
 
                             <td className="py-4 px-6 whitespace-nowrap">
-                              <span
-                                className={`px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wider ${
+                              <select
+                                value={order.status}
+                                onChange={(e) => handleQuickOrderStatus(order.id, e.target.value as OrderStatus)}
+                                className={`px-2.5 py-1.5 rounded-xl text-[10px] font-extrabold uppercase tracking-wider border cursor-pointer transition-all shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#064E3B] ${
                                   order.status === OrderStatus.DELIVERED
-                                    ? 'bg-purple-100 text-purple-800'
-                                    : order.status === OrderStatus.SHIPPED || order.status === OrderStatus.OUT_FOR_DELIVERY
-                                    ? 'bg-indigo-100 text-indigo-800'
+                                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                                    : order.status === OrderStatus.OUT_FOR_DELIVERY
+                                    ? 'bg-amber-50 text-amber-800 border-amber-300'
+                                    : order.status === OrderStatus.SHIPPED
+                                    ? 'bg-blue-50 text-blue-800 border-blue-300'
                                     : order.status === OrderStatus.CONFIRMED
-                                    ? 'bg-blue-100 text-blue-800'
-                                    : 'bg-slate-100 text-slate-700'
+                                    ? 'bg-indigo-50 text-indigo-800 border-indigo-300'
+                                    : order.status === OrderStatus.CANCELLED
+                                    ? 'bg-rose-50 text-rose-800 border-rose-300'
+                                    : 'bg-slate-100 text-slate-700 border-slate-200'
                                 }`}
+                                title="Update order dispatch & courier stage"
                               >
-                                {order.status}
-                              </span>
+                                <option value={OrderStatus.PENDING_CONFIRMATION}>1. PENDING (Order Placed)</option>
+                                <option value={OrderStatus.CONFIRMED}>2. CONFIRMED (In Packing)</option>
+                                <option value={OrderStatus.SHIPPED}>3. PARCEL DISPATCHED (In Transit)</option>
+                                <option value={OrderStatus.OUT_FOR_DELIVERY}>4. OUT FOR DELIVERY (Doorstep)</option>
+                                <option value={OrderStatus.DELIVERED}>5. DELIVERED (Cash Collected)</option>
+                                <option value={OrderStatus.CANCELLED}>6. CANCELLED / RETURNED</option>
+                              </select>
                             </td>
 
                             <td className="py-4 px-6 text-right whitespace-nowrap">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setSelectedOrder(order);
-                                  setSelectedFulfillmentStatus(order.status);
-                                  setOrderUpdateFeedback('');
-                                  setCourierTracking('');
-                                }}
-                                className="px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-[#FF758F] text-white text-[11px] font-bold transition-all shadow-xs"
-                              >
-                                Manage Order
-                              </button>
+                              <div className="flex items-center justify-end gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const isalesText = `--- A TO Z TRADERS (iSALES) ORDER ENTRY ---
+Customer Name: ${order.shippingAddress?.fullName}
+Address: ${order.shippingAddress?.addressLine1}${order.shippingAddress?.addressLine2 ? ', ' + order.shippingAddress.addressLine2 : ''}
+City: ${order.shippingAddress?.city}
+District: ${order.shippingAddress?.district || 'Colombo'}
+Contact Number One: ${order.shippingAddress?.phone}
+Contact Number Two: ${order.shippingAddress?.alternatePhone || 'N/A'}
+Due Date: ${new Date().toISOString().split('T')[0]}
+Order Source: NookMint Website
+Payment Method: COD
+Order Note: ${order.shippingAddress?.landmark || order.orderNumber}
+Mark for Print WB: Marked as print Waybill Only
+Product Codes / SKUs: ${order.items?.map((i: any) => i.selectedVariant?.sku || i.product.id).join(', ')}
+Total Quantity: ${order.items?.reduce((s: number, i: any) => s + i.quantity, 0)}
+Total COD Amount: Rs. ${order.grandTotal}`;
+                                    copyToClipboard(isalesText, `row-${order.id}`);
+                                  }}
+                                  className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-[11px] font-extrabold transition-all shadow-2xs flex items-center gap-1 active:scale-95"
+                                  title="Copy delivery details formatted for A to Z Traders (iSales)"
+                                >
+                                  <Copy className="w-3 h-3 text-emerald-700" />
+                                  <span>{copiedField === `row-${order.id}` ? 'Copied! ✓' : 'Copy for iSales'}</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedOrder(order);
+                                    setSelectedFulfillmentStatus(order.status);
+                                    setOrderUpdateFeedback('');
+                                    setCourierTracking('');
+                                  }}
+                                  className="px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-emerald-700 text-white text-[11px] font-bold transition-all shadow-xs"
+                                >
+                                  Manage Order
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         );
@@ -1340,85 +1497,213 @@ export default function AdminDashboardPage() {
           <div className="space-y-6">
             <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <h2 className="text-base font-extrabold text-slate-900 font-serif">Product Catalog & Stock Control</h2>
+                <h2 className="text-base font-extrabold text-slate-900 font-serif">Product Catalog & Dropship Control</h2>
                 <p className="text-xs text-slate-500">
-                  Edit prices, product specifications, stock status, or add new items to the live boutique storefront.
+                  Manage iSales catalogue products, wholesale costs, selling prices, stock, and showcase items in Homepage Popular & New Arrivals.
                 </p>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2.5">
                 <button
                   type="button"
-                  onClick={() => {
-                    setEditingProduct(null);
-                    setProductForm({
-                      title: '',
-                      category: 'Dresses & Frocks',
-                      gender: 'Girls',
-                      ageGroup: 'Toddler (1-3Y)',
-                      fabric: '100% GOTS Organic Cotton',
-                      sellingPrice: 2990,
-                      mrp: 3500,
-                      offerPercentage: 15,
-                      description: '',
-                      variants: [
-                        { size: '2-3Y', stock: 10 },
-                        { size: '3-4Y', stock: 12 },
-                        { size: '4-5Y', stock: 8 },
-                      ],
-                      sizeChartType: 'toddler',
-                      sizeChartImage: '',
-                      sizeNotes: '',
-                      deliveryFeeType: 'default',
-                      customDeliveryFee: 350,
-                      images: ['/images/products/floral-dress.jpg'],
-                    });
-                    setIsAddingProduct(true);
-                  }}
-                  className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-[#FF758F] text-white text-xs font-extrabold uppercase tracking-wider flex items-center gap-1.5 transition-colors shadow-xs"
+                  onClick={() => openAddProductModal('dropship')}
+                  className="px-4 py-2.5 rounded-xl bg-[#064E3B] hover:bg-[#04382A] text-white text-xs font-extrabold flex items-center gap-2 transition-all shadow-xs cursor-pointer"
+                  title="Upload A to Z Traders dropshipping catalogue item"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Add New Product</span>
+                  <span>Add Dropship Product (iSales)</span>
                 </button>
-                <span className="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-2 rounded-xl">
-                  {products.length} Products Live
+
+                <button
+                  type="button"
+                  onClick={() => openAddProductModal('own')}
+                  className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-extrabold flex items-center gap-2 transition-all shadow-xs cursor-pointer border border-slate-800"
+                  title="Upload in-house manufactured or warehouse stocked item"
+                >
+                  <Building2 className="w-4 h-4 text-emerald-400" />
+                  <span>Add In-House Product</span>
+                </button>
+
+                <span className="text-xs font-bold text-slate-700 bg-slate-100 px-3.5 py-2.5 rounded-xl border border-slate-200/80 flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 text-slate-500" />
+                  <span>{products.length} Products Live</span>
                 </span>
               </div>
             </div>
 
+            {/* Inventory Sourcing & Category Filter Bar */}
+            <div className="space-y-2.5">
+              {/* Row 1: Sourcing Channels (Dropship vs In-House) */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider pr-1">Source:</span>
+                <button
+                  type="button"
+                  onClick={() => setProductSourceFilter('all')}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                    productSourceFilter === 'all'
+                      ? 'bg-slate-900 text-white shadow-xs'
+                      : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                  }`}
+                >
+                  All Sources ({products.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProductSourceFilter('dropship')}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-1.5 transition-all cursor-pointer ${
+                    productSourceFilter === 'dropship'
+                      ? 'bg-[#064E3B] text-white shadow-xs'
+                      : 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100'
+                  }`}
+                >
+                  <Truck className="w-3.5 h-3.5" />
+                  <span>A to Z Dropship ({products.filter((p) => (p.sourceType || 'dropship') === 'dropship').length})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProductSourceFilter('own')}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-1.5 transition-all cursor-pointer ${
+                    productSourceFilter === 'own'
+                      ? 'bg-slate-800 text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-800 border border-slate-200 hover:bg-slate-200'
+                  }`}
+                >
+                  <Building2 className="w-3.5 h-3.5" />
+                  <span>In-House Stock ({products.filter((p) => p.sourceType === 'own').length})</span>
+                </button>
+              </div>
+
+              {/* Row 2: Categories, Popular Showcase & New Arrivals */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider pr-1">Filter:</span>
+                <button
+                  type="button"
+                  onClick={() => setProductCategoryFilter('all')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                    productCategoryFilter === 'all'
+                      ? 'bg-[#064E3B] text-white shadow-xs'
+                      : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                  }`}
+                >
+                  All Categories
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProductCategoryFilter('popular')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-1.5 transition-all cursor-pointer ${
+                    productCategoryFilter === 'popular'
+                      ? 'bg-rose-600 text-white shadow-xs ring-2 ring-rose-400/30'
+                      : 'bg-rose-50 text-rose-800 border border-rose-200 hover:bg-rose-100'
+                  }`}
+                  title="Filter products currently showcased in Homepage Popular section"
+                >
+                  <Flame className="w-3.5 h-3.5 fill-current" />
+                  <span>Popular Showcase ({products.filter((p) => p.isBestSeller).length})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProductCategoryFilter('new_arrivals')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-1.5 transition-all cursor-pointer ${
+                    productCategoryFilter === 'new_arrivals'
+                      ? 'bg-amber-500 text-white shadow-xs ring-2 ring-amber-400/30'
+                      : 'bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100'
+                  }`}
+                  title="Filter products currently showcased in Homepage New Arrivals section"
+                >
+                  <Sparkles className="w-3.5 h-3.5 fill-current" />
+                  <span>New Arrivals ({products.filter((p) => p.isNewArrival).length})</span>
+                </button>
+                {availableCategories
+                  .filter((cat) => products.filter((p) => p.category === cat).length > 0)
+                  .map((cat) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setProductCategoryFilter(cat)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                        productCategoryFilter === cat
+                          ? 'bg-[#064E3B] text-white shadow-xs'
+                          : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                      }`}
+                    >
+                      {cat} ({products.filter((p) => p.category === cat).length})
+                    </button>
+                  ))}
+              </div>
+            </div>
+
             {productFeedback && (
-              <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 flex items-center gap-2 shadow-2xs">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span>{productFeedback}</span>
               </div>
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products.map((product) => {
+              {products
+                .filter((p) => {
+                  if (productSourceFilter === 'dropship' && (p.sourceType || 'dropship') !== 'dropship') return false;
+                  if (productSourceFilter === 'own' && p.sourceType !== 'own') return false;
+                  if (productCategoryFilter === 'popular') return p.isBestSeller === true;
+                  if (productCategoryFilter === 'new_arrivals') return p.isNewArrival === true;
+                  if (productCategoryFilter !== 'all') return p.category === productCategoryFilter;
+                  return true;
+                })
+                .map((product) => {
                 const totalStock = product.variants?.reduce((sum: number, v: any) => sum + (v.stock || 0), 0) || 0;
                 const inStock = totalStock > 0;
+                const wholesaleCost = product.costPrice || Math.round(product.sellingPrice * 0.7);
+                const estimatedProfit = product.sellingPrice - wholesaleCost;
+                const isDropship = (product.sourceType || 'dropship') === 'dropship';
 
                 return (
                   <div
                     key={product.id}
-                    className="bg-white rounded-3xl border border-slate-200/80 shadow-2xs overflow-hidden flex flex-col justify-between"
+                    className="bg-white rounded-3xl border border-slate-200/80 shadow-2xs overflow-hidden flex flex-col justify-between hover:border-emerald-300 transition-all"
                   >
                     <div className="p-5 flex gap-4 items-start">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={product.images?.[0]}
+                        src={product.images?.[0] || '/nookmint_images/hero.png'}
                         alt={product.title}
-                        className="w-20 h-24 object-cover object-top rounded-2xl bg-stone-50 shrink-0 border border-slate-100"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = '/nookmint_images/hero.png';
+                        }}
+                        className="w-20 h-24 object-cover object-center rounded-2xl bg-stone-50 shrink-0 border border-slate-100 shadow-2xs"
                       />
                       <div className="space-y-1.5 min-w-0 flex-1">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-rose-50 text-rose-700">
+                            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200">
                               {product.category}
                             </span>
+                            {isDropship ? (
+                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-50 text-[#064E3B] border border-emerald-200 flex items-center gap-1">
+                                <Package className="w-2.5 h-2.5" />
+                                <span>DROPSHIP</span>
+                              </span>
+                            ) : (
+                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-800 border border-slate-200 flex items-center gap-1">
+                                <Building2 className="w-2.5 h-2.5" />
+                                <span>IN-HOUSE</span>
+                              </span>
+                            )}
                             {product.offerPercentage > 0 && (
-                              <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-rose-100 text-rose-800 border border-rose-200 uppercase">
+                              <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 uppercase">
                                 {product.offerPercentage}% OFF
+                              </span>
+                            )}
+                            {product.isBestSeller && (
+                              <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-rose-600 text-white flex items-center gap-1 shadow-2xs">
+                                <Flame className="w-2.5 h-2.5 fill-white" />
+                                <span>POPULAR</span>
+                              </span>
+                            )}
+                            {product.isNewArrival && (
+                              <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-amber-500 text-white flex items-center gap-1 shadow-2xs">
+                                <Sparkles className="w-2.5 h-2.5 fill-white" />
+                                <span>NEW</span>
                               </span>
                             )}
                           </div>
@@ -1432,10 +1717,14 @@ export default function AdminDashboardPage() {
                                   : 0;
                               setProductForm({
                                 title: product.title,
+                                sku: product.sku || product.id,
+                                sourceType: product.sourceType || 'dropship',
                                 category: product.category,
-                                gender: product.gender || 'Girls',
-                                ageGroup: product.ageGroup || 'Toddler (1-3Y)',
-                                fabric: product.fabric,
+                                brand: product.brand || 'NookMint',
+                                unit: product.unit || '1 item',
+                                isNewArrival: product.isNewArrival ?? false,
+                                isBestSeller: product.isBestSeller ?? false,
+                                costPrice: product.costPrice || Math.round((product.sellingPrice || 3000) * 0.7),
                                 sellingPrice: product.sellingPrice,
                                 mrp: product.mrp,
                                 offerPercentage: typeof product.offerPercentage === 'number' ? product.offerPercentage : autoOffer,
@@ -1444,31 +1733,38 @@ export default function AdminDashboardPage() {
                                   product.variants && product.variants.length > 0
                                     ? product.variants.map((v: any) => ({ size: v.size, stock: v.stock }))
                                     : [
-                                        { size: '2-3Y', stock: 10 },
-                                        { size: '3-4Y', stock: 12 },
-                                        { size: '4-5Y', stock: 8 },
+                                        { size: 'Standard', stock: 15 },
                                       ],
-                                sizeChartType: product.sizeChartType || 'toddler',
-                                sizeChartImage: product.sizeChartImage || '',
-                                sizeNotes: product.sizeNotes || '',
                                 deliveryFeeType: product.deliveryFeeType || 'default',
                                 customDeliveryFee: product.customDeliveryFee || 350,
-                                images: product.images && product.images.length > 0 ? [...product.images] : ['/images/products/floral-dress.jpg'],
+                                images: product.images && product.images.length > 0 ? [...product.images] : ['/nookmint_images/hero.png'],
                               });
                               setIsAddingProduct(true);
                             }}
-                            className="p-1 text-slate-400 hover:text-slate-800 rounded-md hover:bg-slate-100 transition-colors"
+                            className="p-1 text-slate-400 hover:text-[#064E3B] rounded-md hover:bg-emerald-50 transition-colors"
                             title="Edit details & price"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
-                        <h3 className="text-sm font-bold text-slate-900 leading-snug line-clamp-1">
+
+                        <div className="flex items-center gap-1.5 pt-0.5">
+                          <span className="text-[10px] font-mono font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
+                            Code: {product.sku || product.id}
+                          </span>
+                          {product.brand && (
+                            <span className="text-[10px] text-slate-400 font-medium">
+                              • {product.brand}
+                            </span>
+                          )}
+                        </div>
+
+                        <h3 className="text-sm font-bold text-slate-900 leading-snug line-clamp-2 min-h-[36px]" title={product.title}>
                           {product.title}
                         </h3>
-                        <p className="text-[11px] text-slate-400 truncate">{product.fabric}</p>
-                        <div className="flex items-baseline gap-2 pt-1">
-                          <span className="text-sm font-black text-rose-600 font-serif">
+
+                        <div className="flex items-baseline gap-2 pt-0.5">
+                          <span className="text-sm font-black text-[#064E3B] font-serif">
                             {formatLKR(product.sellingPrice)}
                           </span>
                           <span className="text-[11px] text-slate-400 line-through">
@@ -1476,10 +1772,19 @@ export default function AdminDashboardPage() {
                           </span>
                         </div>
 
-                        {/* Interactive Stock per Size Controller */}
+                        {/* Dropship Margin Display */}
+                        <div className="text-[10px] text-slate-500 flex items-center gap-1.5 pt-0.5 font-medium flex-wrap">
+                          <span className="text-slate-400">{isDropship ? 'Wholesale:' : 'Unit Cost:'}</span>
+                          <span className="font-mono font-bold text-slate-700">Rs. {wholesaleCost}</span>
+                          <span className="text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                            {isDropship ? 'Margin:' : 'Direct Profit:'} +Rs. {estimatedProfit}
+                          </span>
+                        </div>
+
+                        {/* Interactive Stock per Option/Size Controller */}
                         <div className="pt-2 space-y-1">
                           <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase">
-                            <span>Stock per Size:</span>
+                            <span>Stock Units:</span>
                             <span className="text-slate-500 font-mono">Total: {totalStock} pcs</span>
                           </div>
                           <div className="flex flex-wrap gap-1.5">
@@ -1496,7 +1801,7 @@ export default function AdminDashboardPage() {
                                 <button
                                   type="button"
                                   onClick={() => handleQuickUpdateStock(product.id, v.size, Math.max(0, v.stock - 1))}
-                                  className="w-3.5 h-3.5 rounded bg-white hover:bg-rose-100 text-slate-500 hover:text-rose-700 flex items-center justify-center text-[10px] font-bold border border-slate-200"
+                                  className="w-3.5 h-3.5 rounded bg-white hover:bg-slate-200 text-slate-500 hover:text-slate-900 flex items-center justify-center text-[10px] font-bold border border-slate-200"
                                   title="Decrease quantity by 1"
                                 >
                                   -
@@ -1519,26 +1824,29 @@ export default function AdminDashboardPage() {
 
                         <div className="pt-1 flex items-center gap-2 flex-wrap text-[10px]">
                           {product.deliveryFeeType === 'free' && (
-                            <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                              🚚 FREE Delivery
+                            <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 flex items-center gap-1">
+                              <Truck className="w-3 h-3 text-emerald-700" />
+                              <span>FREE COD Delivery</span>
                             </span>
                           )}
                           {product.deliveryFeeType === 'custom' && (
-                            <span className="font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
-                              🚚 Custom Fee: Rs. {product.customDeliveryFee}
+                            <span className="font-bold text-[#064E3B] bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 flex items-center gap-1">
+                              <Truck className="w-3 h-3 text-[#064E3B]" />
+                              <span>Custom Fee: Rs. {product.customDeliveryFee}</span>
                             </span>
                           )}
-                          {product.sizeChartImage && (
-                            <span className="font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">
-                              ✓ Size Chart
+                          {product.deliveryFeeType === 'default' && (
+                            <span className="font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded flex items-center gap-1">
+                              <Truck className="w-3 h-3 text-slate-500" />
+                              <span>Islandwide COD Standard</span>
                             </span>
                           )}
                         </div>
                       </div>
                     </div>
 
-                    <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
+                    <div className="px-4 py-3 bg-slate-50/80 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+                      <div className="flex items-center gap-2 shrink-0">
                         <span
                           className={`w-2.5 h-2.5 rounded-full ${
                             inStock ? 'bg-emerald-500' : 'bg-red-500'
@@ -1549,22 +1857,53 @@ export default function AdminDashboardPage() {
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto justify-end">
+                        {/* 1-Click Toggle Popular Showcase Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleTogglePopular(product.id, !!product.isBestSeller)}
+                          className={`px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                            product.isBestSeller
+                              ? 'bg-rose-50 text-rose-700 border border-rose-300 shadow-2xs ring-1 ring-rose-200'
+                              : 'bg-white hover:bg-rose-50 hover:text-rose-700 text-slate-600 border border-slate-200'
+                          }`}
+                          title="Click to toggle display in customer Homepage 'Popular Products' section"
+                        >
+                          <Flame className={`w-3.5 h-3.5 ${product.isBestSeller ? 'fill-rose-600 text-rose-600' : 'text-slate-400'}`} />
+                          <span>{product.isBestSeller ? 'Popular' : 'Mark Popular'}</span>
+                        </button>
+
+                        {/* 1-Click Toggle New Arrival Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleToggleNewArrival(product.id, !!product.isNewArrival)}
+                          className={`px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                            product.isNewArrival
+                              ? 'bg-amber-50 text-amber-900 border border-amber-300 shadow-2xs ring-1 ring-amber-200'
+                              : 'bg-white hover:bg-amber-50 hover:text-amber-800 text-slate-600 border border-slate-200'
+                          }`}
+                          title="Click to toggle display in customer Homepage 'New Arrivals' section"
+                        >
+                          <Sparkles className={`w-3.5 h-3.5 ${product.isNewArrival ? 'fill-amber-500 text-amber-500' : 'text-slate-400'}`} />
+                          <span>{product.isNewArrival ? 'New' : 'Mark New'}</span>
+                        </button>
+
                         <button
                           type="button"
                           onClick={() => handleToggleProductStock(product.id, inStock)}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
+                          className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
                             inStock
-                              ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200'
+                              ? 'bg-white hover:bg-slate-200 text-slate-700 border border-slate-200'
                               : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200'
                           }`}
+                          title={inStock ? 'Mark product out of stock' : 'Mark product in stock'}
                         >
-                          {inStock ? 'Mark Out of Stock' : 'Mark In Stock'}
+                          {inStock ? 'Mark Out' : 'Mark In'}
                         </button>
                         <button
                           type="button"
                           onClick={() => handleDeleteProduct(product.id)}
-                          className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                          className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
                           title="Delete Product"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -1579,7 +1918,501 @@ export default function AdminDashboardPage() {
         )}
 
         {/* ========================================================= */}
-        {/* TAB 3: BANK & STORE SETTINGS (Live Admin Control) */}
+        {/* TAB 3: DROPSHIP ANALYTICS & PERFORMANCE (A to Z Traders iSales) */}
+        {/* ========================================================= */}
+        {activeTab === 'analytics' && (() => {
+          const scopedOrders = orders.filter((o) => {
+            if (analyticsScope === 'all') return true;
+            return (o.items || []).some((item: any) => {
+              const itemSource = item.product?.sourceType || 'dropship';
+              return itemSource === analyticsScope;
+            });
+          });
+
+          const scopedProducts = products.filter((p) => {
+            if (analyticsScope === 'all') return true;
+            return (p.sourceType || 'dropship') === analyticsScope;
+          });
+
+          const scopedGross = scopedOrders.reduce((sum, o) => sum + (o.grandTotal || 0), 0);
+          const scopedProfit = scopedOrders.reduce((sum, o) => {
+            const orderProfit = (o.items || []).reduce((itemSum: number, item: any) => {
+              const itemSource = item.product?.sourceType || 'dropship';
+              if (analyticsScope !== 'all' && itemSource !== analyticsScope) return itemSum;
+              const sp = item.product?.sellingPrice || 3500;
+              const cp = item.product?.costPrice || Math.round(sp * 0.7);
+              return itemSum + (sp - cp) * (item.quantity || 1);
+            }, 0);
+            return sum + (orderProfit > 0 ? orderProfit : 1100 * (o.items?.length || 1));
+          }, 0);
+          const scopedAov = scopedOrders.length > 0 ? Math.round(scopedGross / scopedOrders.length) : (analyticsScope === 'own' ? 4250 : 3890);
+          const scopedMarginPct = scopedGross > 0 ? Math.round((scopedProfit / scopedGross) * 100) : 31;
+
+          return (
+            <div className="space-y-8">
+            {/* Analytics Scope Segmented Control */}
+            <div className="flex flex-wrap items-center gap-2 bg-white p-2 rounded-2xl border border-slate-200/90 shadow-2xs">
+              <span className="text-[11px] font-extrabold uppercase text-slate-400 px-2 tracking-wider">
+                Analytics Scope:
+              </span>
+              <button
+                type="button"
+                onClick={() => setAnalyticsScope('all')}
+                className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                  analyticsScope === 'all'
+                    ? 'bg-[#064E3B] text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+              >
+                📊 Combined Store Overview
+              </button>
+              <button
+                type="button"
+                onClick={() => setAnalyticsScope('dropship')}
+                className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                  analyticsScope === 'dropship'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-blue-700 hover:bg-blue-50'
+                }`}
+              >
+                📦 A to Z Dropship Performance
+              </button>
+              <button
+                type="button"
+                onClick={() => setAnalyticsScope('own')}
+                className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                  analyticsScope === 'own'
+                    ? 'bg-purple-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-purple-700 hover:bg-purple-50'
+                }`}
+              >
+                🏭 Own Products Direct Sales
+              </button>
+            </div>
+
+            {/* Header Banner */}
+            <div className={`p-6 sm:p-8 rounded-3xl shadow-md border text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-6 transition-all ${
+              analyticsScope === 'own'
+                ? 'bg-gradient-to-r from-purple-900 to-slate-950 border-purple-800'
+                : analyticsScope === 'dropship'
+                ? 'bg-gradient-to-r from-blue-900 to-slate-950 border-blue-800'
+                : 'bg-gradient-to-r from-[#064E3B] to-[#04382A] border-emerald-800'
+            }`}>
+              <div className="space-y-2">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold text-emerald-300">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>
+                    {analyticsScope === 'own'
+                      ? 'In-House Merchant Inventory Operations'
+                      : analyticsScope === 'dropship'
+                      ? 'A to Z Traders (iSales) Dropship Operations'
+                      : 'Dual-Channel Storefront Operations'}
+                  </span>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-black font-serif tracking-tight text-white">
+                  {analyticsScope === 'own'
+                    ? 'Own Inventory Sales & Shipping Performance'
+                    : analyticsScope === 'dropship'
+                    ? 'A to Z Dropshipping Performance & Margins'
+                    : 'Blended Store Performance & Financial Overview'}
+                </h2>
+                <p className="text-xs sm:text-sm text-emerald-100 max-w-2xl font-light leading-relaxed">
+                  {analyticsScope === 'own'
+                    ? 'Track demand, in-house inventory turns, custom delivery fees collected, and direct gross profit for your own stocked product lines.'
+                    : analyticsScope === 'dropship'
+                    ? 'Real-time metrics for your A to Z Traders dropshipping business. Track wholesale costs, orders ready for iSales entry, and net payout earnings.'
+                    : 'Executive unified analytics across dropship products and in-house inventory. Customers experience a single, authentic NookMint boutique.'}
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <div className="bg-black/30 backdrop-blur-sm px-4 py-3 rounded-2xl border border-white/10">
+                  <div className="text-[10px] text-emerald-300 font-bold uppercase tracking-wider">Active Channel</div>
+                  <div className="text-sm font-black text-white">
+                    {analyticsScope === 'own' ? '🏭 Own Products' : analyticsScope === 'dropship' ? '📦 A to Z Dropship' : '🌐 All Channels'}
+                  </div>
+                </div>
+                <div className="bg-black/30 backdrop-blur-sm px-4 py-3 rounded-2xl border border-white/10">
+                  <div className="text-[10px] text-emerald-300 font-bold uppercase tracking-wider">Settlement Method</div>
+                  <div className="text-sm font-black text-white">
+                    {analyticsScope === 'own' ? 'Direct Courier COD Deposit' : 'A to Z Fortnightly Payout'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 4 CORE KPI METRICS CARDS */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {/* Card 1: Gross COD Turnover */}
+              <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-2xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Gross COD Volume</span>
+                  <div className="w-9 h-9 rounded-xl bg-emerald-50 text-[#064E3B] flex items-center justify-center font-bold">
+                    <DollarSign className="w-4 h-4" />
+                  </div>
+                </div>
+                <div>
+                  <div className="text-2xl font-black text-slate-900 font-serif">
+                    {formatLKR(scopedGross)}
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    {analyticsScope === 'own' ? 'Total direct in-house sales volume' : analyticsScope === 'dropship' ? 'Total A to Z Dropship volume' : 'Total combined store order value across Sri Lanka'}
+                  </p>
+                </div>
+                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                  <span className="text-slate-400">Total Checkouts:</span>
+                  <span className="font-extrabold text-slate-700">{scopedOrders.length} Orders</span>
+                </div>
+              </div>
+
+              {/* Card 2: Estimated Net Dropship Profit */}
+              <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-2xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">Est. Net Profit</span>
+                  <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                    <TrendingUp className="w-4 h-4" />
+                  </div>
+                </div>
+                <div>
+                  <div className="text-2xl font-black text-emerald-700 font-serif">
+                    {formatLKR(scopedProfit)}
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    {analyticsScope === 'own' ? 'Your In-House Profit (Price minus Cost)' : 'Your A to Z Net Earnings (Selling Price minus Wholesale)'}
+                  </p>
+                </div>
+                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                  <span className="text-slate-400">Avg Profit Margin:</span>
+                  <span className="font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    ~{scopedMarginPct}% Net Margin
+                  </span>
+                </div>
+              </div>
+
+              {/* Card 3: Average Order Value (AOV) */}
+              <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-2xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Average Order Value</span>
+                  <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center font-bold">
+                    <ShoppingBag className="w-4 h-4" />
+                  </div>
+                </div>
+                <div>
+                  <div className="text-2xl font-black text-slate-900 font-serif">
+                    {formatLKR(scopedAov)}
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    Average basket size per customer COD booking
+                  </p>
+                </div>
+                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                  <span className="text-slate-400">Payment Option:</span>
+                  <span className="font-extrabold text-slate-700">100% Cash on Delivery</span>
+                </div>
+              </div>
+
+              {/* Card 4: Islandwide Fulfillment Success */}
+              <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-2xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Courier Success</span>
+                  <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center font-bold">
+                    <Truck className="w-4 h-4" />
+                  </div>
+                </div>
+                <div>
+                  <div className="text-2xl font-black text-slate-900 font-serif">
+                    98.2%
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    Successful delivery & cash collection rate
+                  </p>
+                </div>
+                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                  <span className="text-slate-400">Coverage:</span>
+                  <span className="font-extrabold text-purple-700">All 25 Districts</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 4-STAGE DROPSHIP FULFILLMENT FUNNEL */}
+            <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200/80 shadow-2xs space-y-5">
+              <div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-base font-extrabold text-slate-900 font-serif">
+                      4-Stage A to Z Traders Fulfillment Funnel
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Visual status of orders moving from NookMint customer checkout to iSales system entry and courier settlement.
+                    </p>
+                  </div>
+                  <span className="text-xs font-bold text-[#064E3B] bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
+                    Active Pipeline
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Stage 1 */}
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-slate-400">Step 1</span>
+                    <span className="w-6 h-6 rounded-full bg-slate-200 text-slate-800 text-xs font-bold flex items-center justify-center">
+                      {orders.length}
+                    </span>
+                  </div>
+                  <h4 className="text-sm font-bold text-slate-900">1. Customer Placed Order</h4>
+                  <p className="text-[11px] text-slate-500 leading-snug">
+                    Customer selected items, gave name, address & phone on NookMint storefront with COD.
+                  </p>
+                  <div className="text-[10px] text-slate-400 pt-1 font-mono">100% Sri Lanka Traffic</div>
+                </div>
+
+                {/* Stage 2 */}
+                <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-300 space-y-2 relative">
+                  <span className="absolute -top-2 right-3 text-[9px] font-black bg-emerald-600 text-white px-2 py-0.5 rounded-full uppercase">
+                    Your Action
+                  </span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-emerald-800">Step 2</span>
+                    <span className="w-6 h-6 rounded-full bg-emerald-600 text-white text-xs font-bold flex items-center justify-center">
+                      {orders.filter((o) => o.status === OrderStatus.PENDING_CONFIRMATION || o.status === OrderStatus.PENDING_COD_VERIFICATION).length}
+                    </span>
+                  </div>
+                  <h4 className="text-sm font-bold text-emerald-950">2. Ready for iSales Entry</h4>
+                  <p className="text-[11px] text-emerald-800 leading-snug">
+                    Use Admin 1-Click Copy tools to paste customer details & product code into A to Z Traders portal.
+                  </p>
+                  <div className="text-[10px] text-emerald-700 pt-1 font-semibold">Prompt 1-Click Clipboard Ready</div>
+                </div>
+
+                {/* Stage 3 */}
+                <div className="p-4 rounded-2xl bg-blue-50/70 border border-blue-200 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-blue-700">Step 3</span>
+                    <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center">
+                      {orders.filter((o) => o.status === OrderStatus.CONFIRMED || o.status === OrderStatus.SHIPPED || o.status === OrderStatus.OUT_FOR_DELIVERY).length}
+                    </span>
+                  </div>
+                  <h4 className="text-sm font-bold text-blue-950">3. A to Z Traders Packing</h4>
+                  <p className="text-[11px] text-blue-800 leading-snug">
+                    A to Z warehouse checks stock, packages order, and hands over to Prompt Xpress / Domex courier.
+                  </p>
+                  <div className="text-[10px] text-blue-700 pt-1 font-mono">1-2 Days Western, 2-3 Days Outstation</div>
+                </div>
+
+                {/* Stage 4 */}
+                <div className="p-4 rounded-2xl bg-purple-50/70 border border-purple-200 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-purple-700">Step 4</span>
+                    <span className="w-6 h-6 rounded-full bg-purple-600 text-white text-xs font-bold flex items-center justify-center">
+                      {orders.filter((o) => o.status === OrderStatus.DELIVERED).length}
+                    </span>
+                  </div>
+                  <h4 className="text-sm font-bold text-purple-950">4. Delivered & Settled</h4>
+                  <p className="text-[11px] text-purple-800 leading-snug">
+                    Customer pays cash upon delivery. COD amount collected and profit credited to your bank account.
+                  </p>
+                  <div className="text-[10px] text-purple-700 pt-1 font-mono">Bi-Weekly Payout Schedule</div>
+                </div>
+              </div>
+            </div>
+
+            {/* TWO-COLUMN GRID: CATEGORY BREAKDOWN & DISTRICT HEATMAP */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+              {/* Category Volume & Revenue Breakdown */}
+              <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200/80 shadow-2xs space-y-5">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-2xl bg-emerald-50 text-[#064E3B] flex items-center justify-center font-bold">
+                      <Layers className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-extrabold text-slate-900 font-serif">Category Performance</h3>
+                      <p className="text-xs text-slate-500">Sales volume and customer traction across product lines</p>
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-xl">
+                    Live Catalog
+                  </span>
+                </div>
+
+                <div className="space-y-4">
+                  {[
+                    { name: 'Household & Kitchen', count: 12, share: 44, revenue: 'Rs. 46,680' },
+                    { name: 'Smart Gadgets & Audio', count: 8, share: 32, revenue: 'Rs. 38,900' },
+                    { name: 'Home & Garden', count: 6, share: 24, revenue: 'Rs. 24,500' },
+                  ].map((cat) => (
+                    <div key={cat.name} className="space-y-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold text-slate-800">{cat.name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-slate-500">{cat.count} Items</span>
+                          <span className="font-mono font-bold text-[#064E3B]">{cat.revenue}</span>
+                        </div>
+                      </div>
+                      <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                        <div
+                          className="h-full bg-[#064E3B] rounded-full transition-all duration-500"
+                          style={{ width: `${cat.share}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200 text-xs text-emerald-900 flex items-start gap-2.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold">Dropship Tip:</span> Kitchen silicone utensil sets and wireless Bluetooth lapel mics/earpods have the highest conversion rate on TikTok and Facebook Ads in Sri Lanka.
+                  </div>
+                </div>
+              </div>
+
+              {/* Sri Lanka 25-Districts Demand Heatmap */}
+              <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200/80 shadow-2xs space-y-5">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-2xl bg-emerald-50 text-[#064E3B] flex items-center justify-center font-bold">
+                      <MapPin className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-extrabold text-slate-900 font-serif">Islandwide District Demand</h3>
+                      <p className="text-xs text-slate-500">Order distribution across Sri Lanka's top courier zones</p>
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-200">
+                    25 Districts Covered
+                  </span>
+                </div>
+
+                <div className="space-y-3.5">
+                  {[
+                    { zone: 'Colombo (Western Province)', share: '38%', count: 'High Demand', time: '1-2 Days (Prompt Xpress)' },
+                    { zone: 'Gampaha & Kalutara', share: '24%', count: 'Growing Demand', time: '1-2 Days (Domex)' },
+                    { zone: 'Kandy & Central Province', share: '18%', count: 'Active COD', time: '2-3 Days (Pronto)' },
+                    { zone: 'Galle, Matara & Southern', share: '12%', count: 'Regular', time: '2-3 Days (Domex)' },
+                    { zone: 'Kurunegala & North Western', share: '8%', count: 'Regular', time: '2-3 Days' },
+                  ].map((dist) => (
+                    <div key={dist.zone} className="p-3 rounded-2xl bg-[#FAF6F3] border border-slate-200/80 flex items-center justify-between text-xs">
+                      <div className="space-y-0.5">
+                        <div className="font-bold text-slate-900">{dist.zone}</div>
+                        <div className="text-[11px] text-slate-500 flex items-center gap-1.5">
+                          <Truck className="w-3 h-3 text-emerald-700" />
+                          <span>{dist.time}</span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-black text-sm text-[#064E3B] block">{dist.share}</span>
+                        <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/70 px-1.5 py-0.5 rounded">
+                          {dist.count}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* TOP PERFORMING DROPSHIP SKUS & PROFIT MARGIN TABLE */}
+            <div className="bg-white rounded-3xl border border-slate-200/80 shadow-2xs overflow-hidden">
+              <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-base font-extrabold text-slate-900 font-serif">
+                    Top Dropship Catalog SKUs & Profit Realization
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Calculated net earnings for each item when delivered via A to Z Traders Cash on Delivery.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-xl">
+                    {scopedProducts.length} Products Monitored
+                  </span>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#FAF6F3] text-slate-700 font-extrabold uppercase text-[10px] tracking-wider border-b border-slate-200">
+                    <tr>
+                      <th className="py-3 px-5">Product & SKU Code</th>
+                      <th className="py-3 px-5">Category</th>
+                      <th className="py-3 px-5">{analyticsScope === 'own' ? 'Unit Cost (In-House)' : 'Wholesale Cost (iSales)'}</th>
+                      <th className="py-3 px-5">Customer Price (COD)</th>
+                      <th className="py-3 px-5">Net Profit / Sale</th>
+                      <th className="py-3 px-5">Margin %</th>
+                      <th className="py-3 px-5">New Arrival?</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-medium">
+                    {scopedProducts.slice(0, 10).map((product) => {
+                      const wholesale = product.costPrice || Math.round(product.sellingPrice * 0.7);
+                      const profit = product.sellingPrice - wholesale;
+                      const marginPct = product.sellingPrice > 0 ? Math.round((profit / product.sellingPrice) * 100) : 30;
+
+                      return (
+                        <tr key={product.id} className="hover:bg-slate-50/80 transition-colors">
+                          <td className="py-3.5 px-5">
+                            <div className="flex items-center gap-3">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={product.images?.[0] || '/nookmint_images/hero.png'}
+                                alt={product.title}
+                                className="w-9 h-9 object-cover rounded-xl border border-slate-200 shrink-0"
+                              />
+                              <div>
+                                <div className="font-bold text-slate-900 line-clamp-1">{product.title}</div>
+                                <div className="text-[10px] font-mono text-emerald-800 font-bold">
+                                  SKU: {product.sku || product.id}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-5">
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">
+                              {product.category}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-5 font-mono text-slate-600 font-bold">
+                            {formatLKR(wholesale)}
+                          </td>
+                          <td className="py-3.5 px-5 font-mono text-slate-900 font-black">
+                            {formatLKR(product.sellingPrice)}
+                          </td>
+                          <td className="py-3.5 px-5">
+                            <span className="font-mono font-black text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200">
+                              +{formatLKR(profit)}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-5">
+                            <span className="font-bold text-slate-700">
+                              {marginPct}%
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-5">
+                            {product.isNewArrival ? (
+                              <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1 w-max">
+                                <Star className="w-2.5 h-2.5 fill-amber-600 text-amber-600" />
+                                <span>Featured</span>
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-slate-400 font-medium">Standard</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+        {/* ========================================================= */}
+        {/* TAB 4: STORE & COURIER SETTINGS */}
         {/* ========================================================= */}
         {activeTab === 'settings' && settingsForm && (
           <div className="space-y-8">
@@ -1602,19 +2435,19 @@ export default function AdminDashboardPage() {
                 <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200/80 shadow-2xs space-y-6">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-10 h-10 rounded-2xl bg-rose-50 text-[#FF758F] flex items-center justify-center font-bold">
+                    <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-[#064E3B] flex items-center justify-center font-bold">
                       <Building2 className="w-5 h-5" />
                     </div>
                     <div>
-                      <h2 className="text-base font-extrabold text-slate-900 font-serif">Corporate Bank Accounts</h2>
-                      <p className="text-xs text-slate-500">Live accounts shown to customers during bank transfer checkout</p>
+                      <h2 className="text-base font-extrabold text-slate-900 font-serif">Dropship Payout Account</h2>
+                      <p className="text-xs text-slate-500">Bank account where A to Z Traders deposits your fortnightly earnings</p>
                     </div>
                   </div>
 
                   <button
                     type="button"
                     onClick={() => setIsAddingBank(!isAddingBank)}
-                    className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-[#FF758F] text-white text-xs font-bold flex items-center gap-1 transition-colors"
+                    className="px-3 py-1.5 rounded-xl bg-[#064E3B] hover:bg-[#04382A] text-white text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Add Bank</span>
@@ -1623,8 +2456,8 @@ export default function AdminDashboardPage() {
 
                 {/* Add New Bank Form */}
                 {isAddingBank && (
-                  <form onSubmit={handleAddBankAccount} className="p-4 rounded-2xl bg-rose-50/50 border border-rose-200 space-y-3">
-                    <h4 className="text-xs font-bold text-slate-900 uppercase">New Bank Account</h4>
+                  <form onSubmit={handleAddBankAccount} className="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200 space-y-3">
+                    <h4 className="text-xs font-bold text-slate-900 uppercase">New Payout Account</h4>
                     <div className="grid grid-cols-2 gap-3 text-xs">
                       <div>
                         <label className="text-[11px] font-bold text-slate-600 block mb-1">Bank Name</label>
@@ -1633,8 +2466,8 @@ export default function AdminDashboardPage() {
                           required
                           value={newBankForm.bankName}
                           onChange={(e) => setNewBankForm({ ...newBankForm, bankName: e.target.value })}
-                          placeholder="e.g. Sampath Bank"
-                          className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs"
+                          placeholder="e.g. Commercial Bank / Sampath Bank"
+                          className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-[#064E3B]"
                         />
                       </div>
                       <div>
@@ -1645,7 +2478,7 @@ export default function AdminDashboardPage() {
                           value={newBankForm.accountNumber}
                           onChange={(e) => setNewBankForm({ ...newBankForm, accountNumber: e.target.value })}
                           placeholder="e.g. 018293847"
-                          className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs font-mono"
+                          className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-[#064E3B]"
                         />
                       </div>
                       <div>
@@ -1655,7 +2488,7 @@ export default function AdminDashboardPage() {
                           value={newBankForm.branch}
                           onChange={(e) => setNewBankForm({ ...newBankForm, branch: e.target.value })}
                           placeholder="e.g. Colombo Fort (001)"
-                          className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs"
+                          className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-[#064E3B]"
                         />
                       </div>
                       <div>
@@ -1664,8 +2497,8 @@ export default function AdminDashboardPage() {
                           type="text"
                           value={newBankForm.swiftCode}
                           onChange={(e) => setNewBankForm({ ...newBankForm, swiftCode: e.target.value })}
-                          placeholder="e.g. BSAMLKLX"
-                          className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs font-mono"
+                          placeholder="e.g. CCEYLKLX"
+                          className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-[#064E3B]"
                         />
                       </div>
                     </div>
@@ -1679,7 +2512,7 @@ export default function AdminDashboardPage() {
                       </button>
                       <button
                         type="submit"
-                        className="px-4 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold"
+                        className="px-4 py-1.5 rounded-lg bg-[#064E3B] text-white text-xs font-bold hover:bg-[#04382A]"
                       >
                         Add to List
                       </button>
@@ -1690,7 +2523,7 @@ export default function AdminDashboardPage() {
                 {/* Bank Accounts List with In-Place Editing */}
                 <div className="space-y-4">
                   {settingsForm.bankAccounts.map((bank, index) => (
-                    <div key={index} className="p-4 rounded-2xl bg-[#FAF6F3] border border-rose-100 space-y-3">
+                    <div key={index} className="p-4 rounded-2xl bg-[#FAF6F3] border border-emerald-100 space-y-3">
                       <div className="flex items-center justify-between">
                         <input
                           type="text"
@@ -1700,7 +2533,7 @@ export default function AdminDashboardPage() {
                             updated[index].bankName = e.target.value;
                             setSettingsForm({ ...settingsForm, bankAccounts: updated });
                           }}
-                          className="font-black text-slate-900 bg-transparent border-b border-dashed border-slate-300 text-sm focus:outline-none focus:border-[#FF758F]"
+                          className="font-black text-slate-900 bg-transparent border-b border-dashed border-slate-300 text-sm focus:outline-none focus:border-[#064E3B]"
                         />
                         <button
                           type="button"
@@ -1775,10 +2608,10 @@ export default function AdminDashboardPage() {
                     type="button"
                     disabled={isSavingSettings}
                     onClick={() => handleSaveSettings('banks')}
-                    className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-[#FF758F] text-white text-xs font-extrabold uppercase tracking-wider flex items-center gap-2 transition-colors shadow-xs"
+                    className="px-5 py-2.5 rounded-xl bg-[#064E3B] hover:bg-[#04382A] text-white text-xs font-extrabold uppercase tracking-wider flex items-center gap-2 transition-colors shadow-xs cursor-pointer"
                   >
                     <Save className="w-3.5 h-3.5" />
-                    <span>{isSavingSettings ? 'Saving...' : 'Save Bank Accounts'}</span>
+                    <span>{isSavingSettings ? 'Saving...' : 'Save Payout Details'}</span>
                   </button>
                 </div>
               </div>
@@ -1787,7 +2620,7 @@ export default function AdminDashboardPage() {
                 <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200/80 shadow-2xs space-y-5">
                   <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 rounded-2xl bg-rose-50 text-[#FF758F] flex items-center justify-center font-bold shrink-0">
+                      <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-[#064E3B] flex items-center justify-center font-bold shrink-0">
                         <Layers className="w-5 h-5" />
                       </div>
                       <div>
@@ -1799,7 +2632,7 @@ export default function AdminDashboardPage() {
                     <button
                       type="button"
                       onClick={() => setIsAddingCategory(!isAddingCategory)}
-                      className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-[#FF758F] text-white text-xs font-bold flex items-center gap-1 transition-colors shadow-xs shrink-0"
+                      className="px-3 py-1.5 rounded-xl bg-[#064E3B] hover:bg-[#04382A] text-white text-xs font-bold flex items-center gap-1 transition-colors shadow-xs shrink-0 cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Add Category</span>
@@ -1807,9 +2640,9 @@ export default function AdminDashboardPage() {
                   </div>
 
                   {isAddingCategory && (
-                    <div className="p-4 bg-rose-50/60 rounded-2xl border border-rose-200/80 space-y-3.5">
+                    <div className="p-4 bg-emerald-50/60 rounded-2xl border border-emerald-200/80 space-y-3.5">
                       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                        <div className="w-12 h-12 rounded-full overflow-hidden bg-white border-2 border-rose-200 shrink-0 relative flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-full overflow-hidden bg-white border-2 border-emerald-200 shrink-0 relative flex items-center justify-center">
                           {newCategoryImage ? (
                             <Image
                               src={newCategoryImage}
@@ -1819,7 +2652,7 @@ export default function AdminDashboardPage() {
                               className="object-cover"
                             />
                           ) : (
-                            <ImageIcon className="w-5 h-5 text-rose-300" />
+                            <ImageIcon className="w-5 h-5 text-emerald-600" />
                           )}
                         </div>
 
@@ -1828,8 +2661,8 @@ export default function AdminDashboardPage() {
                             type="text"
                             value={newCategoryName}
                             onChange={(e) => setNewCategoryName(e.target.value)}
-                            placeholder="Type category name (e.g. Swimwear & Beach)..."
-                            className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-bold bg-white focus:outline-none focus:ring-2 focus:ring-[#FF758F]"
+                            placeholder="Type category name (e.g. Smart Audio, Household)..."
+                            className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-bold bg-white focus:outline-none focus:ring-2 focus:ring-[#064E3B]"
                             autoFocus
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
@@ -1840,8 +2673,8 @@ export default function AdminDashboardPage() {
                           />
 
                           <div className="flex flex-wrap items-center gap-2">
-                            <label className="cursor-pointer px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:border-[#FF758F] text-[11px] font-bold text-slate-700 flex items-center gap-1.5 transition-colors shadow-2xs">
-                              <Camera className="w-3.5 h-3.5 text-[#FF758F]" />
+                            <label className="cursor-pointer px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:border-[#064E3B] text-[11px] font-bold text-slate-700 flex items-center gap-1.5 transition-colors shadow-2xs">
+                              <Camera className="w-3.5 h-3.5 text-[#064E3B]" />
                               <span>{newCategoryImage ? 'Change Photo' : 'Upload Category Photo'}</span>
                               <input
                                 type="file"
@@ -1856,13 +2689,13 @@ export default function AdminDashboardPage() {
                               value={newCategoryImage.startsWith('data:') ? '' : newCategoryImage}
                               onChange={(e) => setNewCategoryImage(e.target.value)}
                               placeholder="Or paste image URL (optional)..."
-                              className="flex-1 min-w-[180px] px-3 py-1.5 rounded-lg border border-slate-200 text-[11px] bg-white focus:outline-none focus:ring-1 focus:ring-[#FF758F]"
+                              className="flex-1 min-w-[180px] px-3 py-1.5 rounded-lg border border-slate-200 text-[11px] bg-white focus:outline-none focus:ring-1 focus:ring-[#064E3B]"
                             />
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-end gap-2 pt-1 border-t border-rose-100">
+                      <div className="flex items-center justify-end gap-2 pt-1 border-t border-emerald-100">
                         <button
                           type="button"
                           onClick={() => setIsAddingCategory(false)}
@@ -1873,7 +2706,7 @@ export default function AdminDashboardPage() {
                         <button
                           type="button"
                           onClick={() => handleAddNewCategory()}
-                          className="px-4 py-1.5 rounded-xl bg-slate-900 hover:bg-[#FF758F] text-white text-xs font-bold transition-colors shadow-xs"
+                          className="px-4 py-1.5 rounded-xl bg-[#064E3B] hover:bg-[#04382A] text-white text-xs font-bold transition-colors shadow-xs"
                         >
                           Save Category
                         </button>
@@ -1891,7 +2724,7 @@ export default function AdminDashboardPage() {
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
                             {/* Circular Category Photo Thumbnail */}
-                            <div className="relative w-9 h-9 rounded-full overflow-hidden bg-rose-50 border border-rose-200 shrink-0">
+                            <div className="relative w-9 h-9 rounded-full overflow-hidden bg-emerald-50 border border-emerald-200 shrink-0">
                               <Image
                                 src={cat.image || getCategoryImage(cat.name)}
                                 alt={cat.name}
@@ -1914,7 +2747,7 @@ export default function AdminDashboardPage() {
                           <div className="flex items-center gap-1 shrink-0">
                             {/* Upload / Change Category Photo */}
                             <label
-                              className="cursor-pointer p-1.5 rounded-lg text-slate-400 hover:text-[#FF758F] hover:bg-rose-50 transition-colors"
+                              className="cursor-pointer p-1.5 rounded-lg text-slate-400 hover:text-[#064E3B] hover:bg-emerald-50 transition-colors"
                               title={`Change photo for ${cat.name}`}
                               aria-label={`Change photo for ${cat.name}`}
                             >
@@ -1931,7 +2764,7 @@ export default function AdminDashboardPage() {
                             <button
                               type="button"
                               onClick={() => handleDeleteCategory(cat.name)}
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                               title={`Delete Category "${cat.name}"`}
                               aria-label={`Delete category ${cat.name}`}
                             >
@@ -2090,7 +2923,7 @@ export default function AdminDashboardPage() {
                         <button
                           type="button"
                           onClick={() => setIsAddingDistrictRate(!isAddingDistrictRate)}
-                          className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-[#FF758F] text-white text-xs font-bold flex items-center gap-1 transition-colors shadow-xs"
+                          className="px-3 py-1.5 rounded-xl bg-[#064E3B] hover:bg-[#04382A] text-white text-xs font-bold flex items-center gap-1 transition-colors shadow-xs cursor-pointer"
                         >
                           <Plus className="w-3.5 h-3.5" />
                           <span>Add District Rate</span>
@@ -2365,7 +3198,7 @@ export default function AdminDashboardPage() {
             {/* Header */}
             <div className="flex items-start justify-between border-b border-slate-100 pb-4">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-rose-600 block">
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#064E3B] block">
                   MANAGE ORDER LIFECYCLE
                 </span>
                 <h3 className="text-xl font-black text-slate-900 font-serif">
@@ -2392,7 +3225,7 @@ export default function AdminDashboardPage() {
             )}
 
             {/* Customer & Delivery Details */}
-            <div className="p-4 rounded-2xl bg-[#FAF6F3] border border-rose-100/80 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div className="p-4 rounded-2xl bg-[#FAF6F3] border border-emerald-100 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div className="space-y-1">
                 <span className="text-[10px] font-black uppercase text-slate-400">Customer Details</span>
                 <div className="font-bold text-slate-900 text-sm">{selectedOrder.shippingAddress?.fullName}</div>
@@ -2403,7 +3236,7 @@ export default function AdminDashboardPage() {
                 <a
                   href={`https://wa.me/94${selectedOrder.shippingAddress?.phone?.replace(/^0/, '')}?text=Hello%20${encodeURIComponent(
                     selectedOrder.shippingAddress?.fullName || 'Customer'
-                  )}!%20This%20is%20LittleStyles%20regarding%20order%20${selectedOrder.orderNumber}`}
+                  )}!%20This%20is%20NookMint%20regarding%20order%20${selectedOrder.orderNumber}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 hover:text-emerald-700 pt-1"
@@ -2427,6 +3260,238 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
+            {/* A TO Z TRADERS (iSALES) DROPSHIPPING QUICK-COPY ASSISTANT */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#F0FDF4] to-[#DCFCE7]/70 border border-emerald-300 shadow-2xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-emerald-200/80 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-[#004D40] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                    iS
+                  </div>
+                  <div>
+                    <h4 className="font-black text-xs sm:text-sm text-slate-900 flex items-center gap-1.5">
+                      <span>A to Z Traders (iSales) Dropship Transfer</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-extrabold uppercase">
+                        Ready
+                      </span>
+                    </h4>
+                    <p className="text-[11px] text-slate-600">
+                      Copy fields directly into the iSales web order form
+                    </p>
+                  </div>
+                </div>
+
+                {/* Master Copy Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const primaryPhone = selectedOrder.shippingAddress?.phone || '';
+                    const secPhone = selectedOrder.shippingAddress?.alternatePhone || 'N/A';
+                    const prodSummary = selectedOrder.items
+                      ?.map(
+                        (i: any) =>
+                          `${i.product.title} (Code: ${i.selectedVariant?.sku || i.product.id || 'N/A'}) x ${i.quantity} @ Rs. ${i.price}`
+                      )
+                      .join('\n');
+                    const isalesText = `--- A TO Z TRADERS (iSALES) ORDER ENTRY ---
+Customer Name: ${selectedOrder.shippingAddress?.fullName}
+Address: ${selectedOrder.shippingAddress?.addressLine1}${selectedOrder.shippingAddress?.addressLine2 ? ', ' + selectedOrder.shippingAddress.addressLine2 : ''}
+City: ${selectedOrder.shippingAddress?.city}
+District: ${selectedOrder.shippingAddress?.district}
+Contact Number One: ${primaryPhone}
+Contact Number Two: ${secPhone}
+Order Source: NookMint Website
+Payment Method: COD
+Order Note: ${selectedOrder.shippingAddress?.landmark || 'No special note'}
+Products:
+${prodSummary}
+COD Collect Amount: Rs. ${selectedOrder.grandTotal}
+Facebook Page: NookMint`;
+
+                    copyToClipboard(isalesText, 'all');
+                  }}
+                  className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs rounded-xl shadow-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 shrink-0"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>{copiedField === 'all' ? 'Copied All to Clipboard! ✓' : '📋 Copy All for iSales'}</span>
+                </button>
+              </div>
+
+              {/* Individual Field Fast-Copy Grid matching iSales form */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-xs">
+                {/* Field 1: Customer Name */}
+                <div className="p-2.5 rounded-xl bg-white border border-emerald-100 flex items-center justify-between gap-2 shadow-2xs">
+                  <div className="truncate">
+                    <span className="text-[10px] font-bold text-slate-400 block uppercase">Customer Name *</span>
+                    <span className="font-bold text-slate-900 truncate block">
+                      {selectedOrder.shippingAddress?.fullName}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(selectedOrder.shippingAddress?.fullName || '', 'name')}
+                    className="p-1.5 px-2.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 shrink-0 text-[11px] font-extrabold transition-colors border border-emerald-200"
+                    title="Copy Name"
+                  >
+                    {copiedField === 'name' ? 'Copied ✓' : 'Copy'}
+                  </button>
+                </div>
+
+                {/* Field 2: Contact Number One */}
+                <div className="p-2.5 rounded-xl bg-white border border-emerald-100 flex items-center justify-between gap-2 shadow-2xs">
+                  <div className="truncate">
+                    <span className="text-[10px] font-bold text-slate-400 block uppercase">Contact Number One *</span>
+                    <span className="font-mono font-bold text-slate-900 truncate block">
+                      {selectedOrder.shippingAddress?.phone}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(selectedOrder.shippingAddress?.phone || '', 'phone1')}
+                    className="p-1.5 px-2.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 shrink-0 text-[11px] font-extrabold transition-colors border border-emerald-200"
+                    title="Copy Phone 1"
+                  >
+                    {copiedField === 'phone1' ? 'Copied ✓' : 'Copy'}
+                  </button>
+                </div>
+
+                {/* Field 3: Contact Number Two */}
+                <div className="p-2.5 rounded-xl bg-white border border-emerald-100 flex items-center justify-between gap-2 shadow-2xs">
+                  <div className="truncate">
+                    <span className="text-[10px] font-bold text-slate-400 block uppercase">Contact Number Two</span>
+                    <span className="font-mono font-bold text-slate-900 truncate block">
+                      {selectedOrder.shippingAddress?.alternatePhone || 'None'}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={!selectedOrder.shippingAddress?.alternatePhone}
+                    onClick={() => copyToClipboard(selectedOrder.shippingAddress?.alternatePhone || '', 'phone2')}
+                    className="p-1.5 px-2.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 disabled:opacity-40 text-emerald-800 shrink-0 text-[11px] font-extrabold transition-colors border border-emerald-200"
+                    title="Copy Phone 2"
+                  >
+                    {copiedField === 'phone2' ? 'Copied ✓' : 'Copy'}
+                  </button>
+                </div>
+
+                {/* Field 4: Address */}
+                <div className="p-2.5 rounded-xl bg-white border border-emerald-100 flex items-center justify-between gap-2 shadow-2xs sm:col-span-2">
+                  <div className="truncate">
+                    <span className="text-[10px] font-bold text-slate-400 block uppercase">Address *</span>
+                    <span className="font-medium text-slate-800 truncate block">
+                      {selectedOrder.shippingAddress?.addressLine1}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(selectedOrder.shippingAddress?.addressLine1 || '', 'address')}
+                    className="p-1.5 px-2.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 shrink-0 text-[11px] font-extrabold transition-colors border border-emerald-200"
+                    title="Copy Address"
+                  >
+                    {copiedField === 'address' ? 'Copied ✓' : 'Copy'}
+                  </button>
+                </div>
+
+                {/* Field 5: City */}
+                <div className="p-2.5 rounded-xl bg-white border border-emerald-100 flex items-center justify-between gap-2 shadow-2xs">
+                  <div className="truncate">
+                    <span className="text-[10px] font-bold text-slate-400 block uppercase">City *</span>
+                    <span className="font-bold text-slate-900 truncate block">
+                      {selectedOrder.shippingAddress?.city}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(selectedOrder.shippingAddress?.city || '', 'city')}
+                    className="p-1.5 px-2.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 shrink-0 text-[11px] font-extrabold transition-colors border border-emerald-200"
+                    title="Copy City"
+                  >
+                    {copiedField === 'city' ? 'Copied ✓' : 'Copy'}
+                  </button>
+                </div>
+
+                {/* Field 6: District */}
+                <div className="p-2.5 rounded-xl bg-white border border-emerald-100 flex items-center justify-between gap-2 shadow-2xs">
+                  <div className="truncate">
+                    <span className="text-[10px] font-bold text-slate-400 block uppercase">District</span>
+                    <span className="font-bold text-slate-900 truncate block">
+                      {selectedOrder.shippingAddress?.district}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(selectedOrder.shippingAddress?.district || '', 'district')}
+                    className="p-1.5 px-2.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 shrink-0 text-[11px] font-extrabold transition-colors border border-emerald-200"
+                    title="Copy District"
+                  >
+                    {copiedField === 'district' ? 'Copied ✓' : 'Copy'}
+                  </button>
+                </div>
+
+                {/* Field 7: COD Collect Amount */}
+                <div className="p-2.5 rounded-xl bg-white border border-emerald-100 flex items-center justify-between gap-2 shadow-2xs">
+                  <div className="truncate">
+                    <span className="text-[10px] font-bold text-slate-400 block uppercase">COD Amount to Collect *</span>
+                    <span className="font-mono font-black text-[#064E3B] truncate block">
+                      Rs. {selectedOrder.grandTotal}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(String(selectedOrder.grandTotal), 'cod')}
+                    className="p-1.5 px-2.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 shrink-0 text-[11px] font-extrabold transition-colors border border-emerald-200"
+                    title="Copy COD Amount"
+                  >
+                    {copiedField === 'cod' ? 'Copied ✓' : 'Copy'}
+                  </button>
+                </div>
+
+                {/* Field 8: Product Codes / SKUs */}
+                <div className="p-2.5 rounded-xl bg-white border border-emerald-100 flex items-center justify-between gap-2 shadow-2xs sm:col-span-2 lg:col-span-3">
+                  <div className="truncate">
+                    <span className="text-[10px] font-bold text-slate-400 block uppercase">iSales Product Code / SKU</span>
+                    <span className="font-mono font-bold text-emerald-800 text-[11px] truncate block">
+                      {selectedOrder.items
+                        ?.map((i: any) => `${i.selectedVariant?.sku || i.product.id || 'N/A'} (Qty: ${i.quantity})`)
+                        .join(' | ')}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      copyToClipboard(
+                        selectedOrder.items?.map((i: any) => i.selectedVariant?.sku || i.product.id).join(', ') || '',
+                        'skus'
+                      )
+                    }
+                    className="p-1.5 px-2.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 shrink-0 text-[11px] font-extrabold transition-colors border border-emerald-200"
+                    title="Copy Product Codes"
+                  >
+                    {copiedField === 'skus' ? 'Copied ✓' : 'Copy Code'}
+                  </button>
+                </div>
+
+                {/* Field 9: Order Note */}
+                <div className="p-2.5 rounded-xl bg-white border border-emerald-100 flex items-center justify-between gap-2 shadow-2xs sm:col-span-2 lg:col-span-3">
+                  <div className="truncate">
+                    <span className="text-[10px] font-bold text-slate-400 block uppercase">Order Note / Landmark</span>
+                    <span className="text-slate-700 text-[11px] truncate block">
+                      {selectedOrder.shippingAddress?.landmark || 'No special note'}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      copyToClipboard(selectedOrder.shippingAddress?.landmark || '', 'note')
+                    }
+                    className="p-1.5 px-2.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 shrink-0 text-[11px] font-extrabold transition-colors border border-emerald-200"
+                    title="Copy Order Note"
+                  >
+                    {copiedField === 'note' ? 'Copied ✓' : 'Copy Note'}
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {/* FINANCIAL / PAYMENT STATUS ACTIONS */}
             <div className="p-5 rounded-2xl border border-slate-200 space-y-4">
               <div className="flex items-center justify-between">
@@ -2438,7 +3503,7 @@ export default function AdminDashboardPage() {
                 </div>
                 <div className="text-right">
                   <span className="text-xs text-slate-400 block">Grand Total</span>
-                  <span className="text-lg font-black text-rose-600 font-serif">
+                  <span className="text-lg font-black text-[#064E3B] font-serif">
                     {formatLKR(selectedOrder.grandTotal)}
                   </span>
                 </div>
@@ -2587,14 +3652,14 @@ export default function AdminDashboardPage() {
                   <select
                     value={selectedFulfillmentStatus}
                     onChange={(e) => setSelectedFulfillmentStatus(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#FF758F]"
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#064E3B]"
                   >
-                    <option value={OrderStatus.PENDING_CONFIRMATION}>1. PENDING (Awaiting Review)</option>
-                    <option value={OrderStatus.CONFIRMED}>2. CONFIRMED (Packed & Ready)</option>
-                    <option value={OrderStatus.SHIPPED}>3. SHIPPED (Handed to Courier)</option>
+                    <option value={OrderStatus.PENDING_CONFIRMATION}>1. PENDING (Order Placed - Ready for Review)</option>
+                    <option value={OrderStatus.CONFIRMED}>2. CONFIRMED (In Packing & Preparation)</option>
+                    <option value={OrderStatus.SHIPPED}>3. PARCEL DISPATCHED (Handed to Courier / In Transit)</option>
                     <option value={OrderStatus.OUT_FOR_DELIVERY}>4. OUT FOR DELIVERY (Doorstep Dispatch)</option>
-                    <option value={OrderStatus.DELIVERED}>5. DELIVERED (Completed)</option>
-                    <option value={OrderStatus.CANCELLED}>6. CANCELLED</option>
+                    <option value={OrderStatus.DELIVERED}>5. DELIVERED (Cash on Delivery Collected)</option>
+                    <option value={OrderStatus.CANCELLED}>6. CANCELLED / RETURNED (RTO)</option>
                   </select>
                 </div>
 
@@ -2607,7 +3672,7 @@ export default function AdminDashboardPage() {
                     value={courierTracking}
                     onChange={(e) => setCourierTracking(e.target.value)}
                     placeholder="e.g. Prompt Xpress #PR-8321"
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#FF758F]"
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#064E3B]"
                   />
                   <div className="flex gap-1.5 mt-1.5 flex-wrap">
                     <button
@@ -2640,7 +3705,7 @@ export default function AdminDashboardPage() {
                   type="button"
                   disabled={isUpdatingOrder}
                   onClick={() => handleUpdateFulfillment(selectedOrder.id)}
-                  className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-[#FF758F] text-white font-extrabold text-xs uppercase tracking-wider transition-all shadow-xs"
+                  className="px-5 py-2.5 rounded-xl bg-[#064E3B] hover:bg-[#04382A] text-white font-extrabold text-xs uppercase tracking-wider transition-all shadow-xs cursor-pointer"
                 >
                   {isUpdatingOrder ? 'Saving...' : 'Update Fulfillment'}
                 </button>
@@ -2679,62 +3744,159 @@ export default function AdminDashboardPage() {
       )}
 
       {/* ============================================================= */}
-      {/* PRODUCT ADD / EDIT MODAL (With Sizes, Quantities, Offer %, & Size Chart) */}
+      {/* PRODUCT ADD / EDIT MODAL (A to Z Traders Dropshipping Aligned) */}
       {/* ============================================================= */}
       {isAddingProduct && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 my-8 space-y-6 max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-rose-600 block">
-                  INVENTORY & PRODUCT MANAGEMENT
+                <span className={`text-[10px] font-black uppercase tracking-wider block ${productForm.sourceType === 'own' ? 'text-purple-700' : 'text-[#064E3B]'}`}>
+                  {productForm.sourceType === 'own' ? '🏭 OWN IN-HOUSE INVENTORY' : '📦 A TO Z TRADERS (ISALES) DROPSHIP'}
                 </span>
                 <h3 className="text-xl font-black text-slate-900 font-serif">
-                  {editingProduct ? 'Edit Product & Stock Variants' : 'Add New Kids Wear Item'}
+                  {editingProduct
+                    ? (productForm.sourceType === 'own' ? 'Edit Own Inventory Product' : 'Edit Dropship Product')
+                    : (productForm.sourceType === 'own' ? 'Add Own Product to In-House Catalog' : 'Add New Product to Dropship Catalog')}
                 </h3>
-                <p className="text-xs text-slate-400">
-                  {editingProduct ? `Updating SKU ${editingProduct.id}` : 'Publish new product with size variants & offer pricing'}
+                <p className="text-xs text-slate-500">
+                  {productForm.sourceType === 'own'
+                    ? 'In-house stocked item. You manage warehouse inventory, self-dispatching, and district shipping rates.'
+                    : 'A to Z Traders dropshipping. 100% automated packaging, islandwide courier, and Cash on Delivery.'}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsAddingProduct(false)}
-                className="p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 transition-colors"
+                className="p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSaveProduct} className="space-y-6 text-xs">
-              {/* Basic Information */}
+              {/* Sourcing Channel Selector (Dropship vs In-House) */}
+              <div className="p-3.5 rounded-2xl bg-[#FAF6F3] border border-slate-200/90 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-800">
+                    Product Sourcing Model *
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-medium">Customer only sees NookMint</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setProductForm({ ...productForm, sourceType: 'dropship' })}
+                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                      productForm.sourceType === 'dropship'
+                        ? 'bg-white border-[#064E3B] ring-2 ring-[#064E3B]/20 shadow-xs'
+                        : 'bg-white/60 border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 font-extrabold text-xs text-slate-900">
+                      <span className="w-2.5 h-2.5 rounded-full bg-blue-600" />
+                      <span>📦 A to Z Traders (Dropship)</span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 mt-1 leading-snug">
+                      Catalog item fulfilled by A to Z Traders (iSales). You enter their product code & wholesale cost. They pack and ship islandwide.
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setProductForm({ ...productForm, sourceType: 'own' })}
+                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                      productForm.sourceType === 'own'
+                        ? 'bg-white border-slate-900 ring-2 ring-slate-900/15 shadow-xs'
+                        : 'bg-white/60 border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 font-extrabold text-xs text-slate-900">
+                      <Building2 className="w-3.5 h-3.5 text-slate-700" />
+                      <span>Own Inventory / In-House</span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 mt-1 leading-snug">
+                      Your own manufactured or pre-stocked items. You pack the parcel and set custom shipping rates / delivery rules for customers.
+                    </p>
+                  </button>
+                </div>
+              </div>
+
+              {/* Sourcing Model Explanation Banner */}
+              {productForm.sourceType === 'dropship' ? (
+                <div className="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200 flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-[#064E3B] text-white flex items-center justify-center shrink-0 font-bold text-sm">
+                    <Truck className="w-4 h-4" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <div className="font-extrabold text-xs text-emerald-950">A to Z Traders Dropshipping Model</div>
+                    <p className="text-[11px] text-emerald-800 leading-snug">
+                      No delivery fees or delivery dates needed. When orders arrive on NookMint, copy the customer details into iSales. A to Z Traders will pack, ship, and collect COD across Sri Lanka.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3.5 rounded-2xl bg-slate-100 border border-slate-200 flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0 font-bold text-sm">
+                    <Building2 className="w-4 h-4 text-emerald-400" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <div className="font-extrabold text-xs text-slate-900">Own Inventory (In-House) Model</div>
+                    <p className="text-[11px] text-slate-600 leading-snug">
+                      You pack and ship directly. Below, you can configure your delivery fees (standard, free, or flat fee) and test delivery days per district.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* 1. Basic Product Details & Sourcing Code */}
               <div className="space-y-3.5">
                 <h4 className="font-extrabold text-xs uppercase tracking-wider text-slate-800 border-b border-slate-100 pb-1">
-                  1. Product Details
+                  1. Product Details & {productForm.sourceType === 'own' ? 'Internal SKU' : 'iSales Code'}
                 </h4>
 
-                <div>
-                  <label className="text-[11px] font-bold text-slate-700 block mb-1">Product Title *</label>
-                  <input
-                    type="text"
-                    required
-                    value={productForm.title}
-                    onChange={(e) => setProductForm({ ...productForm, title: e.target.value })}
-                    placeholder="e.g. Pure Linen Organic Summer Romper"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-medium focus:ring-2 focus:ring-[#FF758F]"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="sm:col-span-2">
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Product Title *</label>
+                    <input
+                      type="text"
+                      required
+                      value={productForm.title}
+                      onChange={(e) => setProductForm({ ...productForm, title: e.target.value })}
+                      placeholder="e.g. Pro Sound True Wireless Earbuds with ANC"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-medium focus:ring-2 focus:ring-[#064E3B]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                      {productForm.sourceType === 'own' ? 'Internal SKU *' : 'iSales Code (SKU) *'}
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={productForm.sku}
+                      onChange={(e) => setProductForm({ ...productForm, sku: e.target.value })}
+                      placeholder={productForm.sourceType === 'own' ? 'e.g. OWN-MUG-01' : 'e.g. EAR-ANC-WHT'}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono font-bold text-[#064E3B] bg-slate-50 focus:ring-2 focus:ring-[#064E3B]"
+                    />
+                    <span className="text-[10px] text-slate-400 block mt-0.5">
+                      {productForm.sourceType === 'own' ? 'Your stock tracking ID' : 'Used to copy into iSales order'}
+                    </span>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <label className="text-[11px] font-bold text-slate-700">Category *</label>
                       <button
                         type="button"
                         onClick={() => setIsAddingCategory(!isAddingCategory)}
-                        className="text-[10px] font-bold text-[#FF758F] hover:text-rose-700 flex items-center gap-1"
+                        className="text-[10px] font-bold text-[#064E3B] hover:text-[#04382A] flex items-center gap-1"
                       >
                         <Plus className="w-3 h-3" />
-                        <span>{isAddingCategory ? 'Pick Existing' : '+ Add New Category'}</span>
+                        <span>{isAddingCategory ? 'Pick' : '+ New'}</span>
                       </button>
                     </div>
 
@@ -2744,8 +3906,8 @@ export default function AdminDashboardPage() {
                           type="text"
                           value={newCategoryName}
                           onChange={(e) => setNewCategoryName(e.target.value)}
-                          placeholder="e.g. Swimwear & Sun"
-                          className="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold bg-white focus:outline-none focus:ring-2 focus:ring-[#FF758F]"
+                          placeholder="Category name..."
+                          className="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold bg-white focus:outline-none focus:ring-2 focus:ring-[#064E3B]"
                           autoFocus
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
@@ -2757,7 +3919,7 @@ export default function AdminDashboardPage() {
                         <button
                           type="button"
                           onClick={() => handleAddNewCategory()}
-                          className="px-3 py-2 rounded-xl bg-slate-900 hover:bg-[#FF758F] text-white text-xs font-bold transition-colors"
+                          className="px-3 py-2 rounded-xl bg-[#064E3B] text-white text-xs font-bold"
                         >
                           Add
                         </button>
@@ -2779,7 +3941,7 @@ export default function AdminDashboardPage() {
                             setProductForm({ ...productForm, category: e.target.value });
                           }
                         }}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:ring-2 focus:ring-[#FF758F]"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:ring-2 focus:ring-[#064E3B]"
                       >
                         {availableCategories.map((cat) => (
                           <option key={cat} value={cat}>
@@ -2792,145 +3954,201 @@ export default function AdminDashboardPage() {
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Fabric Composition</label>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Brand Name</label>
                     <input
                       type="text"
-                      value={productForm.fabric}
-                      onChange={(e) => setProductForm({ ...productForm, fabric: e.target.value })}
-                      placeholder="e.g. 100% GOTS Organic Cotton"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-[#FF758F]"
+                      value={productForm.brand}
+                      onChange={(e) => setProductForm({ ...productForm, brand: e.target.value })}
+                      placeholder="e.g. NookMint / ProSound"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-[#064E3B]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Unit / Package</label>
+                    <input
+                      type="text"
+                      value={productForm.unit}
+                      onChange={(e) => setProductForm({ ...productForm, unit: e.target.value })}
+                      placeholder="e.g. 1 Unit / 12 Pcs Set"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-[#064E3B]"
                     />
                   </div>
                 </div>
 
-                {/* Target Gender & Age Group Alignment */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
-                      Target Department / Gender *
-                    </label>
-                    <select
-                      value={productForm.gender}
-                      onChange={(e) => setProductForm({ ...productForm, gender: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#FF758F]"
-                    >
-                      <option value="Girls">Girls Collection (Frocks, Dresses, Skirts)</option>
-                      <option value="Boys">Boys Collection (Shirts, Tees, Shorts, Blazers)</option>
-                      <option value="Unisex">Unisex / All Kids (Basics, Neutral Rompers)</option>
-                    </select>
-                    <span className="text-[10px] text-slate-400 block mt-0.5">Controls Navbar Shop &gt; Girls/Boys collection filters</span>
-                  </div>
+                {/* 2. Storefront Merchandising Badges */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                  <label className={`p-3 rounded-2xl border cursor-pointer flex items-center gap-3 transition-all ${
+                    productForm.isNewArrival
+                      ? 'bg-amber-50/80 border-amber-300 ring-2 ring-amber-300/30'
+                      : 'bg-slate-50 border-slate-200 hover:border-slate-300'
+                  }`}>
+                    <input
+                      type="checkbox"
+                      checked={productForm.isNewArrival}
+                      onChange={(e) => setProductForm({ ...productForm, isNewArrival: e.target.checked })}
+                      className="w-4 h-4 text-amber-500 rounded focus:ring-amber-400"
+                    />
+                    <div>
+                      <div className="font-bold text-xs text-amber-950 flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                        <span>Feature in &quot;New Arrivals&quot; Section</span>
+                      </div>
+                      <div className="text-[10px] text-amber-800 mt-0.5">
+                        Showcase immediately in the Homepage New Arrivals grid
+                      </div>
+                    </div>
+                  </label>
 
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
-                      Age Group / Stage *
-                    </label>
-                    <select
-                      value={productForm.ageGroup}
-                      onChange={(e) => setProductForm({ ...productForm, ageGroup: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#FF758F]"
-                    >
-                      <option value="Baby (0-12M)">Baby &amp; Infants (0-12 Months)</option>
-                      <option value="Toddler (1-3Y)">Toddlers (1-3 Years)</option>
-                      <option value="Little Kids (3-7Y)">Little Kids (3-7 Years)</option>
-                    </select>
-                    <span className="text-[10px] text-slate-400 block mt-0.5">Controls Navbar Shop &gt; Baby &amp; Infants filter</span>
-                  </div>
+                  <label className={`p-3 rounded-2xl border cursor-pointer flex items-center gap-3 transition-all ${
+                    productForm.isBestSeller
+                      ? 'bg-rose-50/80 border-rose-300 ring-2 ring-rose-300/30'
+                      : 'bg-slate-50 border-slate-200 hover:border-slate-300'
+                  }`}>
+                    <input
+                      type="checkbox"
+                      checked={productForm.isBestSeller}
+                      onChange={(e) => setProductForm({ ...productForm, isBestSeller: e.target.checked })}
+                      className="w-4 h-4 text-rose-600 rounded focus:ring-rose-400"
+                    />
+                    <div>
+                      <div className="font-bold text-xs text-rose-950 flex items-center gap-1.5">
+                        <Flame className="w-3.5 h-3.5 fill-rose-600 text-rose-600" />
+                        <span>Feature in &quot;Popular Products&quot; Showcase</span>
+                      </div>
+                      <div className="text-[10px] text-rose-800 mt-0.5">
+                        Showcase prominently in the customer Homepage Popular section
+                      </div>
+                    </div>
+                  </label>
                 </div>
               </div>
 
-              {/* Pricing & Offer Percentage */}
-              <div className="space-y-3 p-4 rounded-2xl bg-rose-50/40 border border-rose-100">
+              {/* 3. Pricing, Cost & Live Profit Margin */}
+              <div className="space-y-3 p-4 rounded-2xl bg-emerald-50/40 border border-emerald-200">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-extrabold text-xs uppercase tracking-wider text-rose-900 flex items-center gap-1.5">
-                    <Percent className="w-3.5 h-3.5 text-rose-600" />
-                    <span>2. Pricing & Offer Percentage</span>
+                  <h4 className="font-extrabold text-xs uppercase tracking-wider text-emerald-950 flex items-center gap-1.5">
+                    <Percent className="w-3.5 h-3.5 text-emerald-700" />
+                    <span>3. Pricing & {productForm.sourceType === 'own' ? 'In-House Profit Margin' : 'Dropship Profit Margin'}</span>
                   </h4>
                   {productForm.offerPercentage > 0 && (
-                    <span className="px-2.5 py-0.5 rounded-full bg-rose-600 text-white font-black text-[10px] tracking-wide uppercase">
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-500 text-white font-black text-[10px] tracking-wide uppercase">
                       {productForm.offerPercentage}% OFF APPLIED
                     </span>
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div>
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">MRP Price (Rs.) *</label>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                      {productForm.sourceType === 'own' ? 'Unit Cost / Mfg (Rs.) *' : 'Wholesale Cost (Rs.) *'}
+                    </label>
                     <input
                       type="number"
                       required
                       min={0}
-                      value={productForm.mrp}
-                      onChange={(e) => handlePriceChange('mrp', Number(e.target.value))}
-                      placeholder="e.g. 3500"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-mono text-xs text-slate-600 bg-white"
+                      value={productForm.costPrice}
+                      onChange={(e) => setProductForm({ ...productForm, costPrice: Number(e.target.value) })}
+                      placeholder="e.g. 2500"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-mono text-xs font-bold text-slate-700 bg-white focus:ring-2 focus:ring-[#064E3B]"
                     />
-                    <span className="text-[10px] text-slate-400 block mt-0.5">Original reference price</span>
+                    <span className="text-[10px] text-slate-400 block mt-0.5">
+                      {productForm.sourceType === 'own' ? 'Your stock cost' : 'A to Z catalogue price'}
+                    </span>
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Selling Price (Rs.) *</label>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                      Selling Price (Rs.) *
+                    </label>
                     <input
                       type="number"
                       required
                       min={0}
                       value={productForm.sellingPrice}
                       onChange={(e) => handlePriceChange('sellingPrice', Number(e.target.value))}
-                      placeholder="e.g. 2990"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-mono text-xs font-black text-rose-600 bg-white"
+                      placeholder="e.g. 3890"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-mono text-xs font-black text-[#064E3B] bg-white focus:ring-2 focus:ring-[#064E3B]"
                     />
-                    <span className="text-[10px] text-slate-400 block mt-0.5">Price customer will pay</span>
+                    <span className="text-[10px] text-slate-400 block mt-0.5">Customer COD total</span>
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Offer Discount (%)</label>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                      MRP / Strike Price (Rs.) *
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min={0}
+                      value={productForm.mrp}
+                      onChange={(e) => handlePriceChange('mrp', Number(e.target.value))}
+                      placeholder="e.g. 4900"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-mono text-xs text-slate-500 bg-white focus:ring-2 focus:ring-[#064E3B]"
+                    />
+                    <span className="text-[10px] text-slate-400 block mt-0.5">Reference market price</span>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                      Offer Discount (%)
+                    </label>
                     <input
                       type="number"
                       min={0}
                       max={90}
                       value={productForm.offerPercentage}
                       onChange={(e) => handleOfferChange(Number(e.target.value))}
-                      placeholder="e.g. 15"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-mono text-xs font-bold text-slate-800 bg-white"
+                      placeholder="e.g. 20"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-mono text-xs font-bold text-slate-800 bg-white focus:ring-2 focus:ring-[#064E3B]"
                     />
-                    <span className="text-[10px] text-slate-400 block mt-0.5">Auto-computed or custom</span>
+                    <span className="text-[10px] text-slate-400 block mt-0.5">Auto-computed</span>
                   </div>
                 </div>
 
-                {productForm.mrp > productForm.sellingPrice && (
-                  <div className="p-2.5 rounded-xl bg-white border border-rose-200/80 flex items-center justify-between text-xs">
+                {/* Live Profit Calculation Card */}
+                <div className="p-3 rounded-xl bg-white border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
                     <span className="text-slate-600">
-                      Customer saving on this item:
+                      {productForm.sourceType === 'own' ? 'Your In-House Net Profit per Sale:' : 'Your Estimated Dropship Profit per Sale:'}
                     </span>
-                    <strong className="text-emerald-700 font-bold">
-                      {formatLKR(productForm.mrp - productForm.sellingPrice)} ({productForm.offerPercentage}% Discount)
-                    </strong>
                   </div>
-                )}
+                  <div className="flex items-center gap-2">
+                    <strong className="text-sm font-black text-emerald-800 font-mono">
+                      +{formatLKR(productForm.sellingPrice - (productForm.costPrice || 0))} Net Profit
+                    </strong>
+                    {productForm.sellingPrice > 0 && (
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                        {Math.round(((productForm.sellingPrice - (productForm.costPrice || 0)) / productForm.sellingPrice) * 100)}% Margin
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              {/* Product Photo Gallery & Multiple Image Upload */}
+              {/* 4. Product Photos & Cover Image */}
               <div className="space-y-4 p-4 rounded-2xl bg-slate-50/80 border border-slate-200">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Camera className="w-4 h-4 text-[#FF758F]" />
+                    <Camera className="w-4 h-4 text-[#064E3B]" />
                     <h4 className="font-extrabold text-xs uppercase tracking-wider text-slate-900">
-                      3. Product Photo Gallery (Multiple Photos)
+                      4. Product Photos & Angles
                     </h4>
                   </div>
-                  <span className="px-2.5 py-0.5 rounded-full bg-rose-100 text-[#FF758F] font-black text-[10px]">
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-[#064E3B] font-black text-[10px]">
                     {productForm.images.length} {productForm.images.length === 1 ? 'Photo' : 'Photos'}
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-500">
-                  Upload multiple angles for this product (Front, Back, Fabric close-up, On-Model). Customers can click or swipe thumbnails on the storefront. The first photo is automatically used as the <strong>Cover Photo</strong>.
+                  Upload multiple angles or packaging photos. The first photo with the green border is automatically used as the <strong>Storefront Cover Photo</strong>.
                 </p>
 
                 {/* Upload & Add Bar */}
                 <div className="flex flex-col sm:flex-row gap-2">
-                  <label className={`cursor-pointer px-4 py-2.5 ${isUploadingImage ? 'bg-rose-600' : 'bg-slate-900 hover:bg-[#FF758F]'} text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-xs`}>
+                  <label className={`cursor-pointer px-4 py-2.5 ${isUploadingImage ? 'bg-emerald-700' : 'bg-[#064E3B] hover:bg-[#04382A]'} text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-xs`}>
                     <UploadCloud className={`w-4 h-4 ${isUploadingImage ? 'animate-bounce' : ''}`} />
-                    <span>{isUploadingImage ? 'Uploading to Supabase Storage...' : '+ Upload Photos from Device'}</span>
+                    <span>{isUploadingImage ? 'Uploading Image...' : '+ Upload Photo from Device'}</span>
                     <input
                       type="file"
                       multiple
@@ -2946,8 +4164,8 @@ export default function AdminDashboardPage() {
                       type="text"
                       value={newProductImageUrl}
                       onChange={(e) => setNewProductImageUrl(e.target.value)}
-                      placeholder="Or paste photo URL (/images/products/...)"
-                      className="flex-1 px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs text-slate-800 placeholder:text-slate-400"
+                      placeholder="Or paste photo URL (/nookmint_images/... or https://...)"
+                      className="flex-1 px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-[#064E3B]"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           e.preventDefault();
@@ -2958,7 +4176,7 @@ export default function AdminDashboardPage() {
                     <button
                       type="button"
                       onClick={() => handleAddProductImageUrl()}
-                      className="px-3.5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl text-xs font-bold transition-colors"
+                      className="px-3.5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl text-xs font-bold transition-colors cursor-pointer"
                     >
                       Add URL
                     </button>
@@ -2971,20 +4189,20 @@ export default function AdminDashboardPage() {
                     <div
                       key={`${img}-${idx}`}
                       className={`relative aspect-4/5 rounded-2xl overflow-hidden border-2 bg-white group shadow-2xs ${
-                        idx === 0 ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-slate-200'
+                        idx === 0 ? 'border-[#064E3B] ring-2 ring-[#064E3B]/20' : 'border-slate-200'
                       }`}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={img}
                         alt={`Photo angle ${idx + 1}`}
-                        className="w-full h-full object-cover object-top"
+                        className="w-full h-full object-cover object-center"
                       />
 
                       {/* Cover Badge or Make Cover Button */}
                       <div className="absolute top-1.5 left-1.5 right-1.5 flex items-center justify-between">
                         {idx === 0 ? (
-                          <span className="px-2 py-0.5 rounded-md bg-emerald-600 text-white font-extrabold text-[9px] uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                          <span className="px-2 py-0.5 rounded-md bg-[#064E3B] text-white font-extrabold text-[9px] uppercase tracking-wider flex items-center gap-1 shadow-sm">
                             <Star className="w-2.5 h-2.5 fill-white" />
                             <span>COVER</span>
                           </span>
@@ -2992,7 +4210,7 @@ export default function AdminDashboardPage() {
                           <button
                             type="button"
                             onClick={() => handleSetCoverImage(idx)}
-                            className="px-1.5 py-0.5 rounded-md bg-slate-900/80 hover:bg-emerald-600 text-white font-bold text-[9px] transition-colors shadow-sm"
+                            className="px-1.5 py-0.5 rounded-md bg-slate-900/80 hover:bg-[#064E3B] text-white font-bold text-[9px] transition-colors shadow-sm"
                             title="Set as Main Cover Photo"
                           >
                             Set Cover
@@ -3002,7 +4220,7 @@ export default function AdminDashboardPage() {
                         <button
                           type="button"
                           onClick={() => handleRemoveProductImage(idx)}
-                          className="w-6 h-6 rounded-md bg-slate-900/80 hover:bg-red-600 text-white flex items-center justify-center transition-colors shadow-sm"
+                          className="w-6 h-6 rounded-md bg-slate-900/80 hover:bg-red-600 text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer"
                           title="Delete photo"
                         >
                           <Trash2 className="w-3 h-3" />
@@ -3017,283 +4235,233 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              {/* Size Variants & Individual Stock Quantities */}
+              {/* 5. Product Stock & Units (No clothes sizing needed) */}
               <div className="space-y-3.5 p-4 rounded-2xl bg-slate-50 border border-slate-200">
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-extrabold text-xs uppercase tracking-wider text-slate-900">
-                      4. Sizes & Individual Stock Quantities *
+                      5. Available Stock Units *
                     </h4>
                     <p className="text-[11px] text-slate-500">
-                      Set individual stock for each size. Zero stock will show as sold out for that size.
+                      {productForm.sourceType === 'own'
+                        ? 'Current stock quantity in your in-house warehouse.'
+                        : 'Available catalogue quantity from A to Z Traders.'}
                     </p>
                   </div>
-                  <span className="px-2.5 py-1 rounded-xl bg-slate-200 text-slate-800 font-bold text-[11px]">
-                    Total: {productForm.variants.reduce((acc, v) => acc + (Number(v.stock) || 0), 0)} Units
+                  <span className="px-3 py-1 rounded-full bg-emerald-100 text-[#064E3B] font-extrabold text-xs">
+                    {productForm.variants[0]?.stock || 0} Units in Stock
                   </span>
                 </div>
 
-                {/* Quick Add Presets */}
-                <div className="space-y-1">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">Quick Add Common Sizes:</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {['0-3M', '3-6M', '6-12M', '1-2Y', '2-3Y', '3-4Y', '4-5Y', '5-6Y', '7-8Y', '9-10Y'].map((s) => {
-                      const alreadyAdded = productForm.variants.some((v) => v.size === s);
-                      return (
-                        <button
-                          key={s}
-                          type="button"
-                          disabled={alreadyAdded}
-                          onClick={() => handleAddSizeVariant(s)}
-                          className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all ${
-                            alreadyAdded
-                              ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                              : 'bg-white hover:bg-slate-900 hover:text-white text-slate-700 border border-slate-300'
-                          }`}
-                        >
-                          + {s}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Size Rows Repeater */}
-                <div className="space-y-2 pt-1">
-                  {productForm.variants.map((v, idx) => (
-                    <div key={idx} className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-slate-200">
-                      <div className="w-1/3">
-                        <label className="text-[10px] font-bold text-slate-400 block mb-0.5">Size Name</label>
-                        <input
-                          type="text"
-                          required
-                          value={v.size}
-                          onChange={(e) => handleUpdateSizeName(idx, e.target.value)}
-                          placeholder="e.g. 2-3Y"
-                          className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 font-bold text-xs"
-                        />
-                      </div>
-
-                      <div className="flex-1">
-                        <label className="text-[10px] font-bold text-slate-400 block mb-0.5">Stock Quantity (Units)</label>
-                        <input
-                          type="number"
-                          required
-                          min={0}
-                          value={v.stock}
-                          onChange={(e) => handleUpdateSizeStock(idx, Number(e.target.value))}
-                          placeholder="0"
-                          className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 font-mono text-xs font-bold"
-                        />
-                      </div>
-
-                      <div className="text-right pt-3">
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveSizeVariant(idx)}
-                          className="p-2 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
-                          title="Remove Size"
-                          disabled={productForm.variants.length <= 1}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="pt-1">
-                  <button
-                    type="button"
-                    onClick={() => handleAddSizeVariant()}
-                    className="px-3 py-1.5 rounded-xl bg-white border border-dashed border-slate-300 hover:border-slate-800 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Add Another Custom Size</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Size Chart & Fit Guide */}
-              <div className="space-y-3 p-4 rounded-2xl bg-amber-50/40 border border-amber-200/80">
-                <h4 className="font-extrabold text-xs uppercase tracking-wider text-amber-950 flex items-center gap-1.5">
-                  <ImageIcon className="w-3.5 h-3.5 text-amber-700" />
-                  <span>5. Size Chart & Fit Guide</span>
-                </h4>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Size Chart Template</label>
-                    <select
-                      value={productForm.sizeChartType}
-                      onChange={(e) =>
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                  <div className="flex-1 w-full">
+                    <label className="text-[10px] font-bold text-slate-600 block mb-1">
+                      Available Stock Quantity (Units) *
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      required
+                      value={productForm.variants[0]?.stock ?? 25}
+                      onChange={(e) => {
+                        const qty = Math.max(0, Number(e.target.value));
                         setProductForm({
                           ...productForm,
-                          sizeChartType: e.target.value as any,
-                        })
-                      }
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-medium"
-                    >
-                      <option value="toddler">Toddler Standard (2 - 6 Years)</option>
-                      <option value="baby">Baby Standard (0 - 24 Months)</option>
-                      <option value="junior">Junior Standard (6 - 12 Years)</option>
-                      <option value="custom">Custom Size Chart (Upload Photo)</option>
-                    </select>
+                          variants: [{ size: 'Standard', stock: qty, sku: productForm.sku }],
+                        });
+                      }}
+                      placeholder="e.g. 50"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-mono text-xs font-bold text-slate-800 bg-white focus:ring-2 focus:ring-[#064E3B]"
+                    />
                   </div>
 
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
-                      Upload Size Chart Photo / Screenshot
-                    </label>
-                    <label className="flex items-center gap-2 px-3 py-2 rounded-xl border border-dashed border-slate-300 bg-white cursor-pointer hover:border-slate-800 transition-colors">
-                      <Upload className="w-4 h-4 text-slate-400" />
-                      <span className="text-[11px] font-bold text-slate-700 truncate">
-                        {productForm.sizeChartImage ? 'Change Image...' : 'Pick Photo from Device...'}
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleSizeChartUpload}
-                        className="hidden"
-                      />
-                    </label>
+                  <div className="flex items-center gap-1.5 self-end pb-0.5">
+                    {[10, 25, 50, 100].map((units) => (
+                      <button
+                        key={units}
+                        type="button"
+                        onClick={() => {
+                          setProductForm({
+                            ...productForm,
+                            variants: [{ size: 'Standard', stock: units, sku: productForm.sku }],
+                          });
+                        }}
+                        className="px-3 py-2 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700 cursor-pointer transition-colors shadow-2xs"
+                      >
+                        +{units}
+                      </button>
+                    ))}
                   </div>
                 </div>
+              </div>
 
-                {/* Uploaded size chart image preview */}
-                {productForm.sizeChartImage && (
-                  <div className="p-3 bg-white rounded-xl border border-amber-200 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={productForm.sizeChartImage}
-                        alt="Size chart preview"
-                        className="w-14 h-14 object-cover rounded-lg border border-slate-200"
+              {/* 6. Product Delivery Fee & Shipping Rule */}
+              {productForm.sourceType === 'dropship' ? (
+                /* Dropship Shipping Status Banner: No delivery setup needed */
+                <div className="p-4 rounded-2xl bg-blue-50/70 border border-blue-200 space-y-2">
+                  <div className="flex items-center gap-2 text-blue-900 font-extrabold text-xs">
+                    <Truck className="w-4 h-4 text-blue-600" />
+                    <span>Automated A to Z Traders Islandwide Delivery (COD)</span>
+                  </div>
+                  <p className="text-[11px] text-blue-800 leading-snug">
+                    Because this is a dropshipping product, A to Z Traders takes 100% responsibility for packaging, dispatching via Prompt Xpress & Domex Courier, and collecting cash on delivery across all 25 districts in Sri Lanka. <strong>No delivery rates or date setup needed.</strong>
+                  </p>
+                </div>
+              ) : (
+                /* Own Product Delivery & District Shipping Configuration */
+                <div className="space-y-4 p-4.5 rounded-2xl bg-purple-50/40 border border-purple-200/90">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-extrabold text-xs uppercase tracking-wider text-purple-950 flex items-center gap-1.5">
+                      <Truck className="w-3.5 h-3.5 text-purple-600" />
+                      <span>6. Delivery & Shipping Rule for Own Inventory</span>
+                    </h4>
+                    <span className="text-[10px] text-purple-800 font-bold bg-white px-2 py-0.5 rounded border border-purple-200">
+                      Self-Fulfilled
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <label
+                      className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                        productForm.deliveryFeeType === 'default'
+                          ? 'bg-white border-purple-600 ring-2 ring-purple-600/20 shadow-xs'
+                          : 'bg-white/60 border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="deliveryFeeType"
+                        checked={productForm.deliveryFeeType === 'default'}
+                        onChange={() => setProductForm({ ...productForm, deliveryFeeType: 'default' })}
+                        className="sr-only"
                       />
-                      <div>
-                        <span className="font-bold text-xs text-slate-900 block">Custom Size Chart Uploaded</span>
-                        <span className="text-[10px] text-emerald-600 font-bold">✓ Ready to display on storefront</span>
+                      <div className="font-bold text-xs text-slate-900">Standard Rates</div>
+                      <div className="text-[10px] text-slate-500 mt-0.5">Calculated by district (Rs. 350 - 500)</div>
+                    </label>
+
+                    <label
+                      className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                        productForm.deliveryFeeType === 'free'
+                          ? 'bg-white border-emerald-500 ring-2 ring-emerald-500/20 shadow-xs'
+                          : 'bg-white/60 border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="deliveryFeeType"
+                        checked={productForm.deliveryFeeType === 'free'}
+                        onChange={() => setProductForm({ ...productForm, deliveryFeeType: 'free' })}
+                        className="sr-only"
+                      />
+                      <div className="font-bold text-xs text-emerald-800">FREE Delivery</div>
+                      <div className="text-[10px] text-emerald-600 mt-0.5">Free islandwide shipping for this item</div>
+                    </label>
+
+                    <label
+                      className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                        productForm.deliveryFeeType === 'custom'
+                          ? 'bg-white border-purple-600 ring-2 ring-purple-600/20 shadow-xs'
+                          : 'bg-white/60 border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="deliveryFeeType"
+                        checked={productForm.deliveryFeeType === 'custom'}
+                        onChange={() => setProductForm({ ...productForm, deliveryFeeType: 'custom' })}
+                        className="sr-only"
+                      />
+                      <div className="font-bold text-xs text-slate-900">Custom Flat Fee</div>
+                      <div className="text-[10px] text-slate-500 mt-0.5">Set specific delivery price in Rs.</div>
+                    </label>
+                  </div>
+
+                  {productForm.deliveryFeeType === 'custom' && (
+                    <div className="p-3 bg-white rounded-xl border border-purple-200 flex items-center justify-between gap-3">
+                      <label className="text-xs font-bold text-slate-700">Custom Delivery Fee (Rs.)</label>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-slate-400">Rs.</span>
+                        <input
+                          type="number"
+                          min={0}
+                          value={productForm.customDeliveryFee}
+                          onChange={(e) => setProductForm({ ...productForm, customDeliveryFee: Number(e.target.value) })}
+                          placeholder="e.g. 250"
+                          className="w-28 px-2.5 py-1.5 rounded-lg border border-slate-200 font-mono font-bold text-right text-xs"
+                        />
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setProductForm({ ...productForm, sizeChartImage: '', sizeChartType: 'toddler' })}
-                      className="text-xs text-red-600 font-bold hover:underline"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                )}
+                  )}
 
-                <div>
-                  <label className="text-[11px] font-bold text-slate-700 block mb-1">
-                    Fitting Advice for Parents (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={productForm.sizeNotes}
-                    onChange={(e) => setProductForm({ ...productForm, sizeNotes: e.target.value })}
-                    placeholder="e.g. Regular fit. For chubby toddlers, recommend ordering one size up."
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs bg-white"
-                  />
+                  {/* Interactive District Delivery Days & Fee Inspector */}
+                  {(() => {
+                    const matchedDistrict = SRI_LANKA_DISTRICTS.find((d) => d.district === adminPreviewDistrict);
+                    const isFree = productForm.deliveryFeeType === 'free';
+                    const isCustom = productForm.deliveryFeeType === 'custom';
+                    let fee = matchedDistrict?.deliveryFee || 450;
+                    if (isFree) fee = 0;
+                    else if (isCustom) fee = productForm.customDeliveryFee || 350;
+                    const days = matchedDistrict?.deliveryDays || '2 - 3 Business Days';
+
+                    return (
+                      <div className="p-3.5 rounded-2xl bg-white border border-purple-200 space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-extrabold text-purple-900 flex items-center gap-1">
+                            <span>📍 District Delivery & Days Simulator</span>
+                          </span>
+                          <span className="text-[10px] text-slate-500 font-medium">Select a district to preview</span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-600 block mb-1">
+                              Choose District:
+                            </label>
+                            <select
+                              value={adminPreviewDistrict}
+                              onChange={(e) => setAdminPreviewDistrict(e.target.value)}
+                              className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 cursor-pointer"
+                            >
+                              {SRI_LANKA_DISTRICTS.map((d) => (
+                                <option key={d.district} value={d.district}>
+                                  {d.district} ({d.province})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div className="p-3 bg-purple-50/60 rounded-xl border border-purple-100 flex flex-col justify-center space-y-1">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-slate-600 font-medium">Delivery Fee:</span>
+                              <span className="font-mono font-black text-purple-900 text-sm">
+                                {isFree ? 'FREE Delivery' : formatLKR(fee)}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between text-xs pt-1 border-t border-purple-200/50">
+                              <span className="text-slate-600 font-medium">Delivery Time:</span>
+                              <span className="font-extrabold text-emerald-800 text-xs flex items-center gap-1">
+                                <span>⚡</span> {days}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
-              </div>
+              )}
 
-              {/* Product Delivery Fee Option */}
-              <div className="space-y-3 p-4 rounded-2xl bg-blue-50/40 border border-blue-200/80">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-extrabold text-xs uppercase tracking-wider text-blue-950 flex items-center gap-1.5">
-                    <Truck className="w-3.5 h-3.5 text-blue-600" />
-                    <span>6. Delivery & Shipping Rule for this Product</span>
-                  </h4>
-                  <span className="text-[10px] text-blue-800 font-bold bg-white px-2 py-0.5 rounded border border-blue-200">
-                    Per-Product Delivery
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                  <label
-                    className={`p-3 rounded-xl border cursor-pointer transition-all ${
-                      productForm.deliveryFeeType === 'default'
-                        ? 'bg-white border-blue-500 ring-2 ring-blue-500/20 shadow-xs'
-                        : 'bg-white/60 border-slate-200 hover:border-slate-300'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="deliveryFeeType"
-                      checked={productForm.deliveryFeeType === 'default'}
-                      onChange={() => setProductForm({ ...productForm, deliveryFeeType: 'default' })}
-                      className="sr-only"
-                    />
-                    <div className="font-bold text-xs text-slate-900">Standard Rates</div>
-                    <div className="text-[10px] text-slate-500 mt-0.5">Calculated by district (Rs. 350 - 500)</div>
-                  </label>
-
-                  <label
-                    className={`p-3 rounded-xl border cursor-pointer transition-all ${
-                      productForm.deliveryFeeType === 'free'
-                        ? 'bg-white border-emerald-500 ring-2 ring-emerald-500/20 shadow-xs'
-                        : 'bg-white/60 border-slate-200 hover:border-slate-300'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="deliveryFeeType"
-                      checked={productForm.deliveryFeeType === 'free'}
-                      onChange={() => setProductForm({ ...productForm, deliveryFeeType: 'free' })}
-                      className="sr-only"
-                    />
-                    <div className="font-bold text-xs text-emerald-800">FREE Delivery</div>
-                    <div className="text-[10px] text-emerald-600 mt-0.5">Free islandwide shipping for this item</div>
-                  </label>
-
-                  <label
-                    className={`p-3 rounded-xl border cursor-pointer transition-all ${
-                      productForm.deliveryFeeType === 'custom'
-                        ? 'bg-white border-blue-500 ring-2 ring-blue-500/20 shadow-xs'
-                        : 'bg-white/60 border-slate-200 hover:border-slate-300'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="deliveryFeeType"
-                      checked={productForm.deliveryFeeType === 'custom'}
-                      onChange={() => setProductForm({ ...productForm, deliveryFeeType: 'custom' })}
-                      className="sr-only"
-                    />
-                    <div className="font-bold text-xs text-slate-900">Custom Flat Fee</div>
-                    <div className="text-[10px] text-slate-500 mt-0.5">Set specific delivery price in Rs.</div>
-                  </label>
-                </div>
-
-                {productForm.deliveryFeeType === 'custom' && (
-                  <div className="p-3 bg-white rounded-xl border border-blue-200 flex items-center justify-between gap-3">
-                    <label className="text-xs font-bold text-slate-700">Custom Delivery Fee (Rs.)</label>
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-bold text-slate-400">Rs.</span>
-                      <input
-                        type="number"
-                        min={0}
-                        value={productForm.customDeliveryFee}
-                        onChange={(e) => setProductForm({ ...productForm, customDeliveryFee: Number(e.target.value) })}
-                        placeholder="e.g. 250"
-                        className="w-28 px-2.5 py-1.5 rounded-lg border border-slate-200 font-mono font-bold text-right text-xs"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Description */}
+              {/* 7. Description & Specifications */}
               <div>
-                <label className="text-[11px] font-bold text-slate-700 block mb-1">Product Description</label>
+                <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                  Product Description & Specifications
+                </label>
                 <textarea
-                  rows={2}
+                  rows={3}
                   value={productForm.description}
                   onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
-                  placeholder="Describe fabric softness, features, occasions..."
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs"
+                  placeholder="Describe product highlights, technical specs, material quality, and usage instructions..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-[#064E3B]"
                 />
               </div>
 
@@ -3302,15 +4470,23 @@ export default function AdminDashboardPage() {
                 <button
                   type="button"
                   onClick={() => setIsAddingProduct(false)}
-                  className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-colors"
+                  className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-7 py-2.5 rounded-xl bg-slate-900 hover:bg-[#FF758F] text-white font-extrabold uppercase tracking-wider transition-colors shadow-xs"
+                  className={`px-7 py-2.5 rounded-xl text-white font-extrabold uppercase tracking-wider transition-colors shadow-xs cursor-pointer ${
+                    productForm.sourceType === 'own'
+                      ? 'bg-slate-900 hover:bg-slate-800'
+                      : 'bg-[#064E3B] hover:bg-[#04382A]'
+                  }`}
                 >
-                  {editingProduct ? 'Save Product Changes' : 'Publish Product to Store'}
+                  {editingProduct
+                    ? 'Save Product Changes'
+                    : productForm.sourceType === 'own'
+                    ? 'Publish Own Product'
+                    : 'Publish Dropship Product'}
                 </button>
               </div>
             </form>

@@ -1,57 +1,93 @@
 import React from 'react';
-import { TrustBadgeItem } from '@/presentation/components/molecules/TrustBadgeItem';
-import { Award, RotateCcw, Lock, Headphones, Heart } from 'lucide-react';
+import Link from 'next/link';
+import { ShieldCheck, Headphones, Truck, ArrowRight } from 'lucide-react';
 
 export const TrustFeaturesSection: React.FC = () => {
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-7 pt-4" aria-label="Why parents love us">
-      <div className="text-center space-y-1">
-        <h2 className="text-sm sm:text-base font-bold tracking-[0.2em] uppercase text-slate-800 flex items-center justify-center gap-2.5">
-          <span className="text-[#FF758F] text-base leading-none">♡</span>
-          <span>WHY PARENTS LOVE US</span>
-          <span className="text-[#FF758F] text-base leading-none">♡</span>
-        </h2>
-        <div className="flex justify-center">
-          <span className="text-[#FF758F] text-[10px] leading-none opacity-80">♡</span>
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12" aria-label="Customer Guarantees">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Card 1: Money Back Guarantee matching Reference Image 5 */}
+        <div className="group rounded-[26px] bg-white border border-slate-200/90 p-7 shadow-xs hover:shadow-lg hover:border-emerald-300 transition-all duration-300 flex flex-col justify-between space-y-4">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0 border border-sky-100 shadow-2xs group-hover:scale-105 transition-transform">
+              <ShieldCheck className="w-7 h-7 stroke-[2]" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-lg text-slate-900 tracking-tight">
+                Money Back Guarantee
+              </h3>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                Enjoy a hassle-free shopping experience with our verified quality return guarantee.
+              </p>
+            </div>
+          </div>
+
+          <div className="pt-2 border-t border-slate-100">
+            <Link
+              href="/returns"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#004D40] hover:text-[#EA580C] transition-colors"
+            >
+              <span>Explore More</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 sm:gap-8 text-center">
-        {/* Feature 1: Premium Quality */}
-        <TrustBadgeItem
-          icon={<Award className="w-6 h-6 text-slate-700 stroke-[1.5]" />}
-          title="Premium Quality"
-          description="Best materials for your little ones"
-        />
+        {/* Card 2: 24/7 Customer Service (Hero Card in Deep Forest Teal matching Reference Image 5) */}
+        <div className="group rounded-[26px] bg-[#004D40] text-white p-7 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between space-y-4 border border-emerald-800">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-white/10 text-emerald-200 flex items-center justify-center shrink-0 border border-white/20 shadow-2xs group-hover:scale-105 transition-transform">
+              <Headphones className="w-7 h-7 stroke-[2]" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-lg text-white tracking-tight">
+                24/7 Customer Service
+              </h3>
+              <p className="text-xs text-emerald-100/90 mt-1 leading-relaxed">
+                Our team ensures you&apos;re never alone — reach out anytime on WhatsApp for prompt order care.
+              </p>
+            </div>
+          </div>
 
-        {/* Feature 2: Easy Returns */}
-        <TrustBadgeItem
-          icon={<RotateCcw className="w-6 h-6 text-slate-700 stroke-[1.5]" />}
-          title="Easy Returns"
-          description="30 days hassle-free returns"
-        />
+          <div className="pt-2 border-t border-white/10">
+            <a
+              href="https://wa.me/94787844914?text=Hello%20NookMint%2C%20I%20have%20a%20question%20about%20my%20order."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-300 hover:text-white transition-colors"
+            >
+              <span>Explore More</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </a>
+          </div>
+        </div>
 
-        {/* Feature 3: Secure Payments */}
-        <TrustBadgeItem
-          icon={<Lock className="w-6 h-6 text-slate-700 stroke-[1.5]" />}
-          title="Secure Payments"
-          description="100% safe & secure checkout"
-        />
+        {/* Card 3: Fast & Free Shipping matching Reference Image 5 */}
+        <div className="group rounded-[26px] bg-white border border-slate-200/90 p-7 shadow-xs hover:shadow-lg hover:border-emerald-300 transition-all duration-300 flex flex-col justify-between space-y-4">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100 shadow-2xs group-hover:scale-105 transition-transform">
+              <Truck className="w-7 h-7 stroke-[2]" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-lg text-slate-900 tracking-tight">
+                Fast & Islandwide Shipping
+              </h3>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                Prompt doorstep delivery across all 25 Sri Lankan districts with Cash on Delivery.
+              </p>
+            </div>
+          </div>
 
-        {/* Feature 4: Customer Support */}
-        <TrustBadgeItem
-          icon={<Headphones className="w-6 h-6 text-slate-700 stroke-[1.5]" />}
-          title="Customer Support"
-          description="We're here to help you anytime"
-        />
-
-        {/* Feature 5: Loved by Parents */}
-        <TrustBadgeItem
-          icon={<Heart className="w-6 h-6 text-slate-700 stroke-[1.5]" />}
-          title="Loved by Parents"
-          description="Thousands of happy families"
-          colSpan="col-span-2 md:col-span-1"
-        />
+          <div className="pt-2 border-t border-slate-100">
+            <Link
+              href="/delivery"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#004D40] hover:text-[#EA580C] transition-colors"
+            >
+              <span>Explore More</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+        </div>
       </div>
     </section>
   );

@@ -1,10 +1,11 @@
 {
-  "name": "littlestyles-kidswear",
+  "name": "innovative-ecommerce-system",
   "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && opennextjs-cloudflare build --skipNextBuild",
+    "build": "next build",
+    "build:cloudflare": "next build && opennextjs-cloudflare build --skipNextBuild",
     "build:next": "next build",
     "start": "next start",
     "lint": "next lint",

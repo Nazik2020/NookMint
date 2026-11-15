@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f8faf9"/>
+    </radialGradient>
+    <linearGradient id="jugGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="35%" stop-color="#60a5fa"/>
+      <stop offset="70%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <linearGradient id="capGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f1f5f9"/>
+      <stop offset="60%" stop-color="#e2e8f0"/>
+      <stop offset="100%" stop-color="#cbd5e1"/>
+    </linearGradient>
+    <linearGradient id="labelGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f0f9ff"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-10%" width="140%" height="130%">
+      <feDropShadow dx="0" dy="14" stdDeviation="10" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <rect width="400" height="400" fill="url(#bgGrad)"/>
+
+  <!-- Bottle Ground Shadow -->
+  <ellipse cx="200" cy="358" rx="90" ry="14" fill="#000000" opacity="0.12"/>
+  <ellipse cx="200" cy="357" rx="60" ry="8" fill="#000000" opacity="0.15"/>
+
+  <g filter="url(#shadow)">
+    <!-- Measuring Cap -->
+    <rect x="180" y="55" width="40" height="30" rx="4" fill="url(#capGrad)" stroke="#94a3b8" stroke-width="1"/>
+    <line x1="184" y1="62" x2="216" y2="62" stroke="#cbd5e1" stroke-width="1.5"/>
+    <line x1="184" y1="70" x2="216" y2="70" stroke="#cbd5e1" stroke-width="1.5"/>
+    <rect x="176" y="82" width="48" height="8" rx="2" fill="#0284c7"/>
+
+    <!-- Main Detergent Jug Body with Integrated Handle -->
+    <path d="M 180 90 L 220 90 Q 235 90 245 110 L 275 160 Q 285 180 285 210 L 285 315 Q 285 345 255 345 L 145 345 Q 115 345 115 315 L 115 210 Q 115 180 125 160 L 155 110 Q 165 90 180 90 Z" fill="url(#jugGrad)" stroke="#1e40af" stroke-width="1.5"/>
+
+    <!-- Ergonomic Hollow Handle Hole -->
+    <path d="M 230 170 Q 248 185 248 220 L 248 260 Q 248 275 230 275 Q 215 275 215 260 L 215 220 Q 215 185 230 170 Z" fill="#ffffff" opacity="0.95"/>
+    <path d="M 230 170 Q 248 185 248 220 L 248 260 Q 248 275 230 275 Q 215 275 215 260 L 215 220 Q 215 185 230 170 Z" fill="url(#bgGrad)" stroke="#93c5fd" stroke-width="1"/>
+
+    <!-- Plastic Sheen / Highlights -->
+    <path d="M 125 165 Q 120 185 120 220 L 120 310" fill="none" stroke="#93c5fd" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
+
+    <!-- Front Circular / Oval Label matching Reference Image 1 -->
+    <ellipse cx="175" cy="245" rx="52" ry="58" fill="url(#labelGrad)" stroke="#bae6fd" stroke-width="1.5"/>
+    
+    <!-- Flower Petal Graphic on Label -->
+    <circle cx="175" cy="210" r="12" fill="#fbcfe8" opacity="0.8"/>
+    <circle cx="168" cy="204" r="8" fill="#fda4af" opacity="0.8"/>
+    <circle cx="182" cy="204" r="8" fill="#fda4af" opacity="0.8"/>
+    <circle cx="175" cy="198" r="8" fill="#f43f5e" opacity="0.9"/>
+    <circle cx="175" cy="206" r="4" fill="#fef08a"/>
+
+    <!-- Label Typography -->
+    <text x="175" y="235" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="11" fill="#0369a1" letter-spacing="0.5">LAUNDRY</text>
+    <text x="175" y="250" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="11" fill="#0284c7" letter-spacing="0.5">DETERGENT</text>
+    <rect x="150" y="258" width="50" height="15" rx="7.5" fill="#0284c7"/>
+    <text x="175" y="269" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="10" fill="#ffffff">3 L</text>
+    <text x="175" y="286" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="600" font-size="6" fill="#64748b" letter-spacing="0.5">ACTIVE STAIN REMOVAL</text>
+  </g>
+</svg>

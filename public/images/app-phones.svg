@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 400" width="100%" height="100%">
+  <defs>
+    <filter id="phoneShadow" x="-25%" y="-20%" width="150%" height="145%">
+      <feDropShadow dx="-10" dy="25" stdDeviation="20" flood-color="#000000" flood-opacity="0.35" />
+    </filter>
+    <linearGradient id="titanium" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#475569" />
+      <stop offset="50%" stop-color="#1E293B" />
+      <stop offset="100%" stop-color="#0F172A" />
+    </linearGradient>
+    <linearGradient id="appHeader" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#004D40" />
+      <stop offset="100%" stop-color="#00695C" />
+    </linearGradient>
+  </defs>
+
+  <!-- Left iPhone (Angled behind) -->
+  <g transform="translate(60, 40) rotate(-8)" filter="url(#phoneShadow)">
+    <!-- Phone Body -->
+    <rect x="0" y="0" width="180" height="340" rx="34" fill="url(#titanium)" stroke="#64748B" stroke-width="3" />
+    <!-- Screen Glass -->
+    <rect x="6" y="6" width="168" height="328" rx="28" fill="#F8FAFC" />
+    <!-- Dynamic Island -->
+    <rect x="60" y="14" width="48" height="12" rx="6" fill="#000000" />
+    <!-- App UI Mockup -->
+    <rect x="16" y="38" width="148" height="36" rx="8" fill="#E2E8F0" />
+    <!-- Search pill -->
+    <circle cx="32" cy="56" r="6" fill="#94A3B8" />
+    <rect x="46" y="52" width="70" height="8" rx="4" fill="#CBD5E1" />
+    <!-- Product Grid Item 1 -->
+    <rect x="16" y="86" width="68" height="90" rx="10" fill="#FFFFFF" stroke="#E2E8F0" />
+    <rect x="24" y="94" width="52" height="46" rx="6" fill="#F1F5F9" />
+    <rect x="24" y="146" width="44" height="6" rx="3" fill="#334155" />
+    <rect x="24" y="156" width="28" height="6" rx="3" fill="#004D40" />
+    <!-- Product Grid Item 2 -->
+    <rect x="96" y="86" width="68" height="90" rx="10" fill="#FFFFFF" stroke="#E2E8F0" />
+    <rect x="104" y="94" width="52" height="46" rx="6" fill="#F1F5F9" />
+    <rect x="104" y="146" width="44" height="6" rx="3" fill="#334155" />
+    <rect x="104" y="156" width="28" height="6" rx="3" fill="#004D40" />
+    <!-- Bottom Banner -->
+    <rect x="16" y="190" width="148" height="60" rx="12" fill="url(#appHeader)" />
+    <rect x="26" y="202" width="70" height="8" rx="4" fill="#A7F3D0" />
+    <rect x="26" y="216" width="50" height="6" rx="3" fill="#FFFFFF" opacity="0.8" />
+    <!-- Floating Cart Pill -->
+    <rect x="30" y="290" width="120" height="28" rx="14" fill="#004D40" />
+    <circle cx="50" cy="304" r="5" fill="#FFFFFF" />
+    <rect x="64" y="301" width="50" height="6" rx="3" fill="#FFFFFF" />
+  </g>
+
+  <!-- Right iPhone (Front, sharp high-res) -->
+  <g transform="translate(240, 10)" filter="url(#phoneShadow)">
+    <rect x="0" y="0" width="200" height="370" rx="38" fill="url(#titanium)" stroke="#94A3B8" stroke-width="4" />
+    <rect x="8" y="8" width="184" height="354" rx="30" fill="#FFFFFF" />
+    <!-- Dynamic Island -->
+    <rect x="72" y="16" width="56" height="14" rx="7" fill="#000000" />
+    <!-- App Header -->
+    <rect x="18" y="42" width="164" height="40" rx="12" fill="#F8FAFC" />
+    <text x="32" y="66" font-family="system-ui, sans-serif" font-size="12" font-weight="900" fill="#004D40">PioMart</text>
+    <rect x="138" y="52" width="30" height="20" rx="6" fill="#F59E0B" />
+    <text x="153" y="66" font-family="system-ui, sans-serif" font-size="9" font-weight="bold" fill="#FFFFFF" text-anchor="middle">PRO</text>
+    <!-- Featured Doctor / Special Offer Banner -->
+    <rect x="18" y="94" width="164" height="110" rx="16" fill="#ECFDF5" stroke="#A7F3D0" />
+    <rect x="28" y="106" width="60" height="14" rx="4" fill="#FEE2E2" />
+    <text x="58" y="117" font-family="system-ui, sans-serif" font-size="7.5" font-weight="bold" fill="#EF4444" text-anchor="middle">Weekend Discount</text>
+    <text x="28" y="136" font-family="system-ui, sans-serif" font-size="13" font-weight="900" fill="#065F46">Flat 20% Off</text>
+    <text x="28" y="150" font-family="system-ui, sans-serif" font-size="10" font-weight="bold" fill="#047857">Your First Order</text>
+    <rect x="28" y="164" width="70" height="22" rx="11" fill="#004D40" />
+    <text x="63" y="179" font-family="system-ui, sans-serif" font-size="8.5" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Shop Now</text>
+    <!-- Avatar / Pharmacist / Specialist portrait circle -->
+    <circle cx="145" cy="148" r="28" fill="#D1FAE5" />
+    <path d="M 130 162 C 130 148, 160 148, 160 162 Z" fill="#047857" />
+    <circle cx="145" cy="140" r="10" fill="#FDE047" />
+    <!-- Two Product Cards -->
+    <rect x="18" y="216" width="76" height="84" rx="12" fill="#F8FAFC" stroke="#E2E8F0" />
+    <rect x="26" y="224" width="60" height="42" rx="8" fill="#FFFFFF" />
+    <text x="26" y="278" font-family="system-ui, sans-serif" font-size="8.5" font-weight="bold" fill="#1E293B">Watch Pro</text>
+    <text x="26" y="291" font-family="system-ui, sans-serif" font-size="9" font-weight="900" fill="#004D40">Rs. 4,990</text>
+    <rect x="106" y="216" width="76" height="84" rx="12" fill="#F8FAFC" stroke="#E2E8F0" />
+    <rect x="114" y="224" width="60" height="42" rx="8" fill="#FFFFFF" />
+    <text x="114" y="278" font-family="system-ui, sans-serif" font-size="8.5" font-weight="bold" fill="#1E293B">Air Pods</text>
+    <text x="114" y="291" font-family="system-ui, sans-serif" font-size="9" font-weight="900" fill="#004D40">Rs. 2,990</text>
+    <!-- Bottom Nav Bar -->
+    <rect x="8" y="318" width="184" height="40" rx="20" fill="#FFFFFF" stroke="#F1F5F9" />
+    <circle cx="45" cy="338" r="6" fill="#004D40" />
+    <circle cx="85" cy="338" r="5" fill="#94A3B8" />
+    <circle cx="125" cy="338" r="5" fill="#94A3B8" />
+    <circle cx="165" cy="338" r="5" fill="#94A3B8" />
+  </g>
+</svg>

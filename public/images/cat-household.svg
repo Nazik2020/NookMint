@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%">
+  <defs>
+    <radialGradient id="circleBg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="85%" stop-color="#f0f7f3"/>
+      <stop offset="100%" stop-color="#dcefe4"/>
+    </radialGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+
+  <rect width="300" height="300" fill="url(#circleBg)"/>
+
+  <!-- Table Ground Shadow -->
+  <ellipse cx="150" cy="260" rx="90" ry="14" fill="#000000" opacity="0.12"/>
+
+  <g transform="translate(45, 50)" filter="url(#shadow)">
+    <!-- White Cleaner Jug (Back Right) matching Reference Image 1 -->
+    <path d="M 120 70 L 165 70 L 175 180 L 115 180 Z" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+    <rect x="132" y="50" width="22" height="20" rx="2" fill="#0D9488"/>
+
+    <!-- Blue Trigger Spray Bottle (Back Left) matching Reference Image 1 -->
+    <path d="M 40 90 L 70 90 L 75 190 L 35 190 Z" fill="#0284C7" stroke="#0369A1" stroke-width="1.5"/>
+    <!-- Trigger Spray Head -->
+    <path d="M 30 65 L 75 65 L 85 80 L 75 90 L 25 90 Z" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1"/>
+    <rect x="75" y="68" width="12" height="10" rx="2" fill="#0284C7"/>
+
+    <!-- Stack of Folded Pastel Cleaning Cloths (Front Center Right) matching Reference Image 1 -->
+    <rect x="105" y="160" width="85" height="22" rx="6" fill="#A7F3D0" stroke="#059669" stroke-width="1"/>
+    <rect x="108" y="142" width="80" height="20" rx="6" fill="#BAE6FD" stroke="#0284C7" stroke-width="1"/>
+
+    <!-- Yellow Sponge (Front Left) -->
+    <rect x="35" y="175" width="65" height="25" rx="5" fill="#FACC15" stroke="#CA8A04" stroke-width="1.5"/>
+    <rect x="35" y="175" width="65" height="8" rx="2" fill="#15803D"/>
+  </g>
+</svg>

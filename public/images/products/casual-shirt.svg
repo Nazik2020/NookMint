@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f8faf9"/>
+    </radialGradient>
+    <pattern id="checkPattern" width="16" height="16" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#1e3a8a"/>
+      <rect x="8" width="8" height="8" fill="#3b82f6"/>
+      <rect y="8" width="8" height="8" fill="#60a5fa"/>
+      <rect x="8" y="8" width="8" height="8" fill="#1e3a8a"/>
+    </pattern>
+    <linearGradient id="foldShadow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.0"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-10%" width="140%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="10" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+
+  <rect width="400" height="400" fill="url(#bgGrad)"/>
+
+  <!-- Ground Shadow -->
+  <ellipse cx="200" cy="355" rx="100" ry="14" fill="#000000" opacity="0.10"/>
+  <ellipse cx="200" cy="354" rx="70" ry="8" fill="#000000" opacity="0.14"/>
+
+  <g filter="url(#shadow)">
+    <!-- Main Folded Shirt Body with Checkered Gingham Pattern matching Reference Image 1 -->
+    <rect x="110" y="140" width="180" height="205" rx="10" fill="url(#checkPattern)" stroke="#1e3a8a" stroke-width="1.5"/>
+
+    <!-- Subtle Side Fold Shadows -->
+    <path d="M 110 140 L 130 140 L 130 345 L 110 345 Z" fill="url(#foldShadow)"/>
+    <path d="M 290 140 L 270 140 L 270 345 L 290 345 Z" fill="url(#foldShadow)"/>
+
+    <!-- Fold Crease Lines -->
+    <line x1="130" y1="140" x2="130" y2="345" stroke="#172554" stroke-width="2"/>
+    <line x1="270" y1="140" x2="270" y2="345" stroke="#172554" stroke-width="2"/>
+
+    <!-- Folded Placket (Button Column) -->
+    <rect x="187" y="135" width="26" height="210" fill="url(#checkPattern)" stroke="#172554" stroke-width="1.5"/>
+    <line x1="187" y1="135" x2="187" y2="345" stroke="#93c5fd" stroke-width="1"/>
+    <line x1="213" y1="135" x2="213" y2="345" stroke="#93c5fd" stroke-width="1"/>
+
+    <!-- Pearl White Buttons on Placket -->
+    <circle cx="200" cy="165" r="4" fill="#FFFFFF" stroke="#94A3B8" stroke-width="1"/>
+    <circle cx="200" cy="205" r="4" fill="#FFFFFF" stroke="#94A3B8" stroke-width="1"/>
+    <circle cx="200" cy="245" r="4" fill="#FFFFFF" stroke="#94A3B8" stroke-width="1"/>
+    <circle cx="200" cy="285" r="4" fill="#FFFFFF" stroke="#94A3B8" stroke-width="1"/>
+    <!-- Button Holes -->
+    <circle cx="199" cy="165" r="0.8" fill="#475569"/>
+    <circle cx="201" cy="165" r="0.8" fill="#475569"/>
+    <circle cx="199" cy="205" r="0.8" fill="#475569"/>
+    <circle cx="201" cy="205" r="0.8" fill="#475569"/>
+    <circle cx="199" cy="245" r="0.8" fill="#475569"/>
+    <circle cx="201" cy="245" r="0.8" fill="#475569"/>
+
+    <!-- Spread Shirt Collar Wings matching Reference Image 1 -->
+    <!-- Left Collar Leaf -->
+    <path d="M 200 95 L 140 135 L 187 150 L 200 135 Z" fill="url(#checkPattern)" stroke="#172554" stroke-width="1.5"/>
+    <!-- Right Collar Leaf -->
+    <path d="M 200 95 L 260 135 L 213 150 L 200 135 Z" fill="url(#checkPattern)" stroke="#172554" stroke-width="1.5"/>
+
+    <!-- Inner Collar Band / Stand -->
+    <path d="M 165 105 Q 200 120 235 105 L 235 95 Q 200 110 165 95 Z" fill="#1e40af" stroke="#172554" stroke-width="1"/>
+    <rect x="186" y="98" width="28" height="15" fill="#FFFFFF" rx="1"/>
+    <text x="200" y="108" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="5" fill="#1e3a8a">CLASSIC</text>
+  </g>
+</svg>

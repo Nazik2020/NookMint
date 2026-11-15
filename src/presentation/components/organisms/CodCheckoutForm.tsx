@@ -19,7 +19,8 @@ import {
   Truck,
   Copy,
   Check,
-  HelpCircle
+  HelpCircle,
+  MessageCircle
 } from 'lucide-react';
 
 export const CodCheckoutForm: React.FC = () => {
@@ -47,7 +48,7 @@ export const CodCheckoutForm: React.FC = () => {
   // Load saved address and dynamic store settings
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('littlestyles_saved_address');
+      const saved = localStorage.getItem('innovative_saved_address');
       if (saved) {
         setFormData(JSON.parse(saved));
       }
@@ -127,6 +128,7 @@ export const CodCheckoutForm: React.FC = () => {
     : 0;
 
   const currentDistrictInfo = getDistrictDeliveryInfo(formData.district || 'Colombo');
+  const hasDropship = items.some((item) => (item.product.sourceType || 'dropship') === 'dropship');
   const freeThreshold = storeSettings?.delivery?.freeShippingThreshold ?? 5000;
   const isFreeDelivery = (summary.subtotal >= freeThreshold || allProductsFreeShipping) && items.length > 0;
   
@@ -134,11 +136,12 @@ export const CodCheckoutForm: React.FC = () => {
     ? maxCustomProductFee
     : currentDistrictInfo.fee;
 
-  const actualShippingFee = items.length === 0 ? 0 : isFreeDelivery ? 0 : baseShippingFee;
+  const actualShippingFee = items.length === 0 || hasDropship ? 0 : isFreeDelivery ? 0 : baseShippingFee;
   const actualCodFee = selectedPaymentMethod === PaymentMethod.COD && items.length > 0
     ? (summary.subtotal >= COD_RULES.FREE_COD_THRESHOLD ? 0 : COD_RULES.COD_HANDLING_FEE)
     : 0;
   const actualGrandTotal = summary.subtotal + actualShippingFee + actualCodFee;
+  const finalGrandTotal = hasDropship ? summary.subtotal : actualGrandTotal;
 
   const codMin = storeSettings?.delivery?.codMinOrder ?? COD_RULES.MIN_ORDER_AMOUNT;
   const codMax = storeSettings?.delivery?.codMaxOrder ?? COD_RULES.MAX_ORDER_AMOUNT;
@@ -164,7 +167,7 @@ export const CodCheckoutForm: React.FC = () => {
     try {
       // Save address locally for returning orders
       try {
-        localStorage.setItem('littlestyles_saved_address', JSON.stringify(formData));
+        localStorage.setItem('innovative_saved_address', JSON.stringify(formData));
       } catch {
         // Ignore
       }
@@ -205,7 +208,7 @@ export const CodCheckoutForm: React.FC = () => {
         <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200/80 shadow-2xs space-y-5">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h2 className="text-base font-bold text-slate-900 font-serif flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-[#FF758F] text-white text-xs flex items-center justify-center font-sans font-extrabold">
+              <span className="w-6 h-6 rounded-full bg-[#064E3B] text-white text-xs flex items-center justify-center font-sans font-extrabold">
                 1
               </span>
               <span>Delivery Details</span>
@@ -229,13 +232,13 @@ export const CodCheckoutForm: React.FC = () => {
                 value={formData.fullName}
                 onChange={handleChange}
                 placeholder="e.g. Ruwani Fernando"
-                className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF758F]/20 focus:border-[#FF758F] transition-all font-medium text-slate-900 placeholder:text-slate-400"
+                className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all font-medium text-slate-900 placeholder:text-slate-400"
               />
             </div>
 
             <div>
               <label htmlFor="phone" className="block text-xs font-bold text-slate-700 mb-1.5">
-                Sri Lankan Mobile Number *
+                Contact Number One (Primary) *
               </label>
               <input
                 id="phone"
@@ -247,9 +250,26 @@ export const CodCheckoutForm: React.FC = () => {
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="e.g. 077 123 4567"
-                className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF758F]/20 focus:border-[#FF758F] transition-all font-medium text-slate-900 placeholder:text-slate-400"
+                className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all font-medium text-slate-900 placeholder:text-slate-400"
               />
-              <p className="text-[10px] text-slate-400 mt-1">For delivery driver dispatch & status notifications</p>
+              <p className="text-[10px] text-slate-400 mt-1">Primary mobile for delivery driver & WhatsApp</p>
+            </div>
+
+            <div>
+              <label htmlFor="alternatePhone" className="block text-xs font-bold text-slate-700 mb-1.5">
+                Contact Number Two (Optional)
+              </label>
+              <input
+                id="alternatePhone"
+                type="tel"
+                maxLength={12}
+                name="alternatePhone"
+                value={formData.alternatePhone || ''}
+                onChange={handleChange}
+                placeholder="e.g. 071 987 6543"
+                className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all font-medium text-slate-900 placeholder:text-slate-400"
+              />
+              <p className="text-[10px] text-slate-400 mt-1">Backup number in case primary is busy</p>
             </div>
 
             <div className="sm:col-span-2">
@@ -265,7 +285,7 @@ export const CodCheckoutForm: React.FC = () => {
                 value={formData.addressLine1}
                 onChange={handleChange}
                 placeholder="e.g. No. 42/1, Temple Road"
-                className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF758F]/20 focus:border-[#FF758F] transition-all font-medium text-slate-900 placeholder:text-slate-400"
+                className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all font-medium text-slate-900 placeholder:text-slate-400"
               />
             </div>
 
@@ -281,7 +301,7 @@ export const CodCheckoutForm: React.FC = () => {
                 name="district"
                 value={formData.district || 'Colombo'}
                 onChange={(e) => handleDistrictChange(e.target.value)}
-                className="w-full px-3.5 py-3 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF758F]/20 focus:border-[#FF758F] transition-all font-medium text-slate-900 cursor-pointer"
+                className="w-full px-3.5 py-3 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all font-medium text-slate-900 cursor-pointer"
               >
                 {SRI_LANKA_DISTRICTS.map((d) => {
                   const info = getDistrictDeliveryInfo(d.district);
@@ -294,31 +314,43 @@ export const CodCheckoutForm: React.FC = () => {
               </select>
 
               {/* Dynamic Delivery Fee Info Box */}
-              <div className="mt-2.5 p-3 rounded-2xl bg-[#FFF5F7] border border-[#FFD0DB] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-                <div className="flex items-center gap-2">
-                  <Truck className="w-4 h-4 text-[#FF758F] shrink-0" />
-                  <span className="text-slate-700">
-                    Doorstep Courier to <strong className="text-slate-900 font-bold">{formData.district}</strong>:
+              {hasDropship ? (
+                <div className="mt-2.5 p-3 rounded-2xl bg-amber-50/80 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                  <div className="flex items-center gap-2 text-amber-950 font-medium">
+                    <MessageCircle className="w-4 h-4 text-amber-700 shrink-0" />
+                    <span>Courier Delivery Fee: <strong className="font-bold">Invoiced on WhatsApp</strong> (Destination: {formData.district})</span>
+                  </div>
+                  <span className="text-[10px] font-bold text-amber-800 bg-white px-2 py-0.5 rounded border border-amber-200 shrink-0">
+                    Pay Upon Delivery
                   </span>
-                  {isFreeDelivery ? (
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-black text-[10px] uppercase">
-                      FREE DELIVERY APPLIED
-                    </span>
-                  ) : (
-                    <span className="font-black text-rose-600 font-mono text-sm">
-                      {formatLKR(baseShippingFee)}
-                    </span>
-                  )}
-                  {currentDistrictInfo.groupName && (
-                    <span className="hidden sm:inline text-[10px] px-2 py-0.5 rounded bg-white text-slate-600 font-bold border border-rose-200">
-                      {currentDistrictInfo.groupName}
-                    </span>
-                  )}
                 </div>
-                <span className="text-[11px] text-slate-500 font-medium">
-                  ⚡ {currentDistrictInfo.estimatedDays || '1-3 Business Days'} Doorstep Courier
-                </span>
-              </div>
+              ) : (
+                <div className="mt-2.5 p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                  <div className="flex items-center gap-2">
+                    <Truck className="w-4 h-4 text-[#064E3B] shrink-0" />
+                    <span className="text-slate-700">
+                      Doorstep Courier to <strong className="text-slate-900 font-bold">{formData.district}</strong>:
+                    </span>
+                    {isFreeDelivery ? (
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-black text-[10px] uppercase">
+                        FREE DELIVERY APPLIED
+                      </span>
+                    ) : (
+                      <span className="font-black text-[#064E3B] font-mono text-sm">
+                        {formatLKR(baseShippingFee)}
+                      </span>
+                    )}
+                    {currentDistrictInfo.groupName && (
+                      <span className="hidden sm:inline text-[10px] px-2 py-0.5 rounded bg-white text-slate-600 font-bold border border-emerald-200">
+                        {currentDistrictInfo.groupName}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[11px] text-emerald-800 font-bold flex items-center gap-1">
+                    <span>⚡</span> {currentDistrictInfo.estimatedDays || '1-3 Business Days'} Doorstep Courier
+                  </span>
+                </div>
+              )}
             </div>
 
             <div>
@@ -333,7 +365,7 @@ export const CodCheckoutForm: React.FC = () => {
                 value={formData.city}
                 onChange={handleChange}
                 placeholder="e.g. Nugegoda, Negombo, Kandy"
-                className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF758F]/20 focus:border-[#FF758F] transition-all font-medium text-slate-900 placeholder:text-slate-400"
+                className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all font-medium text-slate-900 placeholder:text-slate-400"
               />
             </div>
 
@@ -348,148 +380,41 @@ export const CodCheckoutForm: React.FC = () => {
                 value={formData.landmark || ''}
                 onChange={handleChange}
                 placeholder="e.g. Near Arpico Supercentre, Gate 2, Call before arriving"
-                className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF758F]/20 focus:border-[#FF758F] transition-all font-medium text-slate-900 placeholder:text-slate-400"
+                className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all font-medium text-slate-900 placeholder:text-slate-400"
               />
             </div>
           </div>
         </div>
 
-        {/* Step 2: Payment Mode */}
+        {/* Step 2: Payment Mode - Strictly 100% Cash on Delivery (COD) */}
         <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200/80 shadow-2xs space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h2 className="text-base font-bold text-slate-900 font-serif flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-[#FF758F] text-white text-xs flex items-center justify-center font-sans font-extrabold">
+            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-[#004D40] text-white text-xs flex items-center justify-center font-sans font-extrabold">
                 2
               </span>
-              <span>Payment Method</span>
+              <span>Payment Mode</span>
             </h2>
-            <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100">
-              No Payment Gateway Required
+            <span className="text-[11px] font-extrabold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
+              100% Cash on Delivery (COD)
             </span>
           </div>
 
-          <div className="space-y-3">
-            {/* Cash on Delivery option */}
-            <label
-              className={`flex items-start gap-3.5 p-4 sm:p-5 rounded-2xl border cursor-pointer transition-all ${
-                selectedPaymentMethod === PaymentMethod.COD
-                  ? 'border-[#FF758F] bg-[#FFF8FA] ring-2 ring-[#FF758F]/20 shadow-2xs'
-                  : 'border-slate-200 hover:border-slate-300'
-              } ${isCodBlocked ? 'opacity-60 bg-gray-50' : ''}`}
-            >
-              <input
-                type="radio"
-                name="paymentMethod"
-                value={PaymentMethod.COD}
-                checked={selectedPaymentMethod === PaymentMethod.COD}
-                onChange={() => setSelectedPaymentMethod(PaymentMethod.COD)}
-                className="mt-1 text-[#FF758F] focus:ring-[#FF758F]"
-              />
-              <div className="flex-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Banknote className="w-5 h-5 text-emerald-600 shrink-0" />
-                  <span className="font-bold text-sm text-slate-900">
-                    Cash on Delivery (COD)
-                  </span>
-                  {summary.subtotal >= COD_RULES.FREE_COD_THRESHOLD ? (
-                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                      FREE COD
-                    </span>
-                  ) : (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
-                      +Rs. {COD_RULES.COD_HANDLING_FEE} Courier Handling
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-slate-600 mt-1">
-                  Pay cash directly to our courier executive at your doorstep when your package arrives.
-                </p>
-                {isCodBlocked && (
-                  <p className="text-xs text-rose-600 font-semibold mt-1">
-                    COD is unavailable for orders below Rs. {codMin.toLocaleString()} or above Rs. {codMax.toLocaleString()}.
-                  </p>
-                )}
+          <div className="p-4 sm:p-5 rounded-2xl border-2 border-emerald-600/30 bg-emerald-50/50 flex items-start gap-3.5">
+            <Banknote className="w-6 h-6 text-[#004D40] shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="font-extrabold text-sm sm:text-base text-slate-900">
+                  Cash on Delivery (Doorstep Payment)
+                </span>
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 uppercase">
+                  Zero Advance Payment
+                </span>
               </div>
-            </label>
-
-            {/* Direct Bank Transfer option */}
-            <label
-              className={`flex items-start gap-3.5 p-4 sm:p-5 rounded-2xl border cursor-pointer transition-all ${
-                selectedPaymentMethod === PaymentMethod.BANK_TRANSFER || selectedPaymentMethod === PaymentMethod.ONLINE
-                  ? 'border-[#FF758F] bg-[#FFF8FA] ring-2 ring-[#FF758F]/20 shadow-2xs'
-                  : 'border-slate-200 hover:border-slate-300'
-              }`}
-            >
-              <input
-                type="radio"
-                name="paymentMethod"
-                value={PaymentMethod.BANK_TRANSFER}
-                checked={selectedPaymentMethod === PaymentMethod.BANK_TRANSFER || selectedPaymentMethod === PaymentMethod.ONLINE}
-                onChange={() => setSelectedPaymentMethod(PaymentMethod.BANK_TRANSFER)}
-                className="mt-1 text-[#FF758F] focus:ring-[#FF758F]"
-              />
-              <div className="flex-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Building2 className="w-5 h-5 text-blue-600 shrink-0" />
-                  <span className="font-bold text-sm text-slate-900">
-                    Direct Bank Transfer / Deposit (Manual)
-                  </span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
-                    0% Extra Fees
-                  </span>
-                </div>
-                <p className="text-xs text-slate-600 mt-1">
-                  Transfer funds via your Mobile Banking app (Flash, Q+, HNB SOLO), CDM, or over-the-counter deposit.
-                </p>
-
-                {/* Bank Account Details Preview */}
-                {(selectedPaymentMethod === PaymentMethod.BANK_TRANSFER || selectedPaymentMethod === PaymentMethod.ONLINE) && (
-                  <div className="mt-4 pt-3 border-t border-rose-100/80 space-y-3">
-                    <p className="text-[11px] font-bold text-slate-700">
-                      Transfer to any of our official Sri Lankan corporate accounts:
-                    </p>
-                    <div className="space-y-2">
-                      {(storeSettings?.bankAccounts || SRI_LANKAN_BANK_ACCOUNTS).map((bank: any, idx: number) => (
-                        <div
-                          key={`${bank.bankName}-${idx}`}
-                          className="p-3 rounded-xl bg-white border border-slate-200/90 flex items-center justify-between text-xs"
-                        >
-                          <div>
-                            <span className="font-bold text-slate-900 block">{bank.bankName}</span>
-                            <span className="text-[11px] text-slate-500 font-mono">
-                              Acc: {bank.accountNumber} • {bank.branch}
-                            </span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleCopyAccount(bank.accountNumber, idx);
-                            }}
-                            className="px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:text-[#FF758F] bg-slate-50 hover:bg-rose-50 border border-slate-200 rounded-lg flex items-center gap-1 transition-colors"
-                          >
-                            {copiedBankIdx === idx ? (
-                              <>
-                                <Check className="w-3 h-3 text-emerald-600" />
-                                <span className="text-emerald-700">Copied</span>
-                              </>
-                            ) : (
-                              <>
-                                <Copy className="w-3 h-3" />
-                                <span>Copy Acc</span>
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                    <p className="text-[11px] text-slate-500 italic">
-                      * You will receive a unique transfer reference on the confirmation page to include in your transfer remark.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </label>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Pay cash to our courier partner at your doorstep only after receiving and inspecting your package. No bank deposit or credit card needed!
+              </p>
+            </div>
           </div>
         </div>
 
@@ -503,21 +428,22 @@ export const CodCheckoutForm: React.FC = () => {
         <button
           type="submit"
           disabled={isSubmitting || items.length === 0}
-          className="w-full py-4 bg-[#FF758F] hover:bg-[#F0627D] disabled:opacity-50 text-white font-extrabold uppercase tracking-wider rounded-2xl shadow-md shadow-[#FF758F]/20 transition-all flex items-center justify-center gap-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF758F] active:scale-98"
+          className="w-full py-4 bg-[#EA580C] hover:bg-[#C2410C] disabled:opacity-50 text-white font-extrabold uppercase tracking-wider rounded-2xl shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-600 active:scale-98"
         >
           {isSubmitting ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Placing Your Kids Wear Order...</span>
+              <span>Submitting Your Order...</span>
+            </>
+          ) : hasDropship ? (
+            <>
+              <MessageCircle className="w-4 h-4 text-emerald-300" />
+              <span>Confirm Order (Invoice will be sent to your WhatsApp)</span>
             </>
           ) : (
             <>
               <ShieldCheck className="w-4 h-4" />
-              <span>
-                {selectedPaymentMethod === PaymentMethod.COD
-                  ? `Place COD Order • ${formatLKR(actualGrandTotal)}`
-                  : `Place Bank Transfer Order • ${formatLKR(actualGrandTotal)}`}
-              </span>
+              <span>Confirm Cash on Delivery Order • {formatLKR(finalGrandTotal)}</span>
             </>
           )}
         </button>
@@ -545,7 +471,7 @@ export const CodCheckoutForm: React.FC = () => {
                 <div className="flex-1 min-w-0">
                   <h4 className="font-bold text-slate-900 truncate">{item.product.title}</h4>
                   <p className="text-slate-500 text-[11px] mt-0.5">Size: {item.selectedSize} • Qty: {item.quantity}</p>
-                  <p className="font-extrabold text-[#FF758F] mt-1">
+                  <p className="font-extrabold text-blue-600 mt-1">
                     {formatLKR(item.product.sellingPrice * item.quantity)}
                   </p>
                 </div>
@@ -562,18 +488,26 @@ export const CodCheckoutForm: React.FC = () => {
             <div className="flex justify-between text-slate-600 font-medium">
               <span className="flex items-center gap-1">
                 <span>Courier to {formData.district}:</span>
-                {isFreeDelivery && (
+                {!hasDropship && isFreeDelivery && (
                   <span className="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
                     FREE
                   </span>
                 )}
               </span>
-              <span className="font-bold text-slate-900">
-                {actualShippingFee === 0 ? 'FREE' : formatLKR(actualShippingFee)}
+              <span>
+                {hasDropship ? (
+                  <span className="font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-[11px]">
+                    Invoiced on WhatsApp
+                  </span>
+                ) : actualShippingFee === 0 ? (
+                  <span className="font-bold text-emerald-700">FREE</span>
+                ) : (
+                  <span className="font-bold text-slate-900">{formatLKR(actualShippingFee)}</span>
+                )}
               </span>
             </div>
 
-            {selectedPaymentMethod === PaymentMethod.COD && actualCodFee > 0 && (
+            {selectedPaymentMethod === PaymentMethod.COD && actualCodFee > 0 && !hasDropship && (
               <div className="flex justify-between text-slate-600 font-medium">
                 <span>COD Handling Fee:</span>
                 <span className="font-bold text-slate-900">{formatLKR(actualCodFee)}</span>
@@ -583,10 +517,12 @@ export const CodCheckoutForm: React.FC = () => {
             <div className="pt-3 border-t border-slate-200 flex justify-between items-baseline">
               <div>
                 <span className="text-sm font-black text-slate-900 font-serif">Total Payable:</span>
-                <p className="text-[10px] text-slate-500 font-medium">All taxes & packaging included</p>
+                <p className="text-[10px] text-slate-500 font-medium">
+                  {hasDropship ? 'Product price only • Courier fee on WhatsApp invoice' : 'All taxes & packaging included'}
+                </p>
               </div>
               <span className="text-lg font-black text-slate-900 font-sans tracking-tight">
-                {formatLKR(actualGrandTotal)}
+                {formatLKR(finalGrandTotal)}
               </span>
             </div>
           </div>

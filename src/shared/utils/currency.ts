@@ -5,9 +5,10 @@
 
 export function formatLKR(amount: number): string {
   const formatted = new Intl.NumberFormat('en-LK', {
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(amount);
-  return `Rs. ${formatted}`;
+  return `LKR ${formatted}`;
 }
 
 // Backward compatibility alias for any existing code

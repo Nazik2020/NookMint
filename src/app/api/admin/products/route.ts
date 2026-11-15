@@ -25,6 +25,11 @@ export async function POST(req: NextRequest) {
     const {
       title,
       category,
+      brand,
+      unit,
+      sku,
+      sourceType,
+      costPrice,
       fabric,
       mrp,
       sellingPrice,
@@ -35,6 +40,8 @@ export async function POST(req: NextRequest) {
       stock,
       variants,
       offerPercentage,
+      isNewArrival,
+      isBestSeller,
       sizeChartType,
       sizeChartImage,
       sizeNotes,
@@ -66,27 +73,31 @@ export async function POST(req: NextRequest) {
       typeof offerPercentage === 'number' ? offerPercentage : computedDiscount;
 
     // Variants with individual size quantities
+    const baseSku = sku || `${slug.substring(0, 5).toUpperCase()}-01`;
     let productVariants = variants && Array.isArray(variants) && variants.length > 0
-      ? variants.map((v: any) => ({
-          size: v.size,
-          sku: `${slug.substring(0, 5).toUpperCase()}-${v.size.replace(/[^a-zA-Z0-9]/g, '')}`,
+      ? variants.map((v: any, idx: number) => ({
+          size: v.size || 'Standard',
+          sku: v.sku || `${baseSku}-${idx + 1}`,
           stock: Number(v.stock) || 0,
         }))
       : [
-          { size: '2-3Y', sku: `${slug.substring(0, 5).toUpperCase()}-23Y`, stock: Number(stock) || 10 },
-          { size: '3-4Y', sku: `${slug.substring(0, 5).toUpperCase()}-34Y`, stock: Number(stock) || 12 },
-          { size: '4-5Y', sku: `${slug.substring(0, 5).toUpperCase()}-45Y`, stock: Number(stock) || 8 },
+          { size: 'Standard', sku: baseSku, stock: Number(stock) || 30 },
         ];
 
     const newProduct: Product = {
       id: newId,
       title,
       slug,
-      description: description || `${title} crafted for kids wear boutique.`,
+      description: description || `${title} from NookMint.`,
       category,
+      brand: brand || 'NookMint',
+      unit: unit || 'item',
+      sourceType: sourceType === 'own' ? 'own' : 'dropship',
+      costPrice: typeof costPrice === 'number' ? costPrice : undefined,
+      sku: baseSku,
       ageGroup: ageGroup || ('4-7 Years' as any),
       gender: gender || ('Unisex' as any),
-      fabric: fabric || '100% GOTS Organic Cotton',
+      fabric: fabric || 'Premium Quality',
       mrp: numMrp,
       sellingPrice: numSellingPrice,
       offerPercentage: finalOfferPercentage,
@@ -95,13 +106,13 @@ export async function POST(req: NextRequest) {
       sizeNotes: sizeNotes || undefined,
       deliveryFeeType: deliveryFeeType || 'default',
       customDeliveryFee: typeof customDeliveryFee === 'number' ? customDeliveryFee : undefined,
-      images: images && images.length > 0 ? images : ['/images/products/floral-dress.jpg'],
+      images: images && images.length > 0 ? images : ['https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=900&auto=format&fit=crop&q=80'],
       variants: productVariants,
       rating: 5.0,
       reviewCount: 1,
       isCodAvailable: true,
-      washCare: 'Gentle cold wash. Line dry in shade.',
-      isNewArrival: true,
+      isNewArrival: typeof isNewArrival === 'boolean' ? isNewArrival : true,
+      isBestSeller: typeof isBestSeller === 'boolean' ? isBestSeller : false,
     };
 
     const created = await productRepo.createProduct(newProduct);
@@ -151,6 +162,15 @@ export async function PATCH(req: NextRequest) {
     if (typeof updates.offerPercentage === 'number') {
       cleanUpdates.offerPercentage = updates.offerPercentage;
     }
+    if (typeof updates.isNewArrival === 'boolean') cleanUpdates.isNewArrival = updates.isNewArrival;
+    if (typeof updates.isBestSeller === 'boolean') cleanUpdates.isBestSeller = updates.isBestSeller;
+    if (updates.sourceType) cleanUpdates.sourceType = updates.sourceType;
+    if (updates.sku) cleanUpdates.sku = updates.sku;
+    if (typeof updates.costPrice === 'number' || typeof updates.costPrice === 'string') {
+      cleanUpdates.costPrice = Number(updates.costPrice);
+    }
+    if (updates.brand) cleanUpdates.brand = updates.brand;
+    if (updates.unit) cleanUpdates.unit = updates.unit;
     if (updates.title) cleanUpdates.title = updates.title;
     if (updates.fabric) cleanUpdates.fabric = updates.fabric;
     if (updates.description) cleanUpdates.description = updates.description;

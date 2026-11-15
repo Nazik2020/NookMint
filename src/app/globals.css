@@ -5,21 +5,33 @@
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-serif: 'Playfair Display', Georgia, Cambria, serif;
 
-  /* Reference Boutique Pastel Coral-Pink Palette */
-  --color-brand-primary: #FF758F;
-  --color-brand-primary-hover: #F0627D;
-  --color-brand-primary-active: #E0536E;
-  --color-brand-primary-light: #FFF0F3;
-  --color-brand-primary-muted: #FFE3E8;
+  /* Modern Multi-Category Retail Forest & Saffron Palette */
+  --color-brand-primary: #064E3B;
+  --color-brand-primary-hover: #04382A;
+  --color-brand-primary-active: #02231A;
+  --color-brand-primary-light: #F0FDF4;
+  --color-brand-primary-muted: #DCFCE7;
+
+  /* Brand Emerald & Teal */
+  --color-brand-forest: #064E3B;
+  --color-brand-forest-dark: #022C22;
+  --color-brand-emerald: #059669;
+  --color-brand-emerald-hover: #047857;
+
+  /* High-Converting Action Accent: Saffron Amber / Orange */
+  --color-brand-accent: #EA580C;
+  --color-brand-accent-hover: #C2410C;
+  --color-brand-accent-light: #FFF7ED;
 
   /* Surface & Canvas Tokens */
   --color-canvas-bg: #FFFFFF;
+  --color-canvas-subtle: #F8FAF8;
   --color-canvas-warm: #FAF8F6;
   --color-canvas-card: #FFFFFF;
 
   /* Typography / Text Tokens */
-  --color-text-primary: #1E293B;
-  --color-text-secondary: #475569;
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #334155;
   --color-text-muted: #64748B;
   --color-text-subtle: #94A3B8;
 
@@ -33,6 +45,11 @@
 :root {
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --font-serif: 'Playfair Display', Georgia, serif;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 90px;
 }
 
 html, body {
@@ -50,12 +67,18 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Hardware accelerated smooth scrolling & GPU layer promotion */
+header.sticky {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
 /* Accessible focus ring utility */
 .focus-ring {
   outline: none;
 }
 .focus-ring:focus-visible {
-  outline: 2px solid #FF758F;
+  outline: 2px solid #2563EB;
   outline-offset: 2px;
 }
 

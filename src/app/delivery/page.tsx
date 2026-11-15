@@ -26,8 +26,8 @@ export default function DeliveryPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative rounded-3xl overflow-hidden bg-slate-900 text-white min-h-[280px] sm:min-h-[320px] flex items-center p-8 sm:p-14 border border-slate-200/80 shadow-sm">
           <Image
-            src="/images/banners/welcome-boy.jpg"
-            alt="LittleStyles Sri Lanka Islandwide Courier Delivery"
+            src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=1200&auto=format&fit=crop&q=80"
+            alt="NookMint Sri Lanka Islandwide Courier Delivery"
             fill
             priority
             sizes="100vw"
@@ -43,7 +43,7 @@ export default function DeliveryPage() {
               Fast, Reliable Delivery Across All 25 Districts
             </h1>
             <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-light">
-              Doorstep Cash on Delivery (COD) and direct bank transfers with premier express logistics: Prompt Xpress, Domex Courier, and Pronto.
+              100% Doorstep Cash on Delivery (COD) across all 25 districts with premier express logistics: Prompt Xpress, Domex Courier, and Pronto. Zero advance payment required.
             </p>
           </div>
         </div>

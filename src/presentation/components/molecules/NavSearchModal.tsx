@@ -35,7 +35,7 @@ export const NavSearchModal: React.FC<NavSearchModalProps> = ({
 
   if (!isOpen) return null;
 
-  const quickTags = ['Summer Dress', 'Rompers', 'Organic Cotton', 'Boys Jacket', 'Party Frock'];
+  const quickTags = ['Wireless Earbuds', 'Kitchen Utensils', 'Garden Tools', 'Wireless Mic', 'Storage Containers', 'Smart Gadgets'];
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,7 +68,7 @@ export const NavSearchModal: React.FC<NavSearchModalProps> = ({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-transparent border-none text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none font-medium"
-            aria-label="Search outfits and collections"
+            aria-label="Search household, gadgets and garden items"
           />
           {searchQuery && (
             <button

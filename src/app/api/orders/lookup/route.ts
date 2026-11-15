@@ -22,9 +22,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: true, orders });
     }
 
-    // Default: return all demo/stored orders
-    const all = await facade.getAllOrders();
-    return NextResponse.json({ success: true, orders: all });
+    // If neither reference nor phone is provided, return empty list (protect customer PII)
+    return NextResponse.json({ success: true, orders: [] });
   } catch (error: any) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }

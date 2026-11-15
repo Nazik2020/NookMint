@@ -1,0 +1,181 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 520" width="100%" height="100%">
+  <defs>
+    <!-- Soft Mint Arched Backdrop Gradient matching Reference Image 1 -->
+    <linearGradient id="mintArchGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E1EFE7"/>
+      <stop offset="60%" stop-color="#D5E8DC"/>
+      <stop offset="100%" stop-color="#C5DFCE"/>
+    </linearGradient>
+
+    <!-- Kraft Bag Gradient -->
+    <linearGradient id="kraftBag" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#CA9C65"/>
+      <stop offset="50%" stop-color="#DEB17A"/>
+      <stop offset="100%" stop-color="#B88A52"/>
+    </linearGradient>
+
+    <!-- Drop Shadows -->
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="16" stdDeviation="14" flood-opacity="0.14"/>
+    </filter>
+    <filter id="itemShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="10" stdDeviation="8" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+
+  <!-- Large Soft Mint Arched Oval Pill Backdrop matching Reference Image 1 -->
+  <path d="M 120 480 C 120 180, 580 180, 580 480 Z" fill="url(#mintArchGrad)"/>
+
+  <!-- Ground Shadows on Table Plane -->
+  <ellipse cx="350" cy="485" rx="280" ry="22" fill="#000000" opacity="0.08"/>
+  <ellipse cx="280" cy="480" rx="140" ry="18" fill="#000000" opacity="0.12"/>
+  <ellipse cx="500" cy="478" rx="120" ry="16" fill="#000000" opacity="0.12"/>
+
+  <!-- ========================================== -->
+  <!-- 1. BACKGROUND ELEMENT: POTTED PLANT ON RIGHT -->
+  <!-- ========================================== -->
+  <g transform="translate(480, 150)">
+    <!-- Terracotta / Ceramic Pot -->
+    <path d="M 45 180 L 105 180 L 95 240 L 55 240 Z" fill="#D97706"/>
+    <ellipse cx="75" cy="180" rx="30" ry="7" fill="#B45309"/>
+    <!-- Lush Tropical Green Leaves extending upwards -->
+    <!-- Leaf 1 -->
+    <path d="M 75 180 Q 95 90 140 70 Q 110 110 75 180 Z" fill="#065F46"/>
+    <path d="M 75 180 Q 95 90 140 70" stroke="#34D399" stroke-width="2" fill="none"/>
+    <!-- Leaf 2 -->
+    <path d="M 75 180 Q 60 70 85 40 Q 75 80 75 180 Z" fill="#047857"/>
+    <!-- Leaf 3 -->
+    <path d="M 75 180 Q 30 100 0 90 Q 35 125 75 180 Z" fill="#059669"/>
+    <!-- Leaf 4 -->
+    <path d="M 75 180 Q 110 130 150 140 Q 115 155 75 180 Z" fill="#10B981"/>
+    <!-- Leaf 5 -->
+    <path d="M 75 180 Q 40 130 10 150 Q 45 160 75 180 Z" fill="#059669"/>
+  </g>
+
+  <!-- ========================================== -->
+  <!-- 2. STACK OF FOLDED TOWELS / LINENS (RIGHT) -->
+  <!-- ========================================== -->
+  <g transform="translate(410, 260)" filter="url(#itemShadow)">
+    <!-- Towel 1 (Bottom Dark Slate Waffle Towel) -->
+    <rect x="0" y="170" width="165" height="40" rx="12" fill="#334155" stroke="#1E293B" stroke-width="1.5"/>
+    <line x1="20" y1="190" x2="145" y2="190" stroke="#475569" stroke-dasharray="4,3" stroke-width="1.5"/>
+
+    <!-- Towel 2 (Middle Warm Grey Waffle Towel) -->
+    <rect x="5" y="132" width="155" height="42" rx="12" fill="#E2E8F0" stroke="#CBD5E1" stroke-width="1.5"/>
+    <line x1="25" y1="153" x2="140" y2="153" stroke="#94A3B8" stroke-dasharray="4,3" stroke-width="1.5"/>
+
+    <!-- Towel 3 (Top Cream / Beige Waffle Towel) -->
+    <rect x="10" y="95" width="145" height="42" rx="12" fill="#FDFBF7" stroke="#E2D9CC" stroke-width="1.5"/>
+    <line x1="25" y1="116" x2="135" y2="116" stroke="#D5C7B5" stroke-dasharray="4,3" stroke-width="1.5"/>
+  </g>
+
+  <!-- ========================================== -->
+  <!-- 3. HOUSEHOLD ESSENTIALS (CLEANING BOTTLES) -->
+  <!-- ========================================== -->
+  <!-- Laundry Detergent Jug (White Jug with Green Cap) -->
+  <g transform="translate(390, 185)" filter="url(#itemShadow)">
+    <!-- White Jug Body -->
+    <path d="M 35 70 Q 45 70 55 90 L 75 130 Q 82 145 82 170 L 82 250 Q 82 270 65 270 L 25 270 Q 8 270 8 250 L 8 170 Q 8 145 15 130 L 35 90 Z" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+    <!-- Handle -->
+    <path d="M 55 135 Q 70 145 70 180 Q 70 215 55 225 Q 45 225 45 210 L 45 150 Z" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+    <!-- Bright Green Cap -->
+    <rect x="35" y="45" width="22" height="25" rx="3" fill="#10B981" stroke="#047857" stroke-width="1"/>
+  </g>
+
+  <!-- Trigger Spray Cleaner Bottle (Right of Kraft Bag) -->
+  <g transform="translate(435, 215)" filter="url(#itemShadow)">
+    <!-- Translucent Body -->
+    <path d="M 18 50 L 32 50 L 38 90 L 45 160 Q 45 175 30 175 L 20 175 Q 5 175 5 160 L 12 90 Z" fill="#E0F2FE" stroke="#BAE6FD" stroke-width="1.5"/>
+    <!-- Trigger Spray Head (White with Green Nozzle) -->
+    <path d="M 12 25 L 38 25 L 45 40 L 40 50 L 10 50 Z" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1"/>
+    <rect x="42" y="28" width="12" height="10" rx="2" fill="#10B981"/>
+    <path d="M 28 50 Q 32 65 35 80" stroke="#94A3B8" stroke-width="3" fill="none"/>
+  </g>
+
+  <!-- ========================================== -->
+  <!-- 4. KRAFT PAPER GROCERY BAG (CENTER) -->
+  <!-- ========================================== -->
+  <g transform="translate(190, 150)" filter="url(#softShadow)">
+    <!-- Fresh Vegetables Bursting Out of Top of Kraft Bag -->
+    <!-- Romaine Lettuce / Celery Stems -->
+    <path d="M 40 40 Q 20 -20 50 -60 Q 80 -40 70 40 Z" fill="#15803D"/>
+    <path d="M 60 40 Q 60 -40 90 -70 Q 115 -45 95 40 Z" fill="#16A34A"/>
+    <path d="M 85 40 Q 110 -30 145 -65 Q 165 -35 125 40 Z" fill="#22C55E"/>
+    <!-- Broccoli / Kale Crown -->
+    <circle cx="50" cy="15" r="28" fill="#15803D"/>
+    <circle cx="35" cy="5" r="22" fill="#166534"/>
+    <circle cx="70" cy="10" r="24" fill="#16A34A"/>
+    <circle cx="85" cy="30" r="22" fill="#15803D"/>
+
+    <!-- Bright Yellow Bell Pepper -->
+    <g transform="translate(70, 0)">
+      <path d="M 10 20 Q 5 0 25 -5 Q 45 0 40 20 Q 40 50 25 50 Q 10 50 10 20 Z" fill="#EAB308" stroke="#CA8A04" stroke-width="1"/>
+      <path d="M 23 -5 Q 25 -15 28 -18" stroke="#15803D" stroke-width="4" stroke-linecap="round" fill="none"/>
+    </g>
+
+    <!-- Glossy Red Tomato on Bag Top Edge -->
+    <circle cx="130" cy="35" r="24" fill="#DC2626" stroke="#991B1B" stroke-width="1"/>
+    <circle cx="124" cy="27" r="5" fill="#EF4444" opacity="0.8"/>
+    <!-- Tomato Green Calyx -->
+    <path d="M 130 11 L 132 16 L 137 12 L 134 17 L 140 18 L 134 20 L 136 25 L 131 21 L 126 24 L 128 19 L 122 17 L 128 16 Z" fill="#15803D"/>
+
+    <!-- Kraft Grocery Paper Bag Body matching Reference Image 1 -->
+    <path d="M 15 40 L 175 40 L 165 295 L 25 295 Z" fill="url(#kraftBag)" stroke="#92400E" stroke-width="1.5"/>
+    <!-- Bag Top Fold / Ruffled Edge -->
+    <path d="M 15 40 Q 25 35 35 40 Q 45 45 55 40 Q 65 35 75 40 Q 85 45 95 40 Q 105 35 115 40 Q 125 45 135 40 Q 145 35 155 40 Q 165 45 175 40 L 173 55 L 17 55 Z" fill="#A16207" opacity="0.4"/>
+    <!-- Vertical Paper Creases / Folds on Bag -->
+    <line x1="45" y1="55" x2="52" y2="295" stroke="#78350F" stroke-width="1" opacity="0.25"/>
+    <line x1="145" y1="55" x2="138" y2="295" stroke="#78350F" stroke-width="1" opacity="0.25"/>
+  </g>
+
+  <!-- ========================================== -->
+  <!-- 5. FOREGROUND STILL-LIFE ARRANGEMENT -->
+  <!-- ========================================== -->
+  <!-- Fresh Yellow Bananas (Front-Left) -->
+  <g transform="translate(140, 315)" filter="url(#itemShadow)">
+    <!-- Banana 1 (Bottom) -->
+    <path d="M 20 40 Q 80 100 135 75 Q 90 70 30 25 Z" fill="#FACC15" stroke="#CA8A04" stroke-width="1.5"/>
+    <path d="M 135 75 L 142 78" stroke="#713F12" stroke-width="4" stroke-linecap="round"/>
+    <!-- Banana 2 (Middle) -->
+    <path d="M 15 25 Q 75 85 130 55 Q 85 55 25 10 Z" fill="#FDE047" stroke="#EAB308" stroke-width="1.5"/>
+    <path d="M 130 55 L 138 58" stroke="#713F12" stroke-width="4" stroke-linecap="round"/>
+    <!-- Banana 3 (Top) -->
+    <path d="M 10 10 Q 70 70 125 35 Q 80 40 20 -5 Z" fill="#FDE047" stroke="#EAB308" stroke-width="1.5"/>
+    <path d="M 10 10 L 0 5" stroke="#15803D" stroke-width="5" stroke-linecap="round"/>
+  </g>
+
+  <!-- Glossy Red Apples (In front of Bananas) -->
+  <g transform="translate(210, 370)" filter="url(#itemShadow)">
+    <circle cx="28" cy="28" r="26" fill="#DC2626" stroke="#991B1B" stroke-width="1"/>
+    <circle cx="20" cy="20" r="7" fill="#EF4444" opacity="0.8"/>
+    <path d="M 28 3 Q 32 -6 38 -8" stroke="#713F12" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <path d="M 32 -4 Q 40 -8 44 -2 Q 38 2 32 -4 Z" fill="#15803D"/>
+  </g>
+
+  <!-- Second Shiny Apple -->
+  <g transform="translate(255, 375)" filter="url(#itemShadow)">
+    <circle cx="25" cy="25" r="24" fill="#B91C1C" stroke="#7F1D1D" stroke-width="1"/>
+    <circle cx="18" cy="18" r="6" fill="#DC2626" opacity="0.8"/>
+    <path d="M 25 2 Q 28 -5 33 -7" stroke="#713F12" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  </g>
+
+  <!-- Ceramic White Bowl of Rice Grains (Center Foreground) -->
+  <g transform="translate(295, 370)" filter="url(#itemShadow)">
+    <path d="M 15 25 Q 15 75 55 75 Q 95 75 95 25 Z" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+    <ellipse cx="55" cy="25" rx="40" ry="14" fill="#F1F5F9"/>
+    <ellipse cx="55" cy="23" rx="36" ry="11" fill="#FEF9C3"/>
+    <ellipse cx="55" cy="20" rx="30" ry="8" fill="#FFFFFF"/>
+  </g>
+
+  <!-- Glass Jar of Red / Orange Lentils (Right of Rice Bowl) -->
+  <g transform="translate(375, 305)" filter="url(#itemShadow)">
+    <!-- Clear Glass Jar Body with Orange Lentils -->
+    <rect x="15" y="40" width="55" height="95" rx="6" fill="#F97316" stroke="#C2410C" stroke-width="1.5"/>
+    <rect x="15" y="40" width="55" height="95" rx="6" fill="#FFFFFF" opacity="0.25"/>
+    <!-- Glass Highlights -->
+    <line x1="22" y1="45" x2="22" y2="130" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+    <!-- Metal Clamp Lid -->
+    <rect x="12" y="28" width="61" height="12" rx="3" fill="#94A3B8" stroke="#475569" stroke-width="1.5"/>
+    <rect x="22" y="20" width="41" height="8" rx="2" fill="#CBD5E1"/>
+  </g>
+</svg>

@@ -1,18 +1,29 @@
 /**
- * SADP - Shared Domain Types & Enums
- * Defines the core vocabulary for the Kids Wear E-commerce platform.
+ * NookMint - Shared Domain Types & Enums
+ * Curated E-Commerce & Dropshipping Platform
+ * Focuses on Household & Kitchen Essentials, Home & Garden Supplies, and Smart Gadgets & Audio.
  */
+
+export enum MainCategory {
+  HOUSEHOLD_KITCHEN = 'Household & Kitchen',
+  HOUSEHOLD = 'Household & Daily Items',
+  GARDEN = 'Home & Garden',
+  GADGETS = 'Smart Gadgets & Audio',
+}
 
 export enum AgeGroup {
   INFANT = '0-12 Months',
   TODDLER = '1-3 Years',
   LITTLE_KIDS = '4-7 Years',
   BIG_KIDS = '8-14 Years',
+  ADULTS = 'Adults & General',
 }
 
 export enum Gender {
   BOYS = 'Boys',
   GIRLS = 'Girls',
+  MEN = 'Men',
+  WOMEN = 'Women',
   UNISEX = 'Unisex',
 }
 
@@ -23,6 +34,8 @@ export enum ClothingCategory {
   PANTS = 'Pants & Shorts',
   NIGHTWEAR = 'Sleepwear & Pyjamas',
   ETHNIC = 'Festive & Ethnic Wear',
+  SHIRTS = 'Shirts & Polos',
+  CASUAL = 'Casual Wear',
 }
 
 export enum PaymentMethod {
@@ -46,8 +59,10 @@ export enum OrderStatus {
   CONFIRMED = 'CONFIRMED',
   PROCESSING = 'PROCESSING',
   SHIPPED = 'SHIPPED',
+  READY_FOR_DISPATCH = 'READY_FOR_DISPATCH',
   OUT_FOR_DELIVERY = 'OUT_FOR_DELIVERY',
   DELIVERED = 'DELIVERED',
+  COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
 }
 

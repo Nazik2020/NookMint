@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f8faf9"/>
+    </radialGradient>
+    <linearGradient id="kraftGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e6c28f"/>
+      <stop offset="40%" stop-color="#d9af79"/>
+      <stop offset="80%" stop-color="#c99d63"/>
+      <stop offset="100%" stop-color="#b88a4e"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-10%" width="140%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="10" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <rect width="400" height="400" fill="url(#bgGrad)"/>
+
+  <!-- Ground Shadow -->
+  <ellipse cx="200" cy="355" rx="100" ry="14" fill="#000000" opacity="0.10"/>
+  <ellipse cx="200" cy="354" rx="70" ry="8" fill="#000000" opacity="0.14"/>
+
+  <g filter="url(#shadow)">
+    <!-- Stand-Up Kraft Pouch Contour -->
+    <path d="M 125 100 Q 120 80 140 75 L 260 75 Q 280 80 275 100 L 285 325 Q 285 345 265 345 L 135 345 Q 115 345 115 325 Z" fill="url(#kraftGrad)" stroke="#a1753c" stroke-width="1.5"/>
+
+    <!-- Pouch Top Seal & Tear Notch -->
+    <path d="M 135 75 L 265 75 L 260 95 L 140 95 Z" fill="#c99d63" stroke="#a1753c" stroke-width="1"/>
+    <line x1="140" y1="85" x2="260" y2="85" stroke="#8c622d" stroke-dasharray="3,2" stroke-width="1.5"/>
+    <polygon points="120,85 125,83 125,87" fill="#8c622d"/>
+    <polygon points="280,85 275,83 275,87" fill="#8c622d"/>
+
+    <!-- White Minimalist Label on Kraft Pouch matching Reference Image 1 -->
+    <rect x="145" y="115" width="110" height="120" rx="6" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1"/>
+
+    <!-- Label Typography matching Reference Image 1 -->
+    <text x="200" y="148" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="16" fill="#292524" letter-spacing="0.5">Rolled</text>
+    <text x="200" y="172" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="18" fill="#292524" letter-spacing="1">Oats</text>
+    <rect x="180" y="185" width="40" height="16" rx="8" fill="#F5F5F4"/>
+    <text x="200" y="196" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="10" fill="#78716C">1 kg</text>
+    <text x="200" y="222" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="600" font-size="7" fill="#A8A29E" letter-spacing="0.5">100% WHOLE GRAIN</text>
+
+    <!-- Transparent Window / Pile of Golden Rolled Oats matching Reference Image 1 -->
+    <g transform="translate(0, 10)">
+      <ellipse cx="200" cy="275" rx="42" ry="22" fill="#fef08a" stroke="#ca8a04" stroke-width="1.5"/>
+      <ellipse cx="200" cy="275" rx="38" ry="18" fill="#fef9c3"/>
+      <!-- Oat Flakes -->
+      <ellipse cx="185" cy="272" rx="6" ry="3.5" fill="#eab308" transform="rotate(25, 185, 272)"/>
+      <ellipse cx="205" cy="270" rx="7" ry="4" fill="#ca8a04" transform="rotate(-15, 205, 270)"/>
+      <ellipse cx="195" cy="278" rx="6" ry="3" fill="#eab308" transform="rotate(40, 195, 278)"/>
+      <ellipse cx="215" cy="277" rx="5" ry="3.5" fill="#ca8a04" transform="rotate(-30, 215, 277)"/>
+      <ellipse cx="178" cy="276" rx="5" ry="3" fill="#ca8a04" transform="rotate(10, 178, 276)"/>
+    </g>
+
+    <!-- Bottom Weight Specification -->
+    <text x="200" y="332" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="11" fill="#78350f" letter-spacing="0.5">NET WT. 1 KG (35.2 OZ)</text>
+  </g>
+</svg>

@@ -2,17 +2,25 @@ import { AgeGroup, ClothingCategory, Gender } from '@/shared/types/common';
 
 /**
  * SADP - Product Entity
- * Represents a kidswear garment with fabric specifications, size variants, colors, and pricing.
+ * Multi-Category E-Commerce & Online Ordering Platform (Innovative Consultants)
+ * Supports Groceries, Household items, Clothing, and future categories (e.g. EVs).
+ * Fully configurable attributes and multi-variant specifications.
  */
 export interface ProductVariant {
-  size: string; // e.g. "0-3M", "2-3Y", "4-5Y"
+  size: string; // Generic variant descriptor e.g. "1 kg", "500g", "2 Litres", "M", "XL", "Standard"
   sku: string;
   stock: number;
+  price?: number; // Optional variant specific price
 }
 
 export interface ProductColor {
   name: string;
   hex: string;
+}
+
+export interface ProductSpecification {
+  name: string;
+  value: string;
 }
 
 export interface Product {
@@ -21,24 +29,40 @@ export interface Product {
   slug: string;
   description: string;
   category: ClothingCategory | string;
-  ageGroup: AgeGroup;
-  gender: Gender;
-  fabric: string; // e.g., "100% Organic Cotton", "Soft Muslin", "Breathable Linen"
-  mrp: number; // Maximum Retail Price in LKR
-  sellingPrice: number; // Discounted Price in LKR
+  subcategory?: string;
+  brand?: string;
+  unit?: string; // e.g. "kg", "g", "L", "item", "pack"
+  mrp: number; // Maximum Retail Price / Previous Price in LKR
+  sellingPrice: number; // Selling Price in LKR
   images: string[];
   variants: ProductVariant[];
-  colors?: ProductColor[]; // Color variant swatches (as seen in the reference)
+  colors?: ProductColor[];
   rating: number;
   reviewCount: number;
-  isCodAvailable: boolean; // Flag to indicate COD eligibility for this product
-  washCare: string;
+  isCodAvailable: boolean; // Flag to indicate COD eligibility
+  status?: 'active' | 'inactive';
   isNewArrival?: boolean;
   isBestSeller?: boolean;
-  offerPercentage?: number; // Discount percentage (e.g. 15 for 15% OFF)
-  sizeChartType?: 'baby' | 'toddler' | 'junior' | 'custom';
-  sizeChartImage?: string; // Optional custom size chart photo
-  sizeNotes?: string; // Sizing advice for parents
-  deliveryFeeType?: 'default' | 'free' | 'custom'; // Custom delivery fee rule per product
-  customDeliveryFee?: number; // Specific delivery fee in LKR if 'custom'
+  offerPercentage?: number; // Discount percentage
+  inquiryOnly?: boolean; // For EVs and high-value quotation workflow
+
+  // Inventory & Sourcing Model
+  sourceType?: 'dropship' | 'own'; // 'dropship' = A to Z Traders iSales, 'own' = Merchant In-House Inventory
+  sku?: string;
+  costPrice?: number;
+
+  // Dynamic Category-Specific Attributes (e.g. expiry, storage, material, battery, range)
+  attributes?: Record<string, string>;
+  specifications?: ProductSpecification[];
+
+  // Apparel & Legacy compatibility fields
+  ageGroup?: AgeGroup;
+  gender?: Gender;
+  fabric?: string;
+  washCare?: string;
+  sizeChartType?: 'baby' | 'toddler' | 'junior' | 'custom' | 'none';
+  sizeChartImage?: string;
+  sizeNotes?: string;
+  deliveryFeeType?: 'default' | 'free' | 'custom';
+  customDeliveryFee?: number;
 }

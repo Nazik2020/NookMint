@@ -110,14 +110,14 @@ export default function SizeGuidePage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-3xl overflow-hidden border border-slate-200/80 shadow-sm grid grid-cols-1 lg:grid-cols-12 items-center">
           <div className="lg:col-span-7 p-8 sm:p-12 space-y-4">
-            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-[#FF758F] bg-[#FFF0F3] px-3.5 py-1 rounded-full border border-rose-100 inline-block">
+            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-blue-700 bg-blue-50 px-3.5 py-1 rounded-full border border-blue-200/80 inline-block">
               FIT & MEASUREMENT GUIDE
             </span>
-            <h1 className="text-3xl sm:text-4xl font-black text-slate-900 font-serif tracking-tight">
-              LittleStyles Perfect Fit Guide
+            <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+              Apparel Sizing & Dimensions Guide
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
-              Our handcrafted kids garments are tailored with gentle relaxed fits accommodating natural toddler and child growth. Remember, our 30-day doorstep exchange makes sizing completely stress-free!
+              Accurate sizing charts for tailored shirts, trousers, polos, and comfort apparel. If you ever need an exchange, our courier brings the replacement size directly to your doorstep.
             </p>
             <div className="flex items-center gap-3 text-xs font-bold text-slate-700 pt-1">
               <span className="flex items-center gap-1.5 text-emerald-700">
@@ -275,12 +275,12 @@ export default function SizeGuidePage() {
           <p className="text-xs text-slate-500">
             Still unsure about the best size for your little one?{' '}
             <a
-              href="https://wa.me/94771234567?text=Hello%20LittleStyles!%20Could%20you%20help%20me%20choose%20the%20right%20size?"
+              href="https://wa.me/94787844914?text=Hello%20NookMint!%20Could%20you%20help%20me%20choose%20the%20right%20size?"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-bold text-[#FF758F] hover:underline inline-flex items-center gap-1"
+              className="font-bold text-blue-600 hover:underline inline-flex items-center gap-1"
             >
-              <span>Ask our stylists on WhatsApp</span>
+              <span>Ask our team on WhatsApp</span>
               <PhoneCall className="w-3 h-3" />
             </a>
           </p>

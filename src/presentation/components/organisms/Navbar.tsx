@@ -2,440 +2,316 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useCart } from '@/presentation/context/CartContext';
 import { BrandLogo } from '@/presentation/components/atoms/BrandLogo';
 import { AnnouncementBar } from '@/presentation/components/molecules/AnnouncementBar';
-import { NavSearchModal } from '@/presentation/components/molecules/NavSearchModal';
 import {
   ShoppingBag,
   Search,
-  Heart,
-  Truck,
   MessageCircle,
   Menu,
   X,
   ChevronDown,
   User,
+  LayoutGrid,
+  Tag,
+  Phone,
+  ShoppingCart,
+  Home,
+  Shirt,
+  Zap,
+  Sprout,
+  Headphones,
+  Sparkles,
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
+  const router = useRouter();
   const pathname = usePathname();
   const { summary } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [categories, setCategories] = useState<string[]>([
-    'Dresses & Frocks',
-    'Rompers & Onesies',
-    'T-Shirts & Tops',
-    'Pants & Shorts',
-    'Sleepwear & Pyjamas',
-    'Festive & Ethnic Wear',
-  ]);
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadNavbarCategories = () => {
-      fetch(`/api/settings?_t=${Date.now()}`, { cache: 'no-store' })
-        .then((res) => (res.ok ? res.json() : null))
-        .then((data) => {
-          if (
-            isMounted &&
-            data?.settings?.categories &&
-            Array.isArray(data.settings.categories) &&
-            data.settings.categories.length > 0
-          ) {
-            setCategories(data.settings.categories);
-          }
-        })
-        .catch(() => {});
-    };
-
-    loadNavbarCategories();
-
-    // Re-sync on tab focus or visibility change
-    const handleFocus = () => loadNavbarCategories();
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible') loadNavbarCategories();
-    };
-
-    // Instant cross-tab sync when Admin updates categories
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key === 'ls_category_sync') {
-        loadNavbarCategories();
-      }
-    };
-
-    window.addEventListener('focus', handleFocus);
-    document.addEventListener('visibilitychange', handleVisibility);
-    window.addEventListener('storage', handleStorage);
-
-    let channel: BroadcastChannel | null = null;
-    try {
-      if (typeof BroadcastChannel !== 'undefined') {
-        channel = new BroadcastChannel('littlestyles_store_sync');
-        channel.onmessage = (event) => {
-          if (event.data?.type === 'CATEGORIES_UPDATED') {
-            loadNavbarCategories();
-          }
-        };
-      }
-    } catch {
-      // Fallback
-    }
-
-    return () => {
-      isMounted = false;
-      window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('visibilitychange', handleVisibility);
-      window.removeEventListener('storage', handleStorage);
-      if (channel) {
-        channel.close();
-      }
-    };
-  }, [pathname]);
-
-  // Isolate Seller Admin Portal from customer storefront navigation
-  const isAdmin = pathname?.startsWith('/admin');
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 8);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  useEffect(() => {
-    if (mobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [mobileMenuOpen]);
-
-  // If on Seller Admin, do not render customer shopping header
-  if (isAdmin) {
+  // If on Seller Admin, do not render storefront header
+  if (pathname?.startsWith('/admin')) {
     return null;
   }
 
-  // Dynamic active states
-  const isHome = pathname === '/';
-  const isShop = pathname === '/products' || pathname.startsWith('/products/');
-  const isNewArrivals = pathname === '/products?filter=new';
-  const isSale = pathname === '/products?category=sale';
-  const isAbout = pathname === '/about';
-  const isContact = pathname === '/contact';
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/products?q=${encodeURIComponent(searchQuery.trim())}`);
+      setMobileMenuOpen(false);
+    }
+  };
 
   return (
-    <header className="sticky top-0 z-40 bg-white w-full max-w-full transition-shadow duration-300">
+    <header className="sticky top-0 z-40 bg-white w-full max-w-full shadow-2xs">
       {/* 1. Top Announcement Bar */}
       <AnnouncementBar />
 
-      {/* 2. Main Navigation Bar */}
-      <div className={`border-b border-slate-100 transition-all ${isScrolled ? 'shadow-sm bg-white/95 backdrop-blur-md' : 'bg-white'}`}>
-        <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between gap-2 sm:gap-4">
-          {/* Artisanal Luxury Boutique Logo */}
+      {/* 2. Main Header Row (Logo, Search Bar, Action Links) */}
+      <div className="border-b border-slate-200/90 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4 lg:gap-8">
+          {/* Brand Logo */}
           <BrandLogo variant="navbar" />
 
-          {/* Desktop Center Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-6 xl:gap-7 text-[12px] font-bold tracking-[0.08em] uppercase text-slate-700" aria-label="Main Navigation">
-            <Link
-              href="/"
-              className={`relative py-1 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#FF758F] rounded ${
-                isHome
-                  ? 'text-[#FF758F] border-b-2 border-[#FF758F] font-extrabold'
-                  : 'hover:text-[#FF758F] text-slate-700'
-              }`}
-            >
-              HOME
-            </Link>
-
-            {/* Shop Dropdown */}
-            <div className="relative group cursor-pointer py-1 flex items-center gap-1 hover:text-[#FF758F] transition-colors">
-              <Link
-                href="/products"
-                className={`focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#FF758F] rounded ${
-                  isShop && !isNewArrivals && !isSale ? 'text-[#FF758F] font-extrabold' : ''
-                }`}
-              >
-                SHOP
-              </Link>
-              <ChevronDown className="w-3 h-3 text-slate-400 group-hover:text-[#FF758F] transition-transform group-hover:rotate-180" aria-hidden="true" />
-
-              <div className="absolute top-full left-0 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 p-2.5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 -translate-y-1 group-hover:translate-y-0 z-50">
-                <Link href="/products?gender=Girls" className="block px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-[#FFF0F3] hover:text-[#FF758F] rounded-xl transition-colors">
-                  Girls Collection (2-8Y)
-                </Link>
-                <Link href="/products?gender=Boys" className="block px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-[#FFF0F3] hover:text-[#FF758F] rounded-xl transition-colors">
-                  Boys Collection (2-8Y)
-                </Link>
-                <Link href="/products?ageGroup=Baby" className="block px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-[#FFF0F3] hover:text-[#FF758F] rounded-xl transition-colors">
-                  Baby & Infants (0-12M)
-                </Link>
-                <Link href="/products" className="block px-3 py-2 text-xs font-bold text-[#FF758F] hover:bg-[#FFF0F3] rounded-xl transition-colors border-t border-slate-100 mt-1">
-                  View All Outfits →
-                </Link>
-              </div>
+          {/* Prominent Center Search Bar (Reference 1 Pill Shape) */}
+          <form
+            onSubmit={handleSearchSubmit}
+            className="hidden md:flex flex-1 max-w-xl relative items-center"
+          >
+            <div className="relative w-full flex items-center">
+              <Search className="w-4 h-4 text-slate-400 absolute left-4 pointer-events-none" aria-hidden="true" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search products and categories"
+                className="w-full pl-11 pr-4 py-2.5 rounded-full bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#004D40] focus:bg-white transition-all"
+                aria-label="Search products and categories"
+              />
             </div>
+          </form>
 
-            <Link
-              href="/products?filter=new"
-              className={`hover:text-[#FF758F] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#FF758F] rounded ${
-                isNewArrivals ? 'text-[#FF758F] border-b-2 border-[#FF758F] font-extrabold' : ''
-              }`}
+          {/* Right Header Navigation Icons (WhatsApp | Cart | Account) matching Reference Image 1 */}
+          <div className="flex items-center gap-4 sm:gap-6">
+            {/* WhatsApp Direct Ordering */}
+            <a
+              href="https://wa.me/94787844914?text=Hello%20NookMint%2C%20I%20would%20like%20to%20order"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden sm:inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700 hover:text-emerald-700 transition-colors"
+              title="WhatsApp Direct Ordering"
             >
-              NEW ARRIVALS
-            </Link>
-
-            {/* Dynamic Categories Dropdown */}
-            <div className="relative group cursor-pointer py-1 flex items-center gap-1 hover:text-[#FF758F] transition-colors">
-              <span>CATEGORIES</span>
-              <ChevronDown className="w-3 h-3 text-slate-400 group-hover:text-[#FF758F] transition-transform group-hover:rotate-180" aria-hidden="true" />
-
-              <div className="absolute top-full left-0 w-60 bg-white rounded-2xl shadow-xl border border-slate-100 p-2.5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 -translate-y-1 group-hover:translate-y-0 z-50 max-h-80 overflow-y-auto">
-                {categories.map((cat) => (
-                  <Link
-                    key={cat}
-                    href={`/products?category=${encodeURIComponent(cat)}`}
-                    className="block px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-[#FFF0F3] hover:text-[#FF758F] rounded-xl transition-colors"
-                  >
-                    {cat}
-                  </Link>
-                ))}
-                <Link
-                  href="/products"
-                  className="block px-3 py-2 text-xs font-bold text-[#FF758F] hover:bg-[#FFF0F3] rounded-xl transition-colors border-t border-slate-100 mt-1"
-                >
-                  View All Outfits →
-                </Link>
+              <div className="w-5 h-5 flex items-center justify-center text-emerald-600">
+                <MessageCircle className="w-5 h-5 fill-emerald-600/10 text-emerald-600" />
               </div>
-            </div>
+              <span>WhatsApp</span>
+            </a>
 
-            <Link
-              href="/products?category=sale"
-              className={`hover:text-[#FF758F] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#FF758F] rounded ${
-                isSale ? 'text-[#FF758F] border-b-2 border-[#FF758F] font-extrabold' : ''
-              }`}
-            >
-              SALE
-            </Link>
-            <Link
-              href="/about"
-              className={`hover:text-[#FF758F] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#FF758F] rounded ${
-                isAbout ? 'text-[#FF758F] border-b-2 border-[#FF758F] font-extrabold' : ''
-              }`}
-            >
-              ABOUT US
-            </Link>
-            <Link
-              href="/contact"
-              className={`hover:text-[#FF758F] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#FF758F] rounded ${
-                isContact ? 'text-[#FF758F] border-b-2 border-[#FF758F] font-extrabold' : ''
-              }`}
-            >
-              CONTACT
-            </Link>
-          </nav>
-
-          {/* Right Action Icons (Optimized for Mobile Spacing) */}
-          <div className="flex items-center gap-1 sm:gap-2.5">
-            {/* Search Trigger */}
-            <button
-              type="button"
-              onClick={() => setSearchOpen(!searchOpen)}
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-slate-700 hover:text-[#FF758F] hover:bg-[#FFF0F3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF758F] transition-colors"
-              title="Search store"
-              aria-label="Search outfits"
-            >
-              <Search className="w-4 h-4 sm:w-4.5 sm:h-4.5" strokeWidth={1.7} aria-hidden="true" />
-            </button>
-
-            {/* Customer Dashboard / Orders Icon */}
-            <Link
-              href="/dashboard"
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-slate-700 hover:text-[#FF758F] hover:bg-[#FFF0F3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF758F] transition-colors relative"
-              title="My Orders & Tracking"
-              aria-label="My Orders & Tracking"
-            >
-              <User className="w-4 h-4 sm:w-4.5 sm:h-4.5" strokeWidth={1.7} aria-hidden="true" />
-            </Link>
-
-            {/* Wishlist Icon (Visible on sm+ screens to preserve mobile space) */}
-            <Link
-              href="/products"
-              className="hidden sm:flex w-9 h-9 sm:w-10 sm:h-10 rounded-full items-center justify-center text-slate-700 hover:text-[#FF758F] hover:bg-[#FFF0F3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF758F] transition-colors relative"
-              title="Wishlist"
-              aria-label="Wishlist (0 items)"
-            >
-              <Heart className="w-4.5 h-4.5" strokeWidth={1.7} aria-hidden="true" />
-            </Link>
-
-            {/* Shopping Bag Icon with counter */}
+            {/* Cart with Orange Counter Badge */}
             <Link
               href="/cart"
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-slate-700 hover:text-[#FF758F] hover:bg-[#FFF0F3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF758F] transition-colors relative"
-              title="Shopping Bag"
-              aria-label={`Shopping bag with ${summary.itemsCount} items`}
+              className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700 hover:text-[#004D40] transition-colors relative group"
+              title="Shopping Cart"
+              aria-label={`Shopping cart with ${summary.itemsCount} items`}
             >
-              <ShoppingBag className="w-4 h-4 sm:w-4.5 sm:h-4.5" strokeWidth={1.7} aria-hidden="true" />
-              <span className="absolute top-1 right-1 w-4 h-4 bg-[#FF758F] text-white text-[9px] font-extrabold rounded-full flex items-center justify-center shadow-xs">
-                {summary.itemsCount}
-              </span>
+              <div className="relative flex items-center justify-center">
+                <ShoppingCart className="w-5 h-5 text-slate-700 group-hover:text-[#004D40] transition-colors" />
+                <span className="absolute -top-1.5 -right-2 min-w-4 h-4 px-1 bg-[#EA580C] text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-xs">
+                  {summary.itemsCount > 0 ? summary.itemsCount : 0}
+                </span>
+              </div>
+              <span className="hidden sm:inline pl-1">Cart</span>
             </Link>
 
-            {/* Mobile Hamburger Menu Toggle */}
+            {/* Mobile Menu Button */}
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-700 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF758F] transition-colors ml-0.5"
-              aria-label={mobileMenuOpen ? 'Close mobile menu' : 'Open mobile menu'}
-              aria-expanded={mobileMenuOpen}
+              className="md:hidden w-9 h-9 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-700 hover:text-slate-900 transition-colors"
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
             >
               {mobileMenuOpen ? <X className="w-4.5 h-4.5 text-slate-900" /> : <Menu className="w-4.5 h-4.5" />}
             </button>
           </div>
         </div>
 
-        {/* Expandable Search Input Bar */}
-        <NavSearchModal
-          isOpen={searchOpen}
-          onClose={() => setSearchOpen(false)}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-        />
+        {/* Mobile Search Row */}
+        <div className="md:hidden px-4 pb-3">
+          <form onSubmit={handleSearchSubmit} className="relative w-full flex items-center">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" aria-hidden="true" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search products and categories"
+              className="w-full pl-10 pr-4 py-2 rounded-full bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#004D40]"
+            />
+          </form>
+        </div>
       </div>
 
-      {/* 3. Mobile Navigation Drawer */}
+      {/* 3. Sub-Navigation Bar (Row 2 - Category Bar matching Reference Image 1) */}
+      <div className="hidden md:block bg-white border-b border-slate-200/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-start gap-8">
+          {/* Left: Prominent [All Categories v] Button */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setCategoriesOpen(!categoriesOpen)}
+              onMouseEnter={() => setCategoriesOpen(true)}
+              className="px-4 py-2 rounded-lg bg-[#004D40] hover:bg-[#00332c] text-white text-xs font-bold tracking-wide flex items-center gap-2 transition-colors shadow-2xs"
+              aria-expanded={categoriesOpen}
+            >
+              <LayoutGrid className="w-3.5 h-3.5 text-emerald-200" />
+              <span>All Categories</span>
+              <ChevronDown className={`w-3.5 h-3.5 text-emerald-200 transition-transform ${categoriesOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Dropdown Menu */}
+            {categoriesOpen && (
+              <div
+                onMouseLeave={() => setCategoriesOpen(false)}
+                className="absolute top-full left-0 mt-1 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 p-2.5 z-50 animate-fadeIn"
+              >
+                <Link
+                  href="/products?category=Household+%26+Kitchen"
+                  onClick={() => setCategoriesOpen(false)}
+                  className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-[#004D40] rounded-xl transition-colors"
+                >
+                  <Home className="w-4 h-4 text-emerald-600" />
+                  <span>Household & Kitchen</span>
+                </Link>
+                <Link
+                  href="/products?category=Home+%26+Garden"
+                  onClick={() => setCategoriesOpen(false)}
+                  className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-[#004D40] rounded-xl transition-colors"
+                >
+                  <Sprout className="w-4 h-4 text-emerald-600" />
+                  <span>Home & Garden Supplies</span>
+                </Link>
+                <Link
+                  href="/products?category=Smart+Gadgets+%26+Audio"
+                  onClick={() => setCategoriesOpen(false)}
+                  className="flex items-center justify-between px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-[#004D40] rounded-xl transition-colors group"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Headphones className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
+                    <span>Smart Gadgets (Earbuds, Mics)</span>
+                  </div>
+                  <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 tracking-wider">
+                    Hot
+                  </span>
+                </Link>
+                <Link
+                  href="/products"
+                  onClick={() => setCategoriesOpen(false)}
+                  className="block px-3 py-2 text-xs font-bold text-[#004D40] hover:bg-emerald-50 rounded-xl transition-colors border-t border-slate-100 mt-1"
+                >
+                  View All Products Catalogue →
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Department Horizontal Links matching Updated Inventory Focus */}
+          <nav className="flex items-center gap-7 text-xs font-bold text-slate-700" aria-label="Department Links">
+            <Link
+              href="/products?category=Household+%26+Kitchen"
+              className="flex items-center gap-1.5 hover:text-[#004D40] transition-colors py-1"
+            >
+              <Home className="w-3.5 h-3.5 text-slate-500" />
+              <span>Household & Kitchen</span>
+            </Link>
+
+            <Link
+              href="/products?category=Home+%26+Garden"
+              className="flex items-center gap-1.5 hover:text-[#004D40] transition-colors py-1"
+            >
+              <Sprout className="w-3.5 h-3.5 text-slate-500" />
+              <span>Gardening</span>
+            </Link>
+
+            <Link
+              href="/products?category=Smart+Gadgets+%26+Audio"
+              className="flex items-center gap-1.5 hover:text-[#004D40] transition-colors py-1"
+            >
+              <Headphones className="w-3.5 h-3.5 text-slate-500" />
+              <span>Smart Gadgets</span>
+            </Link>
+
+            <Link
+              href="/products?filter=sale"
+              className="flex items-center gap-1.5 hover:text-[#004D40] transition-colors py-1"
+            >
+              <Tag className="w-3.5 h-3.5 text-slate-500" />
+              <span>Offers</span>
+            </Link>
+
+            <Link
+              href="/contact"
+              className="flex items-center gap-1.5 hover:text-[#004D40] transition-colors py-1"
+            >
+              <Phone className="w-3.5 h-3.5 text-slate-500" />
+              <span>Contact</span>
+            </Link>
+          </nav>
+        </div>
+      </div>
+
+      {/* 4. Mobile Navigation Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 top-[105px] bg-slate-900/40 backdrop-blur-xs z-50 flex justify-end animate-fadeIn">
-          <div className="w-full max-w-xs sm:max-w-sm bg-white h-full shadow-2xl flex flex-col justify-between p-5 sm:p-6 overflow-y-auto">
+        <div className="md:hidden fixed inset-0 top-[110px] bg-slate-900/40 backdrop-blur-xs z-50 flex justify-end animate-fadeIn">
+          <div className="w-full max-w-xs bg-white h-full shadow-2xl flex flex-col justify-between p-5 overflow-y-auto">
             <div className="space-y-6">
               <div className="space-y-1.5">
-                <span className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400 block px-2">
-                  Shop Categories
+                <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 block px-2">
+                  Browse Categories
                 </span>
                 <nav className="flex flex-col space-y-1 text-sm font-bold text-slate-800">
                   <Link
-                    href="/"
+                    href="/products?category=Household+%26+Kitchen"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="px-3.5 py-2.5 rounded-xl bg-[#FFF0F3] text-[#FF758F] flex items-center justify-between"
+                    className="px-3.5 py-2.5 rounded-xl hover:bg-slate-50 flex items-center gap-2.5 text-slate-900"
                   >
-                    <span>HOME</span>
-                    <span className="text-xs font-bold">→</span>
+                    <Home className="w-4 h-4 text-emerald-600" />
+                    <span>Household & Kitchen</span>
                   </Link>
                   <Link
-                    href="/dashboard"
+                    href="/products?category=Home+%26+Garden"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="px-3.5 py-2.5 rounded-xl hover:bg-slate-50 flex items-center gap-2.5 text-slate-900"
+                  >
+                    <Sprout className="w-4 h-4 text-emerald-600" />
+                    <span>Gardening & Outdoor</span>
+                  </Link>
+                  <Link
+                    href="/products?category=Smart+Gadgets+%26+Audio"
                     onClick={() => setMobileMenuOpen(false)}
                     className="px-3.5 py-2.5 rounded-xl hover:bg-slate-50 flex items-center justify-between text-slate-900"
                   >
-                    <span className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-[#FF758F]" />
-                      <span>MY ORDERS & TRACKING</span>
+                    <div className="flex items-center gap-2.5">
+                      <Headphones className="w-4 h-4 text-emerald-600" />
+                      <span>Smart Gadgets (Earbuds, Mics)</span>
+                    </div>
+                    <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 tracking-wider">
+                      Hot
                     </span>
-                    <span className="text-xs text-slate-400">→</span>
                   </Link>
                   <Link
-                    href="/products"
+                    href="/products?filter=sale"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="px-3.5 py-2.5 rounded-xl hover:bg-slate-50 flex items-center justify-between"
+                    className="px-3.5 py-2.5 rounded-xl hover:bg-slate-50 flex items-center gap-2.5 text-slate-900"
                   >
-                    <span>SHOP ALL</span>
-                    <span className="text-xs text-slate-400">→</span>
+                    <Tag className="w-4 h-4 text-emerald-600" />
+                    <span>Offers</span>
                   </Link>
                   <Link
-                    href="/products?filter=new"
+                    href="/contact"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="px-3.5 py-2.5 rounded-xl hover:bg-slate-50 flex items-center justify-between"
+                    className="px-3.5 py-2.5 rounded-xl hover:bg-slate-50 flex items-center gap-2.5 text-slate-900"
                   >
-                    <span>NEW ARRIVALS</span>
-                    <span className="text-xs text-slate-400">→</span>
+                    <Phone className="w-4 h-4 text-emerald-600" />
+                    <span>Contact</span>
                   </Link>
-                  <Link
-                    href="/products?gender=Girls"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="px-3.5 py-2.5 rounded-xl hover:bg-slate-50 flex items-center justify-between"
-                  >
-                    <span>GIRLS COLLECTION</span>
-                    <span className="text-xs text-slate-400">→</span>
-                  </Link>
-                  <Link
-                    href="/products?gender=Boys"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="px-3.5 py-2.5 rounded-xl hover:bg-slate-50 flex items-center justify-between"
-                  >
-                    <span>BOYS COLLECTION</span>
-                    <span className="text-xs text-slate-400">→</span>
-                  </Link>
-                  <Link
-                    href="/products?category=Rompers+%26+Onesies"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="px-3.5 py-2.5 rounded-xl hover:bg-slate-50 flex items-center justify-between"
-                  >
-                    <span>BABY (0-12M)</span>
-                    <span className="text-xs text-slate-400">→</span>
-                  </Link>
-                  <Link
-                    href="/products?category=sale"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="px-3.5 py-2.5 rounded-xl hover:bg-[#FFF0F3] text-[#FF758F] flex items-center justify-between font-extrabold"
-                  >
-                    <span>SPECIAL OFFERS & SALE</span>
-                    <span className="text-[10px] bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full font-bold">30% OFF</span>
-                  </Link>
-
-                  <div className="pt-2 border-t border-slate-100 space-y-1">
-                    <span className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400 block px-3.5 pb-1">
-                      Browse by Category
-                    </span>
-                    {categories.map((cat) => (
-                      <Link
-                        key={cat}
-                        href={`/products?category=${encodeURIComponent(cat)}`}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="px-3.5 py-1.5 rounded-xl hover:bg-slate-50 flex items-center justify-between text-xs text-slate-600 font-semibold"
-                      >
-                        <span>{cat}</span>
-                        <span className="text-[10px] text-slate-400">→</span>
-                      </Link>
-                    ))}
-                  </div>
                 </nav>
-              </div>
-
-              {/* Trust Information */}
-              <div className="p-4 rounded-2xl bg-[#FAF8F6] border border-slate-200/70 space-y-2 text-xs">
-                <p className="font-bold text-slate-900 flex items-center gap-1.5">
-                  <Truck className="w-4 h-4 text-[#FF758F]" aria-hidden="true" />
-                  <span>Islandwide Sri Lanka Delivery</span>
-                </p>
-                <p className="text-slate-600 leading-relaxed text-[11px]">
-                  Cash on Delivery (COD) & Direct Bank Transfer available across Colombo, Kandy, Galle, and all 25 districts.
-                </p>
               </div>
             </div>
 
-            {/* Bottom Contact inside drawer */}
-            <div className="pt-5 border-t border-slate-100 space-y-3">
+            <div className="pt-6 border-t border-slate-100">
               <a
-                href="https://wa.me/94771234567?text=Hi%20LittleStyles,%20I%20would%20like%20to%20order"
+                href="https://wa.me/94787844914?text=Hello%20NookMint%2C%20I%20would%20like%20to%20order"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full py-3 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-xs transition-colors"
+                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-sm"
               >
-                <MessageCircle className="w-4 h-4 fill-white text-[#25D366]" aria-hidden="true" />
-                <span>Order via WhatsApp</span>
+                <MessageCircle className="w-4 h-4" />
+                <span>Chat on WhatsApp</span>
               </a>
-
-              <p className="text-center text-[11px] text-slate-400 font-medium">
-                Colombo 24h • Islandwide 2-3 Days Fast Dispatch
-              </p>
             </div>
           </div>
         </div>

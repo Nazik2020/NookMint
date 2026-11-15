@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f8faf9"/>
+    </radialGradient>
+    <linearGradient id="boxTopGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e0f2fe"/>
+      <stop offset="100%" stop-color="#bae6fd"/>
+    </linearGradient>
+    <linearGradient id="boxFrontGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+    <linearGradient id="boxSideGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0369a1"/>
+      <stop offset="100%" stop-color="#075985"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-10%" width="140%" height="130%">
+      <feDropShadow dx="0" dy="14" stdDeviation="10" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <rect width="400" height="400" fill="url(#bgGrad)"/>
+
+  <!-- Ground Shadow -->
+  <ellipse cx="200" cy="335" rx="130" ry="16" fill="#000000" opacity="0.12"/>
+  <ellipse cx="200" cy="334" rx="90" ry="10" fill="#000000" opacity="0.15"/>
+
+  <g filter="url(#shadow)">
+    <!-- 3D Perspective Tissue Box matching Reference Image 1 -->
+    <!-- Top Face (Trapezoid) -->
+    <polygon points="90,190 270,165 330,195 150,225" fill="url(#boxTopGrad)" stroke="#7dd3fc" stroke-width="1"/>
+
+    <!-- Tissue Dispenser Opening -->
+    <ellipse cx="210" cy="195" rx="48" ry="12" fill="#0284c7" stroke="#38bdf8" stroke-width="1.5" transform="rotate(-7, 210, 195)"/>
+    
+    <!-- Popped-Up White Fluffy Tissue Paper -->
+    <!-- Tissue Fold 1 -->
+    <path d="M 180 192 Q 190 120 215 110 Q 235 125 240 192 Q 220 185 180 192 Z" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+    <!-- Tissue Fold 2 (Layered) -->
+    <path d="M 195 190 Q 210 135 230 130 Q 250 145 245 192 Z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="0.8"/>
+    <!-- Delicate Tissue Creases -->
+    <path d="M 215 110 Q 212 150 218 190" fill="none" stroke="#e2e8f0" stroke-width="1.5"/>
+
+    <!-- Front Face -->
+    <polygon points="90,190 150,225 150,315 90,280" fill="url(#boxSideGrad)" stroke="#0369a1" stroke-width="1"/>
+    <!-- Side Label Details -->
+    <text x="120" y="260" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="10" fill="#bae6fd" transform="rotate(-30, 120, 260)">SOFT</text>
+
+    <!-- Main Front Face (Facing Viewer) -->
+    <polygon points="150,225 330,195 330,285 150,315" fill="url(#boxFrontGrad)" stroke="#0284c7" stroke-width="1"/>
+
+    <!-- Wave Graphic Accent on Box Front -->
+    <path d="M 150 270 Q 240 230 330 260 L 330 285 L 150 315 Z" fill="#0ea5e9" opacity="0.6"/>
+
+    <!-- Typography matching Reference Image 1 -->
+    <g transform="translate(240, 255) rotate(-9.5)">
+      <text x="0" y="0" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="14" fill="#FFFFFF" letter-spacing="0.5">Facial</text>
+      <text x="0" y="16" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="14" fill="#FFFFFF" letter-spacing="0.5">Tissues</text>
+      <text x="0" y="30" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="700" font-size="9" fill="#e0f2fe">200 Sheets</text>
+    </g>
+  </g>
+</svg>

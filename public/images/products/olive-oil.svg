@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f8faf9"/>
+    </radialGradient>
+    <linearGradient id="oilGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#84cc16"/>
+      <stop offset="40%" stop-color="#a3e635"/>
+      <stop offset="70%" stop-color="#65a30d"/>
+      <stop offset="100%" stop-color="#4d7c0f"/>
+    </linearGradient>
+    <linearGradient id="glassReflection" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.4"/>
+      <stop offset="25%" stop-color="#ffffff" stop-opacity="0.0"/>
+      <stop offset="75%" stop-color="#ffffff" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.3"/>
+    </linearGradient>
+    <linearGradient id="capGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#004D40"/>
+      <stop offset="50%" stop-color="#065f46"/>
+      <stop offset="100%" stop-color="#022c22"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-10%" width="140%" height="130%">
+      <feDropShadow dx="0" dy="14" stdDeviation="10" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <rect width="400" height="400" fill="url(#bgGrad)"/>
+
+  <!-- Bottle Ground Shadow -->
+  <ellipse cx="200" cy="358" rx="55" ry="12" fill="#000000" opacity="0.12"/>
+  <ellipse cx="200" cy="357" rx="35" ry="7" fill="#000000" opacity="0.15"/>
+
+  <g filter="url(#shadow)">
+    <!-- Screw Cap -->
+    <rect x="186" y="52" width="28" height="28" rx="3" fill="url(#capGrad)" stroke="#022c22" stroke-width="1"/>
+    <line x1="188" y1="58" x2="212" y2="58" stroke="#34d399" stroke-width="1" opacity="0.4"/>
+    <line x1="188" y1="64" x2="212" y2="64" stroke="#34d399" stroke-width="1" opacity="0.4"/>
+    <rect x="184" y="78" width="32" height="6" rx="2" fill="#065f46"/>
+
+    <!-- Bottle Neck -->
+    <path d="M 188 84 L 212 84 L 214 125 Q 214 140 232 150 L 236 155 L 164 155 L 168 150 Q 186 140 186 125 Z" fill="url(#oilGrad)"/>
+    <!-- Glass sheen on neck -->
+    <path d="M 188 84 L 194 84 L 194 125 L 176 150 L 168 150 Z" fill="#ffffff" opacity="0.3"/>
+
+    <!-- Bottle Body (Rectangular Olive Oil Glass Bottle) -->
+    <rect x="160" y="155" width="80" height="195" rx="8" fill="url(#oilGrad)" stroke="#3f6212" stroke-width="1"/>
+    <rect x="160" y="155" width="80" height="195" rx="8" fill="url(#glassReflection)"/>
+
+    <!-- White Minimalist Label matching Reference Image 1 -->
+    <rect x="168" y="195" width="64" height="115" rx="4" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1"/>
+    
+    <!-- Gold border on label -->
+    <rect x="171" y="198" width="58" height="109" rx="2" fill="none" stroke="#D97706" stroke-width="0.8"/>
+
+    <!-- Olive Illustration on Label -->
+    <g transform="translate(188, 218)">
+      <!-- Leaf 1 -->
+      <path d="M 0 0 C -8 -10 -4 -16 8 -12 C 14 -8 10 -2 0 0 Z" fill="#4d7c0f"/>
+      <!-- Leaf 2 -->
+      <path d="M 12 0 C 20 -8 24 -2 16 6 C 10 10 6 4 12 0 Z" fill="#65a30d"/>
+      <!-- Olive 1 -->
+      <ellipse cx="6" cy="6" rx="6" ry="8" fill="#3f6212" transform="rotate(15, 6, 6)"/>
+      <ellipse cx="5" cy="4" rx="1.5" ry="3" fill="#bef264" opacity="0.6"/>
+      <!-- Olive 2 -->
+      <ellipse cx="16" cy="10" rx="5" ry="7" fill="#1e293b" transform="rotate(-20, 16, 10)"/>
+    </g>
+
+    <!-- Label Typography matching Reference Image 1 -->
+    <text x="200" y="248" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="11" fill="#004D40" letter-spacing="0.5">OLIVE</text>
+    <text x="200" y="260" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="11" fill="#004D40" letter-spacing="0.5">OIL</text>
+    <text x="200" y="272" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="600" font-size="6" fill="#D97706" letter-spacing="1">EXTRA VIRGIN</text>
+    <line x1="180" y1="277" x2="220" y2="277" stroke="#E2E8F0" stroke-width="0.8"/>
+    <text x="200" y="292" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="9" fill="#1E293B">500 ml</text>
+    <text x="200" y="302" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="600" font-size="5" fill="#64748B">COLD PRESSED</text>
+  </g>
+</svg>

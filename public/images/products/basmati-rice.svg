@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f8faf9"/>
+    </radialGradient>
+    <linearGradient id="pouchGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="50%" stop-color="#f4f6f4"/>
+      <stop offset="100%" stop-color="#e2e8e4"/>
+    </linearGradient>
+    <linearGradient id="greenBand" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#004D40"/>
+      <stop offset="100%" stop-color="#056353"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#D97706"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="10" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <rect width="400" height="400" fill="url(#bgGrad)"/>
+  
+  <!-- Ground Shadow -->
+  <ellipse cx="200" cy="355" rx="110" ry="14" fill="#000000" opacity="0.08"/>
+  <ellipse cx="200" cy="354" rx="75" ry="9" fill="#000000" opacity="0.12"/>
+
+  <!-- Rice Bag / Pouch Body -->
+  <g filter="url(#shadow)">
+    <!-- Main Pouch Contour -->
+    <path d="M 120 100 Q 115 80 135 75 L 265 75 Q 285 80 280 100 L 290 325 Q 290 345 270 345 L 130 345 Q 110 345 110 325 Z" fill="url(#pouchGrad)" stroke="#E2E8F0" stroke-width="1.5"/>
+    
+    <!-- Pouch Top Seal & Gussets -->
+    <path d="M 130 75 L 270 75 L 265 92 L 135 92 Z" fill="#E2E8E4" stroke="#CBD5E1" stroke-width="1"/>
+    <line x1="135" y1="84" x2="265" y2="84" stroke="#94A3B8" stroke-dasharray="3,2" stroke-width="1.5"/>
+    
+    <!-- Top Green Header Brand Area -->
+    <path d="M 121 95 L 279 95 L 282 170 L 118 170 Z" fill="url(#greenBand)"/>
+    <rect x="119" y="165" width="162" height="6" fill="url(#goldGrad)"/>
+
+    <!-- Brand Typography on Bag -->
+    <text x="200" y="125" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="20" fill="#FFFFFF" letter-spacing="1.5">BASMATI</text>
+    <text x="200" y="148" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="700" font-size="22" fill="#FDE047" letter-spacing="2">RICE</text>
+    <text x="200" y="160" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="600" font-size="9" fill="#E2E8F0" letter-spacing="1">PREMIUM AGED GRAIN</text>
+
+    <!-- Center Badge: Weight -->
+    <circle cx="200" cy="205" r="22" fill="#FEF3C7" stroke="#D97706" stroke-width="1.5"/>
+    <text x="200" y="202" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="14" fill="#92400E">5</text>
+    <text x="200" y="215" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="700" font-size="8" fill="#B45309">KG</text>
+
+    <!-- Subtle Golden Wreath Graphic on Bag -->
+    <path d="M 160 205 Q 165 225 185 230" fill="none" stroke="#D97706" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M 240 205 Q 235 225 215 230" fill="none" stroke="#D97706" stroke-width="1.5" stroke-linecap="round"/>
+
+    <!-- Wooden Rice Bowl in Front of Bag matching Reference Image 1 -->
+    <g transform="translate(0, 10)">
+      <!-- Bowl shadow -->
+      <ellipse cx="200" cy="335" rx="55" ry="12" fill="#000000" opacity="0.15"/>
+      <!-- Wooden Bowl Body -->
+      <path d="M 150 295 Q 150 335 200 335 Q 250 335 250 295 Z" fill="#B45309"/>
+      <ellipse cx="200" cy="295" rx="50" ry="14" fill="#78350F"/>
+      <!-- White Fluffy Rice Grains in Bowl -->
+      <ellipse cx="200" cy="292" rx="46" ry="12" fill="#FEF9C3"/>
+      <ellipse cx="200" cy="288" rx="35" ry="9" fill="#FFFFFF"/>
+      <!-- Individual Grain Highlights -->
+      <ellipse cx="190" cy="286" rx="4" ry="2" fill="#FEF08A"/>
+      <ellipse cx="210" cy="287" rx="5" ry="2" fill="#FEF08A"/>
+      <ellipse cx="200" cy="284" rx="4" ry="2" fill="#FFFFFF"/>
+    </g>
+
+    <!-- Bottom Weight Label -->
+    <text x="200" y="325" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="11" fill="#475569" letter-spacing="0.5">NET WT. 5 KG (11 LBS)</text>
+  </g>
+</svg>

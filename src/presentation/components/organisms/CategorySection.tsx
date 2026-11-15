@@ -1,147 +1,111 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { CategoryAvatar } from '@/presentation/components/molecules/CategoryAvatar';
-
-interface CategoryItem {
-  id?: string;
-  name: string;
-  image: string;
-}
-
-const DEFAULT_CATEGORY_ITEMS: CategoryItem[] = [
-  { id: 'cat-dresses', name: 'Dresses & Frocks', image: '/images/categories/girls.jpg' },
-  { id: 'cat-rompers', name: 'Rompers & Onesies', image: '/images/categories/baby.jpg' },
-  { id: 'cat-tshirts', name: 'T-Shirts & Tops', image: '/images/categories/boys.jpg' },
-  { id: 'cat-pants', name: 'Pants & Shorts', image: 'https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=600&auto=format&fit=crop&q=80' },
-  { id: 'cat-sleepwear', name: 'Sleepwear & Pyjamas', image: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=600&auto=format&fit=crop&q=80' },
-  { id: 'cat-ethnic', name: 'Festive & Ethnic Wear', image: '/images/categories/outfits.jpg' },
-  { id: 'cat-accessories', name: 'Accessories & Shoes', image: '/images/categories/accessories.jpg' },
-];
+import React from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { ArrowRight, ShoppingBag, Sparkles } from 'lucide-react';
 
 export const getCategoryImage = (categoryName: string): string => {
   const lower = categoryName.toLowerCase();
-  if (lower.includes('dress') || lower.includes('frock') || lower.includes('girl')) {
-    return '/images/categories/girls.jpg';
+  if (lower.includes('grocer') || lower.includes('food') || lower.includes('rice') || lower.includes('tea')) {
+    return '/images/optimized/cat-groceries-opt.jpg';
   }
-  if (lower.includes('romper') || lower.includes('onesie') || lower.includes('baby') || lower.includes('infant')) {
-    return '/images/categories/baby.jpg';
+  if (lower.includes('house') || lower.includes('kitchen') || lower.includes('home') || lower.includes('cleaning')) {
+    return '/images/optimized/cat-household-opt.jpg';
   }
-  if (lower.includes('t-shirt') || lower.includes('top') || lower.includes('shirt') || lower.includes('boy')) {
-    return '/images/categories/boys.jpg';
+  if (lower.includes('cloth') || lower.includes('fashion') || lower.includes('apparel') || lower.includes('shirt')) {
+    return '/images/optimized/cat-fashion-opt.jpg';
   }
-  if (lower.includes('festive') || lower.includes('ethnic') || lower.includes('party') || lower.includes('outfit')) {
-    return '/images/categories/outfits.jpg';
-  }
-  if (lower.includes('shoe') || lower.includes('footwear') || lower.includes('boot') || lower.includes('sandal')) {
-    return '/images/categories/footwear.jpg';
-  }
-  if (lower.includes('access') || lower.includes('hat') || lower.includes('cap') || lower.includes('bag')) {
-    return '/images/categories/accessories.jpg';
-  }
-  if (lower.includes('pant') || lower.includes('short') || lower.includes('jean') || lower.includes('trouser')) {
-    return 'https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=600&auto=format&fit=crop&q=80';
-  }
-  if (lower.includes('sleep') || lower.includes('pyjama') || lower.includes('night')) {
-    return 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=600&auto=format&fit=crop&q=80';
-  }
-  return 'https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?w=600&auto=format&fit=crop&q=80';
+  return '/images/optimized/cat-groceries-opt.jpg';
 };
 
 export const CategorySection: React.FC = () => {
-  const [categories, setCategories] = useState<CategoryItem[]>(DEFAULT_CATEGORY_ITEMS);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadCategories = () => {
-      fetch(`/api/settings?_t=${Date.now()}`, { cache: 'no-store' })
-        .then((res) => (res.ok ? res.json() : null))
-        .then((data) => {
-          if (!isMounted) return;
-          if (data?.settings?.categoryDetails && Array.isArray(data.settings.categoryDetails) && data.settings.categoryDetails.length > 0) {
-            setCategories(data.settings.categoryDetails);
-          } else if (data?.settings?.categories && Array.isArray(data.settings.categories) && data.settings.categories.length > 0) {
-            setCategories(
-              data.settings.categories.map((name: string) => ({
-                name,
-                image: getCategoryImage(name),
-              }))
-            );
-          }
-        })
-        .catch(() => {});
-    };
-
-    // Initial load
-    loadCategories();
-
-    // Instant re-sync when tab regains focus or visibility
-    const handleFocus = () => loadCategories();
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible') loadCategories();
-    };
-
-    // Instant cross-tab sync when Admin updates categories
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key === 'ls_category_sync') {
-        loadCategories();
-      }
-    };
-
-    window.addEventListener('focus', handleFocus);
-    document.addEventListener('visibilitychange', handleVisibility);
-    window.addEventListener('storage', handleStorage);
-
-    // BroadcastChannel support for zero-delay cross-tab messaging
-    let channel: BroadcastChannel | null = null;
-    try {
-      if (typeof BroadcastChannel !== 'undefined') {
-        channel = new BroadcastChannel('littlestyles_store_sync');
-        channel.onmessage = (event) => {
-          if (event.data?.type === 'CATEGORIES_UPDATED') {
-            loadCategories();
-          }
-        };
-      }
-    } catch {
-      // BroadcastChannel fallback silently handled
-    }
-
-    return () => {
-      isMounted = false;
-      window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('visibilitychange', handleVisibility);
-      window.removeEventListener('storage', handleStorage);
-      if (channel) {
-        channel.close();
-      }
-    };
-  }, []);
+  const categories = [
+    {
+      id: 'household',
+      name: 'Household & Kitchen',
+      badge: '95+ Essentials',
+      subtitle: 'Cookware, cleaning, and daily home items.',
+      href: '/products?category=Household+%26+Kitchen',
+      image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=600&auto=format&fit=crop&q=80',
+      alt: 'Kitchen cookware and household essentials',
+    },
+    {
+      id: 'garden',
+      name: 'Home & Garden',
+      badge: '60+ Garden Tools',
+      subtitle: 'Hand trowels, planters, and garden supplies.',
+      href: '/products?category=Home+%26+Garden',
+      image: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&auto=format&fit=crop&q=80',
+      alt: 'Gardening hand tools and pots',
+    },
+    {
+      id: 'gadgets',
+      name: 'Smart Gadgets & Audio',
+      badge: 'Trending Tech',
+      subtitle: 'Wireless earbuds, lapel mics, and smart gear.',
+      href: '/products?category=Smart+Gadgets+%26+Audio',
+      image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&auto=format&fit=crop&q=80',
+      alt: 'Wireless earpods, mics, and tech gadgets',
+    },
+  ];
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8" aria-label="Shop by category">
-      <div className="text-center space-y-1">
-        <h2 className="text-sm sm:text-base font-bold tracking-[0.2em] uppercase text-slate-800 flex items-center justify-center gap-2.5">
-          <span className="text-[#FF758F] text-base leading-none">♡</span>
-          <span>SHOP BY CATEGORY</span>
-          <span className="text-[#FF758F] text-base leading-none">♡</span>
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-6 sm:space-y-7" aria-label="Shop by category">
+      {/* Centered Section Header */}
+      <div className="text-center space-y-1.5">
+        <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+          Shop by Category
         </h2>
-        <div className="flex justify-center">
-          <span className="text-[#FF758F] text-[10px] leading-none opacity-80">♡</span>
-        </div>
+        <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
+          Explore our main categories and find what you need.
+        </p>
       </div>
 
-      {/* Dynamic Category Circular Avatars - Adaptive layout based on admin categories */}
-      <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-6 lg:gap-8">
+      {/* 3-Column Structured Department Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
         {categories.map((cat) => (
-          <div key={cat.name} className="w-[100px] sm:w-[120px] md:w-[130px] flex justify-center">
-            <CategoryAvatar
-              title={cat.name}
-              href={`/products?category=${encodeURIComponent(cat.name)}`}
-              image={cat.image || getCategoryImage(cat.name)}
-            />
-          </div>
+          <Link
+            key={cat.id}
+            href={cat.href}
+            className="group relative flex items-center gap-4 p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/70 hover:border-emerald-300/80 shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
+          >
+            {/* Circular Avatar with Studio Ring Border */}
+            <div className="relative w-20 h-20 sm:w-22 sm:h-22 rounded-full overflow-hidden shrink-0 border-2 border-white ring-4 ring-slate-100 shadow-2xs group-hover:scale-104 transition-transform duration-300">
+              <Image
+                src={cat.image}
+                alt={cat.alt}
+                fill
+                sizes="120px"
+                className="object-cover object-center"
+                unoptimized
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+
+            {/* Department Details */}
+            <div className="space-y-1 min-w-0 flex-1">
+              <span className="inline-block px-2 py-0.5 rounded-full bg-emerald-50 text-[#004D40] text-[10px] font-extrabold tracking-wide border border-emerald-100/60 mb-0.5">
+                {cat.badge}
+              </span>
+
+              <h3 className="font-extrabold text-base sm:text-lg text-slate-900 group-hover:text-[#004D40] transition-colors truncate">
+                {cat.name}
+              </h3>
+
+              <p className="text-xs text-slate-500 leading-snug line-clamp-1">
+                {cat.subtitle}
+              </p>
+
+              <div className="pt-0.5">
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#004D40] group-hover:text-[#EA580C] transition-colors">
+                  <span>Explore category</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                </span>
+              </div>
+            </div>
+          </Link>
         ))}
       </div>
     </section>

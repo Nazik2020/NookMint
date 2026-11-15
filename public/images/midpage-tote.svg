@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 320" width="100%" height="100%">
+  <defs>
+    <linearGradient id="kraftBag" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#CA9C65"/>
+      <stop offset="50%" stop-color="#DEB17A"/>
+      <stop offset="100%" stop-color="#B88A52"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Table Ground Shadow -->
+  <ellipse cx="250" cy="290" rx="200" ry="20" fill="#000000" opacity="0.3"/>
+
+  <!-- Folded Textiles on Right of Bag matching Reference Image 1 -->
+  <g transform="translate(250, 150)" filter="url(#shadow)">
+    <!-- Towel 1 (Dark Slate) -->
+    <rect x="0" y="90" width="140" height="32" rx="10" fill="#334155" stroke="#1E293B" stroke-width="1.5"/>
+    <!-- Towel 2 (Light Grey) -->
+    <rect x="5" y="60" width="135" height="32" rx="10" fill="#E2E8F0" stroke="#CBD5E1" stroke-width="1.5"/>
+    <!-- Towel 3 (Blush / Pink Linen) -->
+    <rect x="10" y="30" width="130" height="32" rx="10" fill="#FCE7F3" stroke="#F472B6" stroke-width="1.5"/>
+  </g>
+
+  <!-- Kraft Produce Tote Bag (Left/Center) matching Reference Image 1 -->
+  <g transform="translate(60, 40)" filter="url(#shadow)">
+    <!-- Fresh Leafy Greens Spilling Out -->
+    <path d="M 30 70 Q 0 10 30 -30 Q 60 -10 60 70 Z" fill="#15803D"/>
+    <path d="M 60 70 Q 50 -30 80 -40 Q 110 -10 90 70 Z" fill="#16A34A"/>
+    <circle cx="50" cy="40" r="32" fill="#166534"/>
+    <circle cx="80" cy="45" r="30" fill="#15803D"/>
+
+    <!-- Bright Yellow Bell Pepper -->
+    <path d="M 125 50 Q 115 30 135 25 Q 155 30 150 50 Q 150 75 135 75 Q 125 75 125 50 Z" fill="#EAB308" stroke="#CA8A04" stroke-width="1.5"/>
+    <path d="M 137 25 Q 140 16 144 14" stroke="#15803D" stroke-width="3" stroke-linecap="round" fill="none"/>
+
+    <!-- Shiny Red Tomatoes -->
+    <circle cx="105" cy="75" r="28" fill="#DC2626" stroke="#991B1B" stroke-width="1"/>
+    <circle cx="98" cy="68" r="7" fill="#EF4444" opacity="0.8"/>
+    <circle cx="105" cy="50" r="2" fill="#15803D"/>
+
+    <circle cx="155" cy="85" r="24" fill="#B91C1C" stroke="#7F1D1D" stroke-width="1"/>
+    <circle cx="149" cy="80" r="6" fill="#DC2626" opacity="0.8"/>
+
+    <!-- Kraft Bag Body -->
+    <path d="M 10 90 L 190 90 L 180 250 L 20 250 Z" fill="url(#kraftBag)" stroke="#92400E" stroke-width="1.5"/>
+    <!-- Folded Tote Handles -->
+    <path d="M 60 90 Q 60 50 100 50 Q 140 50 140 90" fill="none" stroke="#A16207" stroke-width="6" stroke-linecap="round"/>
+    <path d="M 60 90 Q 60 50 100 50 Q 140 50 140 90" fill="none" stroke="#FDE68A" stroke-width="2" stroke-linecap="round"/>
+  </g>
+</svg>

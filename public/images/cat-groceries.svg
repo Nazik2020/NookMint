@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%">
+  <defs>
+    <radialGradient id="circleBg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="85%" stop-color="#f0f7f3"/>
+      <stop offset="100%" stop-color="#dcefe4"/>
+    </radialGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+
+  <rect width="300" height="300" fill="url(#circleBg)"/>
+
+  <!-- Table Ground Shadow -->
+  <ellipse cx="150" cy="260" rx="90" ry="14" fill="#000000" opacity="0.12"/>
+
+  <!-- Wicker Grocery Basket Body matching Reference Image 1 -->
+  <g transform="translate(45, 80)" filter="url(#shadow)">
+    <!-- Artisan Crusty Bread Baguette / Loaf (Peeking Out Top Right) -->
+    <path d="M 120 70 Q 140 10 180 5 Q 195 25 160 85 Z" fill="#b45309" stroke="#78350f" stroke-width="1.5"/>
+    <ellipse cx="160" cy="35" rx="8" ry="4" fill="#fde68a" transform="rotate(-30, 160, 35)"/>
+    <ellipse cx="145" cy="55" rx="8" ry="4" fill="#fde68a" transform="rotate(-30, 145, 55)"/>
+
+    <!-- Glass Milk Bottle with Blue/White Cap (Peeking Out Center Left) -->
+    <rect x="55" y="45" width="36" height="75" rx="6" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+    <rect x="63" y="30" width="20" height="18" rx="2" fill="#0284C7"/>
+    <rect x="58" y="70" width="30" height="30" rx="3" fill="#E0F2FE"/>
+
+    <!-- Glossy Red Bell Pepper (Front Center Left) -->
+    <g transform="translate(10, 85)">
+      <path d="M 15 20 Q 8 5 28 0 Q 48 5 42 20 Q 42 45 28 45 Q 15 45 15 20 Z" fill="#DC2626" stroke="#991B1B" stroke-width="1.5"/>
+      <circle cx="24" cy="18" r="4" fill="#EF4444"/>
+      <path d="M 27 2 Q 30 -6 34 -8" stroke="#15803D" stroke-width="3" stroke-linecap="round" fill="none"/>
+    </g>
+
+    <!-- Woven Wicker Basket Front Face matching Reference Image 1 -->
+    <path d="M 10 105 L 200 105 L 180 170 Q 180 180 160 180 L 50 180 Q 30 180 30 170 Z" fill="#D97706" stroke="#92400E" stroke-width="1.5"/>
+    <!-- Basket Rim -->
+    <ellipse cx="105" cy="105" rx="95" ry="14" fill="#B45309" stroke="#78350F" stroke-width="1.5"/>
+    <!-- Woven Texture Strands -->
+    <line x1="25" y1="125" x2="185" y2="125" stroke="#78350F" stroke-width="1.5" stroke-dasharray="8,6"/>
+    <line x1="32" y1="145" x2="178" y2="145" stroke="#78350F" stroke-width="1.5" stroke-dasharray="8,6"/>
+    <line x1="40" y1="165" x2="170" y2="165" stroke="#78350F" stroke-width="1.5" stroke-dasharray="8,6"/>
+  </g>
+</svg>
