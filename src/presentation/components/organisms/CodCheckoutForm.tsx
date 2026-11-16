@@ -20,7 +20,9 @@ import {
   Copy,
   Check,
   HelpCircle,
-  MessageCircle
+  MessageCircle,
+  Mail,
+  User,
 } from 'lucide-react';
 
 export const CodCheckoutForm: React.FC = () => {
@@ -29,6 +31,7 @@ export const CodCheckoutForm: React.FC = () => {
 
   const [formData, setFormData] = useState<Address>({
     fullName: '',
+    email: '',
     phone: '',
     alternatePhone: '',
     addressLine1: '',
@@ -221,7 +224,7 @@ export const CodCheckoutForm: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label htmlFor="fullName" className="block text-xs font-bold text-slate-700 mb-1.5">
-                Full Name *
+                Your Name *
               </label>
               <input
                 id="fullName"
@@ -232,6 +235,22 @@ export const CodCheckoutForm: React.FC = () => {
                 value={formData.fullName}
                 onChange={handleChange}
                 placeholder="e.g. Ruwani Fernando"
+                className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all font-medium text-slate-900 placeholder:text-slate-400"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="email" className="block text-xs font-bold text-slate-700 mb-1.5">
+                Email / Gmail <span className="text-slate-400 font-normal lowercase">(optional)</span>
+              </label>
+              <input
+                id="email"
+                type="email"
+                name="email"
+                autoComplete="email"
+                value={formData.email || ''}
+                onChange={handleChange}
+                placeholder="e.g. yourname@gmail.com"
                 className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all font-medium text-slate-900 placeholder:text-slate-400"
               />
             </div>
@@ -431,27 +450,32 @@ export const CodCheckoutForm: React.FC = () => {
           </h3>
 
           <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto pr-1">
-            {items.map((item) => (
+            {items.map((item) => {
+              const matchedVariant = item.product.variants?.find((v) => v.size === item.selectedSize);
+              const displayImage = matchedVariant?.image || item.product.images[0] || '/nookmint_images/hero.png';
+
+              return (
               <div key={`${item.product.id}-${item.selectedSize}`} className="py-3 flex gap-3 text-xs items-center">
                 <div className="relative w-14 h-16 rounded-xl overflow-hidden bg-[#FAF6F3] shrink-0 border border-slate-100">
                   <Image
-                    src={item.product.images[0]}
-                    alt={item.product.title}
+                    src={displayImage}
+                    alt={`${item.product.title} - ${item.selectedSize}`}
                     fill
                     sizes="56px"
-                    unoptimized={item.product.images[0]?.startsWith('http') && !item.product.images[0]?.includes('unsplash.com') && !item.product.images[0]?.includes('supabase.co')}
+                    unoptimized={displayImage?.startsWith('http') && !displayImage?.includes('unsplash.com') && !displayImage?.includes('supabase.co')}
                     className="object-cover object-top"
                   />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h4 className="font-bold text-slate-900 truncate">{item.product.title}</h4>
-                  <p className="text-slate-500 text-[11px] mt-0.5">Size: {item.selectedSize} • Qty: {item.quantity}</p>
-                  <p className="font-extrabold text-blue-600 mt-1">
+                  <p className="text-slate-500 text-[11px] mt-0.5">Option: {item.selectedSize} • Qty: {item.quantity}</p>
+                  <p className="font-extrabold text-[#064E3B] mt-1">
                     {formatLKR(item.product.sellingPrice * item.quantity)}
                   </p>
                 </div>
               </div>
-            ))}
+            );
+          })}
           </div>
 
           <div className="pt-3 border-t border-slate-200 space-y-2.5 text-xs">

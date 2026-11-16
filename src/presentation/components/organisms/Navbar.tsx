@@ -378,14 +378,6 @@ export const Navbar: React.FC = () => {
             </Link>
 
             <Link
-              href="/products?filter=sale"
-              className="flex items-center gap-1.5 hover:text-[#004D40] transition-colors py-1"
-            >
-              <Tag className="w-3.5 h-3.5 text-slate-500" />
-              <span>Offers</span>
-            </Link>
-
-            <Link
               href="/contact"
               className="flex items-center gap-1.5 hover:text-[#004D40] transition-colors py-1"
             >

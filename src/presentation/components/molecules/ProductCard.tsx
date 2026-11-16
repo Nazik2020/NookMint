@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Product } from '@/core/entities/Product';
 import { formatLKR } from '@/shared/utils/currency';
 import { useCart } from '@/presentation/context/CartContext';
-import { ShoppingCart, Check, MessageSquare } from 'lucide-react';
+import { ShoppingCart, Check, MessageSquare, Ban, MessageCircle } from 'lucide-react';
 
 interface ProductCardProps {
   product: Product;
@@ -30,11 +30,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     '/nookmint_images/hero.png';
   const [imgSrc, setImgSrc] = useState<string>(initialImg);
 
+  const totalStock = product.variants && product.variants.length > 0
+    ? product.variants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0)
+    : 10;
+  const isOutOfStock = totalStock <= 0 && !product.inquiryOnly;
+
   const selectedSize = product.variants?.[0]?.size || 'Standard';
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (isOutOfStock) return;
     addToCart(product, selectedSize, 1);
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 1500);
@@ -45,22 +51,36 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   )}`;
 
   return (
-    <div className="group relative flex flex-col h-full bg-white rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-slate-300 transition-all duration-300 transform-gpu will-change-transform">
+    <div className={`group relative flex flex-col h-full bg-white rounded-2xl sm:rounded-3xl overflow-hidden border transition-all duration-300 transform-gpu will-change-transform ${
+      isOutOfStock
+        ? 'border-slate-200/70 shadow-2xs'
+        : 'border-slate-200/90 shadow-2xs hover:shadow-md hover:border-slate-300'
+    }`}>
       {/* 1. Image Frame Area with Responsive Aspect Ratio & Badges */}
       <div className="relative aspect-[4/3] w-full bg-[#FAF6F3] p-2.5 sm:p-3 flex items-center justify-center overflow-hidden">
-        {/* Badges on Top */}
+        {/* Badges on Top Left */}
         <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1 items-start">
           {product.isNewArrival && (
             <span className="px-2 py-0.5 rounded-md bg-amber-500 text-white font-black text-[9px] sm:text-[10px] uppercase tracking-wider shadow-2xs">
               ★ New
             </span>
           )}
-          {product.offerPercentage && product.offerPercentage > 0 && (
+          {product.offerPercentage && product.offerPercentage > 0 && !isOutOfStock && (
             <span className="px-2 py-0.5 rounded-md bg-emerald-700 text-white font-extrabold text-[9px] sm:text-[10px] tracking-wide shadow-2xs">
               {product.offerPercentage}% OFF
             </span>
           )}
         </div>
+
+        {/* HCI Out of Stock Signifier Badge on Top Right */}
+        {isOutOfStock && (
+          <div className="absolute top-2.5 right-2.5 z-10">
+            <span className="px-2.5 py-1 rounded-full bg-slate-900/90 text-white font-black text-[9px] sm:text-[10px] uppercase tracking-wider shadow-sm flex items-center gap-1.5 border border-white/20 backdrop-blur-xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+              <span>Out of Stock</span>
+            </span>
+          </div>
+        )}
 
         <Link
           href={`/products/${product.id}`}
@@ -72,7 +92,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             alt={product.title}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
+            className={`object-cover object-center transition-transform duration-500 ease-out ${
+              isOutOfStock
+                ? 'opacity-65 grayscale-[35%]'
+                : 'group-hover:scale-105'
+            }`}
             loading="lazy"
             decoding="async"
             unoptimized={imgSrc.startsWith('http') && !imgSrc.includes('unsplash.com') && !imgSrc.includes('supabase.co')}
@@ -104,20 +128,28 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             </h3>
           </Link>
 
-          {/* Pricing format */}
-          <div className="flex items-baseline gap-2 pt-1 flex-wrap">
-            <span className="font-black text-sm sm:text-base text-slate-900 tracking-tight font-serif">
-              {formatLKR(product.sellingPrice)}
-            </span>
-            {product.mrp && product.mrp > product.sellingPrice && (
-              <span className="text-[11px] text-slate-400 line-through font-mono">
-                {formatLKR(product.mrp)}
+          {/* Pricing format & Stock Status Badge */}
+          <div className="flex items-center justify-between gap-2 pt-1 flex-wrap">
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className={`font-black text-sm sm:text-base tracking-tight font-serif ${isOutOfStock ? 'text-slate-500' : 'text-slate-900'}`}>
+                {formatLKR(product.sellingPrice)}
+              </span>
+              {product.mrp && product.mrp > product.sellingPrice && (
+                <span className="text-[11px] text-slate-400 line-through font-mono">
+                  {formatLKR(product.mrp)}
+                </span>
+              )}
+            </div>
+
+            {isOutOfStock && (
+              <span className="text-[10px] font-black uppercase tracking-wider text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
+                Sold Out
               </span>
             )}
           </div>
         </div>
 
-        {/* 3. Action Button: Full-width in Deep Forest Green #064E3B */}
+        {/* 3. Action Button: Full-width in Deep Forest Green #064E3B or Out of Stock with Restock Inquiry */}
         <div className="pt-1">
           {product.inquiryOnly ? (
             <a
@@ -129,6 +161,28 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               <MessageSquare className="w-3.5 h-3.5" />
               <span>Inquire via WhatsApp</span>
             </a>
+          ) : isOutOfStock ? (
+            <div className="w-full flex items-center gap-1.5">
+              <button
+                type="button"
+                disabled
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 sm:py-2.5 px-3 bg-slate-100 text-slate-400 font-extrabold text-xs rounded-xl border border-slate-200 cursor-not-allowed select-none"
+                aria-label={`${product.title} is currently out of stock`}
+              >
+                <Ban className="w-3.5 h-3.5 text-slate-400" />
+                <span>Out of Stock</span>
+              </button>
+              <a
+                href={`https://wa.me/94714897262?text=${encodeURIComponent(`Hello NookMint! 👋\nCould you please let me know when "${product.title}" will be back in stock?`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Inquire restock on WhatsApp"
+                className="p-2 sm:py-2.5 px-2.5 bg-emerald-50 hover:bg-emerald-100 text-[#064E3B] border border-emerald-200 rounded-xl text-xs font-bold transition-colors flex items-center justify-center shrink-0 cursor-pointer"
+                aria-label="Inquire restock on WhatsApp"
+              >
+                <MessageCircle className="w-3.5 h-3.5 text-emerald-700" />
+              </a>
+            </div>
           ) : (
             <button
               type="button"

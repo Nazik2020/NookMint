@@ -1,4 +1,4 @@
-import { Product } from './Product';
+import { Product, ProductVariant } from './Product';
 
 /**
  * SADP - Cart Item and Cart Entities
@@ -7,6 +7,7 @@ export interface CartItem {
   product: Product;
   selectedSize: string;
   quantity: number;
+  selectedVariant?: ProductVariant;
 }
 
 export interface CartSummary {

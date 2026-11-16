@@ -77,6 +77,7 @@ export interface BankAccountDetails {
 
 export interface Address {
   fullName: string;
+  email?: string;
   phone: string;
   alternatePhone?: string;
   addressLine1: string;

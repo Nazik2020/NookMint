@@ -8,27 +8,42 @@ interface ProductGalleryProps {
   images: string[];
   title: string;
   videoUrl?: string;
+  activeImage?: string;
+  onSelectImage?: (img: string) => void;
 }
 
-export const ProductGallery: React.FC<ProductGalleryProps> = ({ images, title, videoUrl }) => {
+export const ProductGallery: React.FC<ProductGalleryProps> = ({ images, title, videoUrl, activeImage, onSelectImage }) => {
   const safeImages = images && images.length > 0 ? images : ['/nookmint_images/hero.png'];
+  const allImages = React.useMemo(() => {
+    const list = [...safeImages];
+    if (activeImage && !list.includes(activeImage)) {
+      list.unshift(activeImage);
+    }
+    return list;
+  }, [safeImages, activeImage]);
+
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [isVideoActive, setIsVideoActive] = useState<boolean>(false);
 
   useEffect(() => {
-    setSelectedIndex(0);
-    setIsVideoActive(false);
-  }, [images, videoUrl]);
+    if (activeImage) {
+      const idx = allImages.indexOf(activeImage);
+      if (idx !== -1) {
+        setSelectedIndex(idx);
+        setIsVideoActive(false);
+      }
+    }
+  }, [activeImage, allImages]);
 
   const handlePrev = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (isVideoActive) {
       setIsVideoActive(false);
-      setSelectedIndex(safeImages.length - 1);
+      setSelectedIndex(allImages.length - 1);
     } else if (selectedIndex === 0 && videoUrl) {
       setIsVideoActive(true);
     } else {
-      setSelectedIndex((prev) => (prev === 0 ? safeImages.length - 1 : prev - 1));
+      setSelectedIndex((prev) => (prev === 0 ? allImages.length - 1 : prev - 1));
     }
   };
 
@@ -37,15 +52,15 @@ export const ProductGallery: React.FC<ProductGalleryProps> = ({ images, title, v
     if (isVideoActive) {
       setIsVideoActive(false);
       setSelectedIndex(0);
-    } else if (selectedIndex === safeImages.length - 1 && videoUrl) {
+    } else if (selectedIndex === allImages.length - 1 && videoUrl) {
       setIsVideoActive(true);
     } else {
-      setSelectedIndex((prev) => (prev === safeImages.length - 1 ? 0 : prev + 1));
+      setSelectedIndex((prev) => (prev === allImages.length - 1 ? 0 : prev + 1));
     }
   };
 
-  const currentImage = safeImages[selectedIndex] || safeImages[0];
-  const totalMediaCount = safeImages.length + (videoUrl ? 1 : 0);
+  const currentImage = allImages[selectedIndex] || allImages[0];
+  const totalMediaCount = allImages.length + (videoUrl ? 1 : 0);
 
   return (
     <div className="space-y-4">
@@ -116,13 +131,14 @@ export const ProductGallery: React.FC<ProductGalleryProps> = ({ images, title, v
       {/* Interactive Media Thumbnails Strip */}
       {totalMediaCount > 1 && (
         <div className="grid grid-cols-4 sm:grid-cols-5 gap-2.5 sm:gap-3">
-          {safeImages.map((img, idx) => (
+          {allImages.map((img, idx) => (
             <button
               key={`${img}-${idx}`}
               type="button"
               onClick={() => {
                 setIsVideoActive(false);
                 setSelectedIndex(idx);
+                onSelectImage?.(img);
               }}
               className={`relative aspect-square rounded-2xl overflow-hidden border-2 bg-white transition-all p-0.5 group cursor-pointer ${
                 !isVideoActive && selectedIndex === idx

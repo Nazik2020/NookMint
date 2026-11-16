@@ -11,6 +11,8 @@ export interface ProductVariant {
   sku: string;
   stock: number;
   price?: number; // Optional variant specific price
+  image?: string; // Color / variant specific packshot image URL
+  colorHex?: string; // Optional hex for visual swatch preview (e.g. #FFFFFF, #18181B)
 }
 
 export interface ProductColor {
@@ -42,6 +44,7 @@ export interface Product {
   reviewCount: number;
   isCodAvailable: boolean; // Flag to indicate COD eligibility
   status?: 'active' | 'inactive';
+  isHidden?: boolean; // When true, product is hidden/unseen from customers on storefront
   isNewArrival?: boolean;
   isBestSeller?: boolean;
   offerPercentage?: number; // Discount percentage

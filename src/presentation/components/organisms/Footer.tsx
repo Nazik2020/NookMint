@@ -72,16 +72,7 @@ export const Footer: React.FC = () => {
                   className="flex items-center gap-2 hover:text-white transition-colors"
                 >
                   <MessageCircle className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
-                  <span>WhatsApp Orders</span>
-                </a>
-              </li>
-              <li>
-                <a
-                  href="tel:+94714897262"
-                  className="flex items-center gap-2 hover:text-white transition-colors"
-                >
-                  <Phone className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
-                  <span>+94 71 489 7262</span>
+                  <span>WhatsApp Chat (+94 71 489 7262)</span>
                 </a>
               </li>
               <li>

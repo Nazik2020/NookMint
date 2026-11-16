@@ -49,6 +49,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [items, isLoaded]);
 
   const addToCart = (product: Product, size: string, quantity: number = 1) => {
+    const matchedVariant = product.variants?.find((v) => v.size === size);
     setItems((prev) => {
       const existingIndex = prev.findIndex(
         (i) => i.product.id === product.id && i.selectedSize === size
@@ -59,10 +60,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         next[existingIndex] = {
           ...next[existingIndex],
           quantity: next[existingIndex].quantity + quantity,
+          selectedVariant: matchedVariant || next[existingIndex].selectedVariant,
         };
         return next;
       }
-      return [...prev, { product, selectedSize: size, quantity }];
+      return [...prev, { product, selectedSize: size, quantity, selectedVariant: matchedVariant }];
     });
   };
 

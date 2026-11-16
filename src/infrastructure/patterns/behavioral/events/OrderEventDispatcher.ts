@@ -1,5 +1,6 @@
 import { Order } from '@/core/entities/Order';
 import { PaymentMethod } from '@/shared/types/common';
+import { EmailNotificationService } from '@/infrastructure/services/EmailNotificationService';
 
 export type OrderEventListener = (order: Order) => Promise<void> | void;
 
@@ -31,8 +32,16 @@ export class OrderEventDispatcher {
   }
 }
 
-// Auto-register built-in notification listeners for COD Orders
+// Auto-register built-in notification listeners for COD Orders & Email Alerts
 OrderEventDispatcher.subscribe('ORDER_PLACED', async (order: Order) => {
+  // 1. Dispatch email alert to admin with full customer details
+  try {
+    await EmailNotificationService.sendNewOrderAlert(order);
+  } catch (emailErr) {
+    console.error('[OrderEventDispatcher] Error dispatching admin order email:', emailErr);
+  }
+
+  // 2. Dispatch customer verification notification
   if (order.paymentMethod === PaymentMethod.COD) {
     console.log(
       `[COD Notification Observer] Order #${order.orderNumber} placed via Cash on Delivery. Dispatching verification SMS to ${order.shippingAddress.phone}.`

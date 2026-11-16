@@ -15,10 +15,11 @@ export interface ProductFilterOptions {
   sortBy?: 'price-low' | 'price-high' | 'rating' | 'newest';
   onSaleOnly?: boolean;
   isNewArrival?: boolean;
+  includeHidden?: boolean;
 }
 
 export interface IProductRepository {
-  getAllProducts(): Promise<Product[]>;
+  getAllProducts(includeHidden?: boolean): Promise<Product[]>;
   getProductById(id: string): Promise<Product | null>;
   getProductBySlug(slug: string): Promise<Product | null>;
   filterProducts(options: ProductFilterOptions): Promise<Product[]>;

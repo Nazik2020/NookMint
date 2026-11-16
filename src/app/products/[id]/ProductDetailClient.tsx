@@ -2,10 +2,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Product } from '@/core/entities/Product';
 import { useCart } from '@/presentation/context/CartContext';
 import { SizeSelector } from '@/presentation/components/molecules/SizeSelector';
+import { ProductGallery } from '@/presentation/components/molecules/ProductGallery';
+import { PriceTag } from '@/presentation/components/atoms/PriceTag';
 import { PaymentMethod } from '@/shared/types/common';
 import {
   ShoppingBag,
@@ -29,6 +32,7 @@ import {
   X,
   Share2,
   Copy,
+  Mail,
 } from 'lucide-react';
 import { SRI_LANKA_DISTRICTS } from '@/core/constants/SriLankaDistricts';
 import { formatLKR } from '@/shared/utils/currency';
@@ -36,8 +40,7 @@ import { formatLKR } from '@/shared/utils/currency';
 export const ProductDetailClient: React.FC<{ product: Product }> = ({ product }) => {
   const router = useRouter();
   const { addToCart } = useCart();
-  const [selectedSize, setSelectedSize] = useState<string>(product.variants[0]?.size || 'Standard');
-  const [selectedColor, setSelectedColor] = useState<string>(product.colors?.[0]?.name || '');
+  const [selectedSize, setSelectedSize] = useState<string>(product.variants?.[0]?.size || 'Standard');
   const [quantity, setQuantity] = useState<number>(1);
   const [isAdded, setIsAdded] = useState(false);
   const [showCartToast, setShowCartToast] = useState(false);
@@ -50,6 +53,7 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
   const fastCodFormRef = useRef<HTMLDivElement>(null);
   const [showFastCodForm, setShowFastCodForm] = useState(false);
   const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
   const [phone1, setPhone1] = useState('');
   const [phone2, setPhone2] = useState('');
   const [address, setAddress] = useState('');
@@ -57,6 +61,24 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
   const [orderNote, setOrderNote] = useState('');
   const [isSubmittingCod, setIsSubmittingCod] = useState(false);
   const [codError, setCodError] = useState('');
+
+  const currentVariant = product.variants?.find((v) => v.size === selectedSize) || product.variants?.[0] || {
+    sku: product.id,
+    size: 'Standard',
+    stock: 10,
+    price: product.sellingPrice,
+  };
+
+  const [activeImage, setActiveImage] = useState<string>(
+    currentVariant?.image || product.images?.[0] || '/nookmint_images/hero.png'
+  );
+
+  // Whenever selected variant / color changes, immediately update the large gallery display to match that color
+  useEffect(() => {
+    if (currentVariant?.image) {
+      setActiveImage(currentVariant.image);
+    }
+  }, [currentVariant?.image, selectedSize]);
 
   useEffect(() => {
     fetch('/api/settings')
@@ -74,6 +96,7 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.fullName) setFullName(parsed.fullName);
+        if (parsed.email) setEmail(parsed.email);
         if (parsed.phone) setPhone1(parsed.phone);
         if (parsed.alternatePhone) setPhone2(parsed.alternatePhone);
         if (parsed.addressLine1) setAddress(parsed.addressLine1);
@@ -117,12 +140,6 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
     }
   };
 
-  const currentVariant = product.variants?.find((v) => v.size === selectedSize) || product.variants?.[0] || {
-    sku: product.id,
-    size: 'Standard',
-    stock: 10,
-    price: product.sellingPrice,
-  };
   const stockCount = currentVariant ? (currentVariant.stock ?? 0) : 0;
   const isSizeOutOfStock = stockCount <= 0 && !product.inquiryOnly;
 
@@ -167,6 +184,7 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
     try {
       const shippingAddress = {
         fullName: fullName.trim(),
+        email: email.trim(),
         phone: phone1.trim(),
         alternatePhone: phone2.trim(),
         addressLine1: address.trim(),
@@ -187,6 +205,7 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
 
       const orderItem = {
         product,
+        selectedSize,
         selectedVariant: currentVariant,
         quantity,
       };
@@ -219,8 +238,7 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
       `I would like to ${product.inquiryOnly ? 'request a quotation / consultation for' : 'order'}:\n` +
       `📦 Product: ${product.title}\n` +
       `📌 SKU / Code: ${currentVariant.sku || product.id}\n` +
-      `📌 Option: ${selectedSize}\n` +
-      `${selectedColor ? `🎨 Color: ${selectedColor}\n` : ''}` +
+      `🎨 Color / Option: ${selectedSize}\n` +
       `🔢 Quantity: ${quantity}\n` +
       `💰 Listed Price: ${formatLKR(product.sellingPrice)}\n` +
       `📍 Delivery to: ${selectedDistrict}\n` +
@@ -258,348 +276,442 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
   };
 
   const shareOnWhatsAppUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(
-    `Check out this on NookMint: ${product.title} (${formatLKR(product.sellingPrice)})\n100% Cash on Delivery across Sri Lanka!\n👉 Buy directly here: ${
+    `Check out this on NookMint: ${product.title} (${formatLKR(product.sellingPrice)})\nOption: ${selectedSize}\n100% Cash on Delivery across Sri Lanka!\n👉 Buy directly here: ${
       typeof window !== 'undefined' ? window.location.href : ''
     }`
   )}`;
 
+  const categoryName = typeof product.category === 'string' ? product.category : 'Catalogue';
+
   return (
-    <div className="space-y-6">
-      {/* 1. Color Swatches (if available) */}
-      {product.colors && product.colors.length > 0 && (
-        <div className="space-y-2.5">
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-bold text-slate-800">Color Option:</span>
-            <span className="text-slate-500 font-semibold">{selectedColor}</span>
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+      {/* ======================================================== */}
+      {/* Left Column: Interactive Product Gallery (Color Reactive) */}
+      {/* ======================================================== */}
+      <div className="lg:col-span-7">
+        <ProductGallery
+          images={product.images}
+          title={product.title}
+          videoUrl={product.videoUrl}
+          activeImage={activeImage}
+          onSelectImage={(img) => {
+            setActiveImage(img);
+            const matched = product.variants?.find((v) => v.image === img);
+            if (matched && matched.size !== selectedSize) {
+              setSelectedSize(matched.size);
+            }
+          }}
+        />
+      </div>
+
+      {/* ======================================================== */}
+      {/* Right Column: Details, Color Options & Order Actions     */}
+      {/* ======================================================== */}
+      <div className="lg:col-span-5 space-y-6">
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-800 border border-slate-200">
+              {product.subcategory || categoryName}
+            </span>
+            <span className="px-2.5 py-1 rounded-full text-[11px] font-mono font-extrabold bg-emerald-50 text-[#004D40] border border-emerald-200/90 flex items-center gap-1">
+              <span>Code: {currentVariant.sku || product.variants?.[0]?.sku || product.id}</span>
+            </span>
+            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+              <Banknote className="w-3.5 h-3.5 text-emerald-700" />
+              <span>100% Cash on Delivery (COD)</span>
+            </span>
           </div>
-          <div className="flex items-center gap-2" role="radiogroup" aria-label="Available Colors">
-            {product.colors.map((color) => (
-              <button
-                key={color.hex}
-                type="button"
-                onClick={() => setSelectedColor(color.name)}
-                className={`w-7 h-7 rounded-full border border-slate-300 transition-all ${
-                  selectedColor === color.name
-                    ? 'ring-2 ring-blue-600 ring-offset-2 scale-110'
-                    : 'hover:scale-105'
-                }`}
-                style={{ backgroundColor: color.hex }}
-                title={color.name}
-                aria-label={color.name}
-              />
-            ))}
+
+          {product.brand && (
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block">
+              {product.brand}
+            </span>
+          )}
+
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight tracking-tight">
+            {product.title}
+          </h1>
+
+          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
+            {product.description}
+          </p>
+
+          <div className="flex items-center gap-4 text-xs text-slate-500 font-medium pt-1">
+            <span>Category: <strong className="text-slate-900">{categoryName}</strong></span>
+            {product.unit && <span>Unit: <strong className="text-slate-900">{product.unit}</strong></span>}
+            <span className="text-emerald-700 font-semibold flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5" /> In Stock &amp; Ready to Dispatch
+            </span>
           </div>
         </div>
-      )}
 
-      {/* 2. Variant / Option Selector (Only if multiple options exist) */}
-      {product.variants && product.variants.length > 1 ? (
-        <div className="space-y-2.5">
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-bold text-slate-800">
-              Select Option / Model:
-            </span>
-            <span className="text-xs font-semibold text-slate-500">
-              {stockCount > 0 ? (
-                <span className="text-emerald-600 font-bold">✓ {stockCount} in stock</span>
-              ) : product.inquiryOnly ? (
-                <span className="text-blue-600 font-bold">Inquiry Available</span>
-              ) : (
-                <span className="text-red-500 font-bold">Out of Stock</span>
-              )}
-            </span>
-          </div>
-
-          <SizeSelector
-            variants={product.variants}
-            selectedSize={selectedSize}
-            onSelectSize={(size) => {
-              setSelectedSize(size);
-              setShowFastCodForm(true);
-            }}
+        <div className="pt-2 border-t border-slate-200/80">
+          <PriceTag
+            sellingPrice={product.sellingPrice}
+            mrp={product.mrp}
+            offerPercentage={product.offerPercentage}
+            size="lg"
           />
         </div>
-      ) : (
-        <div className="flex items-center justify-between text-xs p-3 rounded-2xl bg-slate-50/80 border border-slate-200">
-          <span className="font-bold text-slate-700">Stock Availability:</span>
-          {stockCount > 0 ? (
-            <span className="text-emerald-700 font-extrabold flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>In Stock ({stockCount} units available for islandwide dispatch)</span>
-            </span>
-          ) : (
-            <span className="text-red-600 font-bold">Out of Stock</span>
-          )}
-        </div>
-      )}
 
-      {/* 3. EV / Inquiry Workflow Notice */}
-      {product.inquiryOnly ? (
-        <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 space-y-3">
-          <div className="flex items-center gap-2 text-blue-900 font-bold text-xs">
-            <Sparkles className="w-4 h-4 text-blue-600" />
-            <span>High-Value & Mobility Direct Inquiry Workflow</span>
-          </div>
-          <p className="text-xs text-slate-600 leading-relaxed">
-            Due to customized technical specifications, warranty coverage, and regional registration, electric vehicles are coordinated directly via quotation.
-          </p>
-          <a
-            href={whatsappInquiryUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full py-3.5 px-4 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-all flex items-center justify-center gap-2 text-center"
-          >
-            <MessageCircle className="w-4 h-4" />
-            <span>Request Formal Quotation on WhatsApp</span>
-          </a>
-        </div>
-      ) : (
-        /* Regular E-Commerce Cart & WhatsApp Order Actions */
-        <div className="space-y-3 pt-1">
-          {/* Primary High-Converting CTA: Full-Width Order Now Button */}
-          <button
-            type="button"
-            disabled={isSizeOutOfStock}
-            onClick={() => {
-              setShowFastCodForm(true);
-              setTimeout(() => {
-                fastCodFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }, 100);
-            }}
-            className="w-full h-13 px-6 rounded-2xl font-black text-xs sm:text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2.5 shadow-md shadow-emerald-950/20 text-white bg-[#064E3B] hover:bg-[#04382A] active:scale-[0.99] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Zap className="w-4 h-4 fill-amber-300 text-amber-300 shrink-0" />
-            <Truck className="w-4.5 h-4.5 text-emerald-200 shrink-0" />
-            <span>Order Now (Cash on Delivery)</span>
-          </button>
-
-          {/* Secondary Row: Quantity Selector + Add to Cart Button */}
-          <div className="flex items-center gap-3">
-            {/* Quantity Selector */}
-            <div className="flex items-center border border-slate-200 rounded-2xl h-11 px-1 bg-white shrink-0">
-              <button
-                type="button"
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                disabled={quantity <= 1 || isSizeOutOfStock}
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                aria-label="Decrease quantity"
-              >
-                <Minus className="w-3.5 h-3.5" />
-              </button>
-              <span className="w-10 text-center text-xs font-black text-slate-900">{quantity}</span>
-              <button
-                type="button"
-                onClick={() => setQuantity(Math.min(stockCount || 10, quantity + 1))}
-                disabled={quantity >= (stockCount || 10) || isSizeOutOfStock}
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                aria-label="Increase quantity"
-              >
-                <Plus className="w-3.5 h-3.5" />
-              </button>
+        {/* 1. Dedicated Color Swatches / Model Selector */}
+        {product.variants && product.variants.length > 1 ? (
+          <div className="space-y-2.5 p-4 rounded-2xl bg-[#FAF6F3] border border-slate-200/80">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-extrabold text-slate-900 flex items-center gap-1.5">
+                <span>🎨 Select Color / Model Option:</span>
+              </span>
+              <span className="text-xs font-semibold">
+                {stockCount > 0 ? (
+                  <span className="text-emerald-700 font-extrabold">✓ {stockCount} units in stock</span>
+                ) : product.inquiryOnly ? (
+                  <span className="text-blue-600 font-bold">Inquiry Available</span>
+                ) : (
+                  <span className="text-red-500 font-bold">Out of Stock</span>
+                )}
+              </span>
             </div>
 
-            {/* Add to Cart Button */}
+            <SizeSelector
+              variants={product.variants}
+              selectedSize={selectedSize}
+              onSelectSize={(size) => {
+                setSelectedSize(size);
+                const matched = product.variants?.find((v) => v.size === size);
+                if (matched?.image) {
+                  setActiveImage(matched.image);
+                }
+              }}
+            />
+
+            <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px] text-slate-600">
+              <span>Active Selection: <strong className="text-slate-900">{selectedSize}</strong></span>
+              {currentVariant.colorHex && (
+                <span className="flex items-center gap-1.5 font-mono text-[10px] text-slate-500">
+                  <span className="w-3 h-3 rounded-full border border-slate-300 inline-block" style={{ backgroundColor: currentVariant.colorHex }} />
+                  {currentVariant.colorHex}
+                </span>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between text-xs p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200">
+            <span className="font-bold text-slate-700">Stock Availability:</span>
+            {stockCount > 0 ? (
+              <span className="text-emerald-700 font-extrabold flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span>In Stock ({stockCount} units available for islandwide dispatch)</span>
+              </span>
+            ) : (
+              <span className="text-red-600 font-bold">Out of Stock</span>
+            )}
+          </div>
+        )}
+
+        {/* 2. EV / Inquiry Workflow Notice */}
+        {product.inquiryOnly ? (
+          <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 space-y-3">
+            <div className="flex items-center gap-2 text-blue-900 font-bold text-xs">
+              <Sparkles className="w-4 h-4 text-blue-600" />
+              <span>High-Value & Mobility Direct Inquiry Workflow</span>
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Due to customized technical specifications, warranty coverage, and regional registration, electric vehicles are coordinated directly via quotation.
+            </p>
+            <a
+              href={whatsappInquiryUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-3.5 px-4 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-all flex items-center justify-center gap-2 text-center"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>Request Formal Quotation on WhatsApp</span>
+            </a>
+          </div>
+        ) : (
+          /* Regular E-Commerce Cart & WhatsApp Order Actions */
+          <div className="space-y-3 pt-1">
+            {/* Primary High-Converting CTA: Full-Width Order Now Button */}
             <button
               type="button"
               disabled={isSizeOutOfStock}
-              onClick={handleAddToCart}
-              className={`flex-1 h-11 px-5 rounded-2xl font-extrabold text-xs uppercase tracking-wider border transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-                isAdded
-                  ? 'bg-emerald-700 text-white border-emerald-700 shadow-sm'
-                  : 'bg-white hover:bg-slate-50 text-slate-900 border-slate-300 hover:border-slate-400 shadow-2xs'
-              }`}
+              onClick={() => {
+                setShowFastCodForm(true);
+                setTimeout(() => {
+                  fastCodFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+              }}
+              className="w-full h-13 px-6 rounded-2xl font-black text-xs sm:text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2.5 shadow-md shadow-emerald-950/20 text-white bg-[#064E3B] hover:bg-[#04382A] active:scale-[0.99] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isAdded ? (
-                <>
-                  <Check className="w-4 h-4 text-white" />
-                  <span>Added to Cart!</span>
-                </>
-              ) : isSizeOutOfStock ? (
-                <span>Out of Stock</span>
-              ) : (
-                <>
-                  <ShoppingBag className="w-4 h-4 text-slate-700" />
-                  <span>Add to Cart</span>
-                </>
-              )}
-            </button>
-          </div>
-
-          {/* Tertiary Action: Direct WhatsApp Order Link */}
-          <a
-            href={whatsappInquiryUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full h-11 px-4 rounded-2xl font-bold text-xs bg-emerald-50 hover:bg-emerald-100/80 text-[#064E3B] border border-emerald-200/80 transition-all flex items-center justify-center gap-2 text-center"
-          >
-            <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>Order or Inquire via WhatsApp (+94 71 489 7262)</span>
-          </a>
-
-          {/* Share & Recommend Product Row */}
-          <div className="flex items-center gap-2 pt-0.5">
-            <button
-              type="button"
-              onClick={handleShare}
-              className="flex-1 h-10 px-3.5 rounded-2xl border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-700 font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-2xs hover:border-slate-300 active:scale-98 cursor-pointer"
-              title="Share product with friends"
-            >
-              {isCopied ? (
-                <>
-                  <Check className="w-4 h-4 text-emerald-600 stroke-[3]" />
-                  <span className="text-emerald-700">Link Copied to Clipboard!</span>
-                </>
-              ) : (
-                <>
-                  <Share2 className="w-4 h-4 text-slate-600" />
-                  <span>Share Product</span>
-                </>
-              )}
+              <Zap className="w-4 h-4 fill-amber-300 text-amber-300 shrink-0" />
+              <Truck className="w-4.5 h-4.5 text-emerald-200 shrink-0" />
+              <span>Order Now (Cash on Delivery)</span>
             </button>
 
-            <a
-              href={shareOnWhatsAppUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="h-10 px-3.5 rounded-2xl border border-emerald-200/90 bg-emerald-50 hover:bg-emerald-100/80 text-[#064E3B] font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs shrink-0 active:scale-98"
-              title="Send product directly on WhatsApp"
-            >
-              <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>Share on WhatsApp</span>
-            </a>
-          </div>
-
-          {/* ⚡ INSTANT FAST CASH ON DELIVERY (COD) ORDER FORM */}
-          {!product.inquiryOnly && !isSizeOutOfStock && showFastCodForm && (
-            <div
-              ref={fastCodFormRef}
-              className="mt-6 rounded-3xl bg-gradient-to-b from-[#F0FDF4] to-[#FBF8F3] border-2 border-emerald-500/30 p-5 sm:p-6 shadow-md shadow-emerald-950/5 space-y-4 animate-fadeIn"
-            >
-              <div className="flex items-start justify-between gap-3 border-b border-emerald-200/80 pb-3.5">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <h3 className="font-black text-slate-900 text-sm sm:text-base flex items-center gap-1.5">
-                      <Zap className="w-4 h-4 fill-amber-400 text-amber-500 shrink-0" />
-                      <span>Fast Cash on Delivery Order</span>
-                    </h3>
-                  </div>
-                  <p className="text-[11px] text-slate-600 mt-0.5">
-                    Order directly in 10 seconds. No card or bank deposit needed — pay cash upon courier delivery.
-                  </p>
-                </div>
-                <span className="shrink-0 px-2.5 py-1 rounded-full bg-emerald-700 text-white font-extrabold text-[10px] tracking-wide uppercase">
-                  100% COD
-                </span>
+            {/* Secondary Row: Quantity Selector + Add to Cart Button */}
+            <div className="flex items-center gap-3">
+              {/* Quantity Selector */}
+              <div className="flex items-center border border-slate-200 rounded-2xl h-11 px-1 bg-white shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  disabled={quantity <= 1 || isSizeOutOfStock}
+                  className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  aria-label="Decrease quantity"
+                >
+                  <Minus className="w-3.5 h-3.5" />
+                </button>
+                <span className="w-10 text-center text-xs font-black text-slate-900">{quantity}</span>
+                <button
+                  type="button"
+                  onClick={() => setQuantity(Math.min(stockCount || 10, quantity + 1))}
+                  disabled={quantity >= (stockCount || 10) || isSizeOutOfStock}
+                  className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  aria-label="Increase quantity"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
               </div>
 
-              {codError && (
-                <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold">
-                  ⚠️ {codError}
-                </div>
-              )}
-
-              <form onSubmit={handleFastCodSubmit} className="space-y-3.5">
-                {/* 1. Customer Name */}
-                <div>
-                  <label className="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-1">
-                    Your Full Name <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <User className="w-3.5 h-3.5 text-emerald-700 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input
-                      type="text"
-                      required
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      placeholder="e.g. Kasun Perera"
-                      className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600"
-                    />
-                  </div>
-                </div>
-
-                {/* 2. Contact Numbers Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-1">
-                      WhatsApp Mobile Number <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <Phone className="w-3.5 h-3.5 text-emerald-700 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      <input
-                        type="tel"
-                        required
-                        value={phone1}
-                        onChange={(e) => setPhone1(e.target.value)}
-                        placeholder="07X XXXXXXX"
-                        className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1">
-                      Backup Mobile Number <span className="text-slate-400 font-normal lowercase">(optional)</span>
-                    </label>
-                    <div className="relative">
-                      <Phone className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      <input
-                        type="tel"
-                        value={phone2}
-                        onChange={(e) => setPhone2(e.target.value)}
-                        placeholder="07X XXXXXXX"
-                        className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* 3. Delivery Address */}
-                <div>
-                  <label className="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-1">
-                    Delivery Address (House / Street / Road) <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <Home className="w-3.5 h-3.5 text-emerald-700 absolute left-3 top-3 pointer-events-none" />
-                    <textarea
-                      required
-                      rows={2}
-                      value={address}
-                      onChange={(e) => setAddress(e.target.value)}
-                      placeholder="House / Unit number, street name, building..."
-                      className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 bg-white text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600"
-                    />
-                  </div>
-                </div>
-
-                {/* 4. Town / City (and District for Own Inventory) */}
-                {isDropship ? (
-                  <div>
-                    <label className="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-1">
-                      Town / City <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <MapPin className="w-3.5 h-3.5 text-emerald-700 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      <input
-                        type="text"
-                        required
-                        value={city}
-                        onChange={(e) => setCity(e.target.value)}
-                        placeholder="e.g. Maharagama, Nugegoda, Kandy, Galle..."
-                        className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600"
-                      />
-                    </div>
-                  </div>
+              {/* Add to Cart Button */}
+              <button
+                type="button"
+                disabled={isSizeOutOfStock}
+                onClick={handleAddToCart}
+                className={`flex-1 h-11 px-5 rounded-2xl font-extrabold text-xs uppercase tracking-wider border transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                  isAdded
+                    ? 'bg-emerald-700 text-white border-emerald-700 shadow-sm'
+                    : 'bg-white hover:bg-slate-50 text-slate-900 border-slate-300 hover:border-slate-400 shadow-2xs'
+                }`}
+              >
+                {isAdded ? (
+                  <>
+                    <Check className="w-4 h-4 text-white" />
+                    <span>Added to Cart!</span>
+                  </>
+                ) : isSizeOutOfStock ? (
+                  <span>Out of Stock</span>
                 ) : (
+                  <>
+                    <ShoppingBag className="w-4 h-4 text-slate-700" />
+                    <span>Add to Cart</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Tertiary Action: Direct WhatsApp Order Link */}
+            <a
+              href={whatsappInquiryUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full h-11 px-4 rounded-2xl font-bold text-xs bg-emerald-50 hover:bg-emerald-100/80 text-[#064E3B] border border-emerald-200/80 transition-all flex items-center justify-center gap-2 text-center"
+            >
+              <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Order or Inquire via WhatsApp (+94 71 489 7262)</span>
+            </a>
+
+            {/* Share & Recommend Product Row */}
+            <div className="flex items-center gap-2 pt-0.5">
+              <button
+                type="button"
+                onClick={handleShare}
+                className="flex-1 h-10 px-3.5 rounded-2xl border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-700 font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-2xs hover:border-slate-300 active:scale-98 cursor-pointer"
+                title="Share product with friends"
+              >
+                {isCopied ? (
+                  <>
+                    <Check className="w-4 h-4 text-emerald-600 stroke-[3]" />
+                    <span className="text-emerald-700">Link Copied to Clipboard!</span>
+                  </>
+                ) : (
+                  <>
+                    <Share2 className="w-4 h-4 text-slate-600" />
+                    <span>Share Product</span>
+                  </>
+                )}
+              </button>
+
+              <a
+                href={shareOnWhatsAppUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="h-10 px-3.5 rounded-2xl border border-emerald-200/90 bg-emerald-50 hover:bg-emerald-100/80 text-[#064E3B] font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs shrink-0 active:scale-98"
+                title="Send product directly on WhatsApp"
+              >
+                <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Share on WhatsApp</span>
+              </a>
+            </div>
+
+            {/* ⚡ INSTANT FAST CASH ON DELIVERY (COD) ORDER FORM */}
+            {!product.inquiryOnly && !isSizeOutOfStock && showFastCodForm && (
+              <div
+                ref={fastCodFormRef}
+                className="mt-6 rounded-3xl bg-gradient-to-b from-[#F0FDF4] to-[#FBF8F3] border-2 border-emerald-500/30 p-5 sm:p-6 shadow-md shadow-emerald-950/5 space-y-4 animate-fadeIn"
+              >
+                <div className="flex items-start justify-between gap-3 border-b border-emerald-200/80 pb-3.5">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <h3 className="font-black text-slate-900 text-sm sm:text-base flex items-center gap-1.5">
+                        <Zap className="w-4 h-4 fill-amber-400 text-amber-500 shrink-0" />
+                        <span>Fast Cash on Delivery Order</span>
+                      </h3>
+                    </div>
+                    <p className="text-[11px] text-slate-600 mt-0.5">
+                      Order directly in 10 seconds. No card or bank deposit needed — pay cash upon courier delivery.
+                    </p>
+                  </div>
+                  <span className="shrink-0 px-2.5 py-1 rounded-full bg-emerald-700 text-white font-extrabold text-[10px] tracking-wide uppercase">
+                    100% COD
+                  </span>
+                </div>
+
+                {/* Selected Color & Product Confirmation Card */}
+                <div className="p-3 rounded-2xl bg-white border border-emerald-200 shadow-2xs flex items-center gap-3">
+                  <div className="relative w-12 h-14 rounded-xl overflow-hidden bg-slate-50 shrink-0 border border-slate-200">
+                    <Image
+                      src={currentVariant?.image || activeImage || product.images[0] || '/nookmint_images/hero.png'}
+                      alt={product.title}
+                      fill
+                      sizes="48px"
+                      className="object-cover object-top"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-extrabold text-slate-900 text-xs truncate">{product.title}</h4>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      <span className="font-bold text-[#064E3B] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 text-[10px]">
+                        Color / Model: {selectedSize}
+                      </span>
+                      {currentVariant.colorHex && (
+                        <span
+                          className="w-3 h-3 rounded-full border border-slate-300 inline-block shrink-0"
+                          style={{ backgroundColor: currentVariant.colorHex }}
+                        />
+                      )}
+                      <span className="text-slate-500 text-[11px]">Qty: {quantity}</span>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="font-mono font-black text-slate-900 text-xs">{formatLKR(itemTotal)}</div>
+                  </div>
+                </div>
+
+                {codError && (
+                  <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold">
+                    ⚠️ {codError}
+                  </div>
+                )}
+
+                <form onSubmit={handleFastCodSubmit} className="space-y-3.5">
+                  {/* 1. Customer Name & Email / Gmail */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-1">
-                        District <span className="text-red-500">*</span>
+                        Your Name <span className="text-red-500">*</span>
                       </label>
+                      <div className="relative">
+                        <User className="w-3.5 h-3.5 text-emerald-700 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <input
+                          type="text"
+                          required
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
+                          placeholder="e.g. Ruwani Fernando"
+                          className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-1">
+                        Email / Gmail <span className="text-slate-400 font-normal lowercase">(optional)</span>
+                      </label>
+                      <div className="relative">
+                        <Mail className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <input
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="e.g. yourname@gmail.com"
+                          className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 2. Contact Numbers Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-1">
+                        WhatsApp Mobile Number <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <Phone className="w-3.5 h-3.5 text-emerald-700 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <input
+                          type="tel"
+                          required
+                          value={phone1}
+                          onChange={(e) => setPhone1(e.target.value)}
+                          placeholder="07X XXXXXXX"
+                          className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1">
+                        Backup Mobile Number <span className="text-slate-400 font-normal lowercase">(optional)</span>
+                      </label>
+                      <div className="relative">
+                        <Phone className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <input
+                          type="tel"
+                          value={phone2}
+                          onChange={(e) => setPhone2(e.target.value)}
+                          placeholder="07X XXXXXXX"
+                          className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 3. Delivery Address */}
+                  <div>
+                    <label className="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-1">
+                      Delivery Address (House / Street / Road) <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <Home className="w-3.5 h-3.5 text-emerald-700 absolute left-3 top-3 pointer-events-none" />
+                      <textarea
+                        required
+                        rows={2}
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                        placeholder="House / Unit number, street name, building..."
+                        className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 bg-white text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 4. District Coverage (Full Width for complete readability across all 25 districts) */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider">
+                        Delivery District <span className="text-red-500">*</span>
+                      </label>
+                      <span className="text-[10px] text-slate-500 font-semibold">
+                        Islandwide 25 Districts
+                      </span>
+                    </div>
+                    <div className="relative">
+                      <MapPin className="w-3.5 h-3.5 text-emerald-700 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <select
                         value={selectedDistrict}
                         onChange={(e) => handleDistrictChange(e.target.value)}
-                        className="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                        className="w-full pl-9 pr-8 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-600 cursor-pointer shadow-2xs"
                       >
                         {SRI_LANKA_DISTRICTS.map((d) => (
                           <option key={d.district} value={d.district}>
@@ -608,116 +720,175 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
                         ))}
                       </select>
                     </div>
+                  </div>
 
-                    <div>
-                      <label className="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-1">
-                        Town / City <span className="text-red-500">*</span>
-                      </label>
+                  {/* Town / City */}
+                  <div>
+                    <label className="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-1">
+                      Town / City <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <MapPin className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
                         type="text"
                         required
                         value={city}
                         onChange={(e) => setCity(e.target.value)}
-                        placeholder="e.g. Maharagama, Kandy..."
-                        className="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                        placeholder="e.g. Maharagama, Nugegoda, Kandy, Galle, Jaffna..."
+                        className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600 shadow-2xs"
                       />
                     </div>
                   </div>
-                )}
 
-                {/* 5. Optional Landmark / Note */}
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1">
-                    Order Note / Delivery Landmark <span className="text-slate-400 font-normal lowercase">(optional)</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={orderNote}
-                    onChange={(e) => setOrderNote(e.target.value)}
-                    placeholder="e.g. Near clock tower, call before arriving..."
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600"
-                  />
-                </div>
-
-                {/* Price Breakdown Calculation */}
-                <div className="p-3.5 rounded-2xl bg-white/90 border border-emerald-200/90 space-y-2 text-xs">
-                  <div className="flex justify-between text-slate-600">
-                    <span>Product Price ({quantity}x):</span>
-                    <span className="font-semibold text-slate-900">{formatLKR(itemTotal)}</span>
-                  </div>
-
-                  <div className="flex justify-between items-center text-slate-600">
-                    <span>Courier Delivery:</span>
-                    <span className="font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-[11px]">
-                      Invoiced via WhatsApp
+                  {/* Dynamic Delivery Fee Info Box: Invoiced on WhatsApp */}
+                  <div className="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                    <div className="flex items-center gap-2 text-amber-950 font-medium">
+                      <MessageCircle className="w-4 h-4 text-amber-700 shrink-0" />
+                      <span>Courier Delivery Fee: <strong className="font-bold">Invoiced on WhatsApp</strong> (Destination: {selectedDistrict})</span>
+                    </div>
+                    <span className="text-[10px] font-bold text-amber-800 bg-white px-2 py-0.5 rounded border border-amber-200 shrink-0 self-start sm:self-auto">
+                      Pay Upon Delivery
                     </span>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200/80 text-[11px] text-amber-900 leading-relaxed">
-                    <strong>💡 Delivery Notice:</strong> Only product price is charged here ({formatLKR(itemTotal)}). Courier delivery fee based on your destination city will be calculated and provided on your official WhatsApp invoice before courier dispatch.
+
+                  {/* 5. Optional Landmark / Note */}
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1">
+                      Order Note / Delivery Landmark <span className="text-slate-400 font-normal lowercase">(optional)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={orderNote}
+                      onChange={(e) => setOrderNote(e.target.value)}
+                      placeholder="e.g. Near clock tower, call before arriving..."
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                    />
                   </div>
 
-                  <div className="pt-2 border-t border-slate-200 flex justify-between items-baseline font-black">
-                    <div>
-                      <span className="text-slate-900 text-xs">Total Order Value:</span>
-                      <span className="block text-[10px] text-slate-500 font-medium">Product price only</span>
+                  {/* Price Breakdown Calculation */}
+                  <div className="p-3.5 rounded-2xl bg-white/90 border border-emerald-200/90 space-y-2 text-xs">
+                    <div className="flex justify-between text-slate-600">
+                      <span>Product Price ({quantity}x):</span>
+                      <span className="font-semibold text-slate-900">{formatLKR(itemTotal)}</span>
                     </div>
-                    <span className="text-base font-mono text-emerald-800">{formatLKR(itemTotal)}</span>
-                  </div>
-                </div>
 
-                {/* Submit COD Order Button */}
-                <button
-                  type="submit"
-                  disabled={isSubmittingCod}
-                  className="w-full px-4 py-3.5 sm:py-4 rounded-2xl bg-[#064E3B] hover:bg-[#04382A] active:scale-[0.99] text-white shadow-lg shadow-emerald-950/20 transition-all flex flex-col items-center justify-center gap-1 cursor-pointer disabled:opacity-50"
-                >
-                  {isSubmittingCod ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin text-white" />
-                      <span className="font-extrabold text-xs sm:text-sm uppercase tracking-wider">Submitting Order...</span>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex items-center justify-center gap-2 font-black text-xs sm:text-sm uppercase tracking-wider text-center">
-                        <MessageCircle className="w-4.5 h-4.5 text-emerald-200 shrink-0 fill-emerald-200/20" />
-                        <span>Confirm Cash on Delivery Order</span>
-                      </div>
-                      <span className="text-[10px] sm:text-[11px] text-emerald-100 font-medium normal-case tracking-normal text-center">
-                        Courier fee &amp; official invoice will be sent to your WhatsApp
+                    <div className="flex justify-between items-center text-slate-600">
+                      <span>Courier Delivery:</span>
+                      <span className="font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-[11px]">
+                        Invoiced via WhatsApp
                       </span>
-                    </>
-                  )}
-                </button>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200/80 text-[11px] text-amber-900 leading-relaxed">
+                      <strong>💡 Delivery Notice:</strong> Only product price is charged here ({formatLKR(itemTotal)}). Courier delivery fee based on your destination city will be calculated and provided on your official WhatsApp invoice before courier dispatch.
+                    </div>
 
-                {/* Assurance Badges */}
-                <div className="grid grid-cols-2 gap-2 pt-1 text-[11px] text-slate-600">
-                  <div className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>Zero Advance Payment</span>
+                    <div className="pt-2 border-t border-slate-200 flex justify-between items-baseline font-black">
+                      <div>
+                        <span className="text-slate-900 text-xs">Total Order Value:</span>
+                        <span className="block text-[10px] text-slate-500 font-medium">Product price only</span>
+                      </div>
+                      <span className="text-base font-mono text-emerald-800">{formatLKR(itemTotal)}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>Pay Cash Upon Delivery</span>
+
+                  {/* Submit COD Order Button */}
+                  <button
+                    type="submit"
+                    disabled={isSubmittingCod}
+                    className="w-full px-4 py-3.5 sm:py-4 rounded-2xl bg-[#064E3B] hover:bg-[#04382A] active:scale-[0.99] text-white shadow-lg shadow-emerald-950/20 transition-all flex flex-col items-center justify-center gap-1 cursor-pointer disabled:opacity-50"
+                  >
+                    {isSubmittingCod ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin text-white" />
+                        <span className="font-extrabold text-xs sm:text-sm uppercase tracking-wider">Submitting Order...</span>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center justify-center gap-2 font-black text-xs sm:text-sm uppercase tracking-wider text-center">
+                          <MessageCircle className="w-4.5 h-4.5 text-emerald-200 shrink-0 fill-emerald-200/20" />
+                          <span>Confirm Cash on Delivery Order</span>
+                        </div>
+                        <span className="text-[10px] sm:text-[11px] text-emerald-100 font-medium normal-case tracking-normal text-center">
+                          Courier fee &amp; official invoice will be sent to your WhatsApp
+                        </span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* Assurance Badges */}
+                  <div className="grid grid-cols-2 gap-2 pt-1 text-[11px] text-slate-600">
+                    <div className="flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span>Zero Advance Payment</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span>Pay Cash Upon Delivery</span>
+                    </div>
                   </div>
-                </div>
-              </form>
+                </form>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Delivery Section */}
+        <div className="p-4 rounded-3xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5">
+            <Truck className="w-4 h-4 text-emerald-700 shrink-0" />
+            <div>
+              <div className="font-bold text-slate-900">Islandwide COD Delivery via Courier</div>
+              <div className="text-[11px] text-slate-500">Delivered via Prompt Xpress &amp; Domex • Invoice with courier fee sent via WhatsApp</div>
             </div>
-          )}
+          </div>
+          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 shrink-0">
+            100% COD
+          </span>
         </div>
-      )}
 
-      {/* Delivery Section */}
-      <div className="p-4 rounded-3xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2.5">
-          <Truck className="w-4 h-4 text-emerald-700 shrink-0" />
-          <div>
-            <div className="font-bold text-slate-900">Islandwide COD Delivery via Courier</div>
-            <div className="text-[11px] text-slate-500">Delivered via Prompt Xpress &amp; Domex • Invoice with courier fee sent via WhatsApp</div>
+        {/* Dynamic Specifications & Category Attributes */}
+        {(product.attributes || product.specifications) && (
+          <div className="p-5 rounded-3xl bg-white border border-slate-200/80 shadow-2xs space-y-3 text-xs">
+            <h2 className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+              <span>Product Specifications & Details</span>
+            </h2>
+
+            <div className="space-y-2 text-slate-600 divide-y divide-slate-100">
+              {/* Dynamic Attributes Map */}
+              {product.attributes && Object.entries(product.attributes).map(([key, val]) => (
+                <div key={key} className="pt-2 flex justify-between gap-4">
+                  <span className="font-semibold text-slate-700">{key}:</span>
+                  <span className="text-slate-900 text-right">{val}</span>
+                </div>
+              ))}
+
+              {/* Dynamic Specifications Array */}
+              {product.specifications && product.specifications.map((spec) => (
+                <div key={spec.name} className="pt-2 flex justify-between gap-4">
+                  <span className="font-semibold text-slate-700">{spec.name}:</span>
+                  <span className="text-slate-900 text-right">{spec.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Value Props Row */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-2 text-center text-[10px] sm:text-[11px] text-slate-600 font-medium">
+          <div className="p-2.5 sm:p-3 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-1">
+            <Truck className="w-4 h-4 mx-auto text-emerald-700" />
+            <span className="block leading-tight">Islandwide Delivery</span>
+          </div>
+          <div className="p-2.5 sm:p-3 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-1">
+            <ShieldCheck className="w-4 h-4 mx-auto text-emerald-600" />
+            <span className="block leading-tight">Authentic Quality</span>
+          </div>
+          <div className="p-2.5 sm:p-3 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-1">
+            <RotateCcw className="w-4 h-4 mx-auto text-amber-600" />
+            <span className="block leading-tight">Easy Return Check</span>
           </div>
         </div>
-        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 shrink-0">
-          100% COD
-        </span>
       </div>
 
       {/* 🛒 Real-time Mobile "Added to Cart" Toast Alert */}
@@ -733,7 +904,7 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
                 <span>Added to Cart!</span>
               </div>
               <p className="text-[11px] text-emerald-100 truncate mt-0.5">
-                {quantity}x {product.title}
+                {quantity}x {product.title} ({selectedSize})
               </p>
             </div>
           </div>

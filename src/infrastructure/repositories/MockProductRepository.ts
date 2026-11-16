@@ -31,8 +31,20 @@ export class MockProductRepository implements IProductRepository {
         'https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=900&auto=format&fit=crop&q=80',
       ],
       variants: [
-        { size: 'Glacier White', sku: 'EAR-ANC-WHT', stock: 35 },
-        { size: 'Midnight Matte Black', sku: 'EAR-ANC-BLK', stock: 25 },
+        {
+          size: 'Glacier White',
+          sku: 'EAR-ANC-WHT',
+          stock: 35,
+          image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=900&auto=format&fit=crop&q=80',
+          colorHex: '#F8FAFC',
+        },
+        {
+          size: 'Midnight Matte Black',
+          sku: 'EAR-ANC-BLK',
+          stock: 25,
+          image: 'https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=900&auto=format&fit=crop&q=80',
+          colorHex: '#18181B',
+        },
       ],
       attributes: {
         'Connectivity': 'Bluetooth 5.3 Ultra-Low Latency',
@@ -99,8 +111,20 @@ export class MockProductRepository implements IProductRepository {
         'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=900&auto=format&fit=crop&q=80',
       ],
       variants: [
-        { size: '12-Piece Mint Green Set', sku: 'KTCH-12-MNT', stock: 35 },
-        { size: '12-Piece Nordic Grey Set', sku: 'KTCH-12-GRY', stock: 25 },
+        {
+          size: '12-Piece Mint Green Set',
+          sku: 'KTCH-12-MNT',
+          stock: 35,
+          image: 'https://images.unsplash.com/photo-1593618998160-e34014e67546?w=900&auto=format&fit=crop&q=80',
+          colorHex: '#6EE7B7',
+        },
+        {
+          size: '12-Piece Nordic Grey Set',
+          sku: 'KTCH-12-GRY',
+          stock: 25,
+          image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=900&auto=format&fit=crop&q=80',
+          colorHex: '#64748B',
+        },
       ],
       attributes: {
         'Material': 'Food-Grade Silicone (BPA-Free) + Natural Acacia Wood Handles',
@@ -891,8 +915,12 @@ export class MockProductRepository implements IProductRepository {
     return list;
   }
 
-  public async getAllProducts(): Promise<Product[]> {
-    return this.getStore();
+  public async getAllProducts(includeHidden: boolean = false): Promise<Product[]> {
+    const products = this.getStore();
+    if (includeHidden) {
+      return products;
+    }
+    return products.filter((p) => !p.isHidden && p.status !== 'inactive');
   }
 
   public async getProductById(id: string): Promise<Product | null> {
@@ -909,6 +937,11 @@ export class MockProductRepository implements IProductRepository {
     const products = this.getStore();
 
     let filtered = products.filter((product) => {
+      // 0. Exclude hidden or inactive products for customer storefront
+      if (!options.includeHidden && (product.isHidden === true || product.status === 'inactive')) {
+        return false;
+      }
+
       // 1. Category Matching (case-insensitive substring or exact)
       if (options.category && options.category !== 'All') {
         const catQuery = options.category.toLowerCase().trim();

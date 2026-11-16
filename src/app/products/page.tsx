@@ -175,18 +175,6 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
           </Link>
 
           <Link
-            href={`/products?filter=sale`}
-            className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all border ${
-              resolvedParams.filter === 'sale'
-                ? 'bg-red-600 text-white border-red-600'
-                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-            }`}
-          >
-            <Tag className="w-3 h-3 inline mr-1 text-red-500" />
-            Special Offers & Deals
-          </Link>
-
-          <Link
             href={`/products?codOnly=true`}
             className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all border ${
               isCodOnly

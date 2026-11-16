@@ -9,7 +9,7 @@ import { Product } from '@/core/entities/Product';
 export async function GET() {
   try {
     const productRepo = new MockProductRepository();
-    const products = await productRepo.getAllProducts();
+    const products = await productRepo.getAllProducts(true);
     return NextResponse.json({ success: true, products }, { status: 200 });
   } catch (error: any) {
     return NextResponse.json(
@@ -72,13 +72,15 @@ export async function POST(req: NextRequest) {
     const finalOfferPercentage =
       typeof offerPercentage === 'number' ? offerPercentage : computedDiscount;
 
-    // Variants with individual size quantities
+    // Variants with individual size & color quantities
     const baseSku = sku || `${slug.substring(0, 5).toUpperCase()}-01`;
     let productVariants = variants && Array.isArray(variants) && variants.length > 0
       ? variants.map((v: any, idx: number) => ({
           size: v.size || 'Standard',
           sku: v.sku || `${baseSku}-${idx + 1}`,
           stock: Number(v.stock) || 0,
+          image: v.image || undefined,
+          colorHex: v.colorHex || undefined,
         }))
       : [
           { size: 'Standard', sku: baseSku, stock: Number(stock) || 30 },
@@ -163,6 +165,8 @@ export async function PATCH(req: NextRequest) {
     if (typeof updates.offerPercentage === 'number') {
       cleanUpdates.offerPercentage = updates.offerPercentage;
     }
+    if (typeof updates.isHidden === 'boolean') cleanUpdates.isHidden = updates.isHidden;
+    if (updates.status === 'active' || updates.status === 'inactive') cleanUpdates.status = updates.status;
     if (typeof updates.isNewArrival === 'boolean') cleanUpdates.isNewArrival = updates.isNewArrival;
     if (typeof updates.isBestSeller === 'boolean') cleanUpdates.isBestSeller = updates.isBestSeller;
     if (updates.sourceType) cleanUpdates.sourceType = updates.sourceType;

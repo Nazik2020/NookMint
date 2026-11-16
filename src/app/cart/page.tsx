@@ -91,7 +91,11 @@ export default function CartPage() {
 
           {/* Items Container */}
           <div className="bg-white rounded-3xl border border-slate-200/80 shadow-2xs divide-y divide-slate-100 overflow-hidden">
-            {items.map((item) => (
+            {items.map((item) => {
+              const matchedVariant = item.product.variants?.find((v) => v.size === item.selectedSize);
+              const displayImage = matchedVariant?.image || item.product.images[0] || '/nookmint_images/hero.png';
+
+              return (
               <div
                 key={`${item.product.id}-${item.selectedSize}`}
                 className="p-4 sm:p-6 flex flex-col sm:flex-row gap-4 sm:gap-5 items-start sm:items-center justify-between transition-colors hover:bg-slate-50/40"
@@ -103,11 +107,11 @@ export default function CartPage() {
                     className="relative w-20 h-24 sm:w-24 sm:h-28 rounded-2xl overflow-hidden bg-slate-50 shrink-0 group border border-slate-200/60"
                   >
                     <Image
-                      src={item.product.images[0]}
-                      alt={item.product.title}
+                      src={displayImage}
+                      alt={`${item.product.title} - ${item.selectedSize}`}
                       fill
                       sizes="(max-width: 640px) 80px, 96px"
-                      unoptimized={item.product.images[0]?.startsWith('http') && !item.product.images[0]?.includes('unsplash.com') && !item.product.images[0]?.includes('supabase.co')}
+                      unoptimized={displayImage?.startsWith('http') && !displayImage?.includes('unsplash.com') && !displayImage?.includes('supabase.co')}
                       className="object-cover object-center group-hover:scale-104 transition-transform duration-300"
                     />
                   </Link>
@@ -176,7 +180,8 @@ export default function CartPage() {
                   </div>
                 </div>
               </div>
-            ))}
+            );
+          })}
           </div>
 
           {/* Continue Shopping Link: Stack cleanly on mobile */}
