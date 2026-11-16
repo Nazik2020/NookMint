@@ -3,12 +3,17 @@ import { CheckoutFacade } from '@/infrastructure/patterns/structural/CheckoutFac
 import { MockOrderRepository } from '@/infrastructure/repositories/MockOrderRepository';
 import { MockProductRepository } from '@/infrastructure/repositories/MockProductRepository';
 import { OrderStatus, PaymentStatus } from '@/shared/types/common';
+import { isAuthorizedAdmin } from '@/shared/utils/adminAuth';
 
 /**
  * Seller Admin Order Management Route Handler
  * Allows seller to list orders, verify manual bank deposits, and update courier fulfilment statuses.
  */
 export async function GET(req: NextRequest) {
+  if (!isAuthorizedAdmin(req)) {
+    return NextResponse.json({ success: false, message: 'Unauthorized. Admin session required.' }, { status: 401 });
+  }
+
   try {
     const facade = new CheckoutFacade();
     const orders = await facade.getAllOrders();
@@ -22,6 +27,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
+  if (!isAuthorizedAdmin(req)) {
+    return NextResponse.json({ success: false, message: 'Unauthorized. Admin session required.' }, { status: 401 });
+  }
   try {
     const body = await req.json();
     const { orderId, orderStatus, paymentStatus, verificationNotes, trackingNumber } = body;

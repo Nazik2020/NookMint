@@ -304,6 +304,9 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     const sessionAuth = sessionStorage.getItem('ls_admin_auth');
     if (sessionAuth === 'true') {
+      if (typeof document !== 'undefined') {
+        document.cookie = `ls_admin_session=${ADMIN_PIN_HASH}; path=/; SameSite=Lax`;
+      }
       setIsAuthenticated(true);
       fetchDashboardData();
     } else {
@@ -338,6 +341,9 @@ export default function AdminDashboardPage() {
     if (hashed === ADMIN_PIN_HASH || rawPin === '*#2027Nzk*#') {
       setIsAuthenticated(true);
       sessionStorage.setItem('ls_admin_auth', 'true');
+      if (typeof document !== 'undefined') {
+        document.cookie = `ls_admin_session=${ADMIN_PIN_HASH}; path=/; SameSite=Lax`;
+      }
       setAuthError('');
       fetchDashboardData();
     } else {
@@ -348,15 +354,19 @@ export default function AdminDashboardPage() {
   const handleLogout = () => {
     setIsAuthenticated(false);
     sessionStorage.removeItem('ls_admin_auth');
+    if (typeof document !== 'undefined') {
+      document.cookie = 'ls_admin_session=; path=/; max-age=0; SameSite=Lax';
+    }
   };
 
   const fetchDashboardData = async (isManual = false) => {
     setLoading(true);
     try {
+      const authHeaders = { 'x-admin-token': ADMIN_PIN_HASH };
       const [ordersRes, productsRes, settingsRes] = await Promise.all([
-        fetch('/api/admin/orders', { cache: 'no-store' }),
-        fetch('/api/admin/products', { cache: 'no-store' }),
-        fetch('/api/admin/settings', { cache: 'no-store' }),
+        fetch('/api/admin/orders', { cache: 'no-store', headers: authHeaders }),
+        fetch('/api/admin/products', { cache: 'no-store', headers: authHeaders }),
+        fetch('/api/admin/settings', { cache: 'no-store', headers: authHeaders }),
       ]);
 
       const ordersData = await ordersRes.json();
@@ -410,7 +420,7 @@ export default function AdminDashboardPage() {
     if (!isAuthenticated) return;
     const interval = setInterval(async () => {
       try {
-        const res = await fetch('/api/admin/orders', { cache: 'no-store' });
+        const res = await fetch('/api/admin/orders', { cache: 'no-store', headers: { 'x-admin-token': ADMIN_PIN_HASH } });
         const data = await res.json();
         if (data.success && data.orders) {
           const fetchedOrders = data.orders;

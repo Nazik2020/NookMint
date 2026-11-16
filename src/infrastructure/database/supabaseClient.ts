@@ -1,3 +1,8 @@
+// Ensure WebSocket polyfill for serverless Node environments < 22 so Realtime initialization never throws
+if (typeof globalThis.WebSocket === 'undefined' && typeof window === 'undefined') {
+  (globalThis as any).WebSocket = class {};
+}
+
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ntpcewaxbcqeneiibbam.supabase.co';

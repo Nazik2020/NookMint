@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SettingsRepository } from '@/infrastructure/repositories/SettingsRepository';
+import { isAuthorizedAdmin } from '@/shared/utils/adminAuth';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -14,7 +15,11 @@ const NO_CACHE_HEADERS = {
  * Seller Admin Settings Management API
  * Allows the store administrator to update corporate bank accounts, delivery fees, and contact details.
  */
-export async function GET() {
+export async function GET(req: NextRequest) {
+  if (!isAuthorizedAdmin(req)) {
+    return NextResponse.json({ success: false, message: 'Unauthorized. Admin session required.' }, { status: 401 });
+  }
+
   try {
     const settingsRepo = new SettingsRepository();
     const settings = await settingsRepo.getSettings();
@@ -31,6 +36,9 @@ export async function GET() {
 }
 
 export async function PATCH(req: NextRequest) {
+  if (!isAuthorizedAdmin(req)) {
+    return NextResponse.json({ success: false, message: 'Unauthorized. Admin session required.' }, { status: 401 });
+  }
   try {
     const body = await req.json();
     const { bankAccounts, delivery, contact, categories, categoryDetails } = body;

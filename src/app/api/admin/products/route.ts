@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MockProductRepository } from '@/infrastructure/repositories/MockProductRepository';
 import { Product } from '@/core/entities/Product';
+import { isAuthorizedAdmin } from '@/shared/utils/adminAuth';
 
 /**
  * Seller Admin Product Management Route Handler
  * Full CRUD for Products: list, add new, edit details/price/stock, and remove.
  */
-export async function GET() {
+export async function GET(req: NextRequest) {
+  if (!isAuthorizedAdmin(req)) {
+    return NextResponse.json({ success: false, message: 'Unauthorized. Admin session required.' }, { status: 401 });
+  }
+
   try {
     const productRepo = new MockProductRepository();
     const products = await productRepo.getAllProducts(true);
@@ -20,6 +25,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  if (!isAuthorizedAdmin(req)) {
+    return NextResponse.json({ success: false, message: 'Unauthorized. Admin session required.' }, { status: 401 });
+  }
   try {
     const body = await req.json();
     const {
@@ -134,6 +142,10 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
+  if (!isAuthorizedAdmin(req)) {
+    return NextResponse.json({ success: false, message: 'Unauthorized. Admin session required.' }, { status: 401 });
+  }
+
   try {
     const body = await req.json();
     const { productId, inStock, ...updates } = body;
@@ -208,6 +220,10 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  if (!isAuthorizedAdmin(req)) {
+    return NextResponse.json({ success: false, message: 'Unauthorized. Admin session required.' }, { status: 401 });
+  }
+
   try {
     const { searchParams } = new URL(req.url);
     const productId = searchParams.get('productId');

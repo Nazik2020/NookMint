@@ -4,9 +4,64 @@ import { CartProvider } from '@/presentation/context/CartContext';
 import { Navbar } from '@/presentation/components/organisms/Navbar';
 import { Footer } from '@/presentation/components/organisms/Footer';
 
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nookmint.com';
+
 export const metadata: Metadata = {
-  title: 'NookMint | Home, Garden & Smart Tech Gadgets • Sri Lanka COD',
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: 'NookMint | Home, Garden & Smart Tech Gadgets • Sri Lanka COD',
+    template: '%s | NookMint Sri Lanka',
+  },
   description: 'NookMint - Online ordering store for household essentials, kitchenware, home & garden supplies, and smart audio gadgets like earbuds & wireless mics. Islandwide Cash on Delivery across Sri Lanka.',
+  keywords: [
+    'NookMint',
+    'Sri Lanka online shopping',
+    'Cash on delivery Sri Lanka',
+    'Earbuds Colombo',
+    'Wireless mic Sri Lanka',
+    'Kitchen essentials Colombo',
+    'Home and garden Sri Lanka',
+    'Dropshipping Sri Lanka',
+  ],
+  authors: [{ name: 'NookMint' }],
+  creator: 'NookMint',
+  publisher: 'NookMint',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  openGraph: {
+    title: 'NookMint | Home, Garden & Smart Tech Gadgets • Sri Lanka COD',
+    description: 'Online ordering store for household essentials, kitchenware, home & garden supplies, and smart audio gadgets. 100% Cash on Delivery across Sri Lanka.',
+    url: siteUrl,
+    siteName: 'NookMint',
+    images: [
+      {
+        url: '/nookmint_images/hero.png',
+        width: 1200,
+        height: 630,
+        alt: 'NookMint E-Commerce Store',
+      },
+    ],
+    locale: 'en_LK',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'NookMint | Home, Garden & Smart Tech Gadgets',
+    description: 'Household essentials, home & garden supplies, and smart gadgets. Islandwide Cash on Delivery across Sri Lanka.',
+    images: ['/nookmint_images/hero.png'],
+  },
+  alternates: {
+    canonical: siteUrl,
+  },
 };
 
 export const viewport: Viewport = {
