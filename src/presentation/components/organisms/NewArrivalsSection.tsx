@@ -43,13 +43,22 @@ export const NewArrivalsSection: React.FC<NewArrivalsSectionProps> = ({ products
       </div>
 
       {/* Clean 4-Column Product Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5">
-        {displayProducts.map((product) => (
-          <div key={product.id} className="min-w-0">
-            <ProductCard product={product} />
-          </div>
-        ))}
-      </div>
+      {displayProducts.length === 0 ? (
+        <div className="p-8 sm:p-10 text-center bg-slate-50/80 rounded-2xl border border-dashed border-slate-200">
+          <p className="text-sm font-bold text-slate-700">New Arrivals Coming Soon!</p>
+          <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+            Stay tuned! Newly featured products will appear here as soon as they are published.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5">
+          {displayProducts.map((product) => (
+            <div key={product.id} className="min-w-0">
+              <ProductCard product={product} />
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 };

@@ -40,14 +40,23 @@ export const PopularProductsSection: React.FC<PopularProductsSectionProps> = ({ 
         </Link>
       </div>
 
-      {/* 5-Column Responsive Product Grid matching Reference Image 1 */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-4.5">
-        {displayProducts.map((product) => (
-          <div key={product.id} className="min-w-0">
-            <ProductCard product={product} />
-          </div>
-        ))}
-      </div>
+      {/* 5-Column Responsive Product Grid */}
+      {displayProducts.length === 0 ? (
+        <div className="p-8 sm:p-10 text-center bg-slate-50/80 rounded-2xl border border-dashed border-slate-200">
+          <p className="text-sm font-bold text-slate-700">New Products Arriving Soon!</p>
+          <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+            Our catalog is currently being updated with fresh inventory. Check back shortly or inquire directly on WhatsApp.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-4.5">
+          {displayProducts.map((product) => (
+            <div key={product.id} className="min-w-0">
+              <ProductCard product={product} />
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 };
