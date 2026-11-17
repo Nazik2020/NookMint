@@ -1,8 +1,23 @@
 import type { Metadata, Viewport } from 'next';
+import { Plus_Jakarta_Sans, Playfair_Display } from 'next/font/google';
 import './globals.css';
 import { CartProvider } from '@/presentation/context/CartContext';
 import { Navbar } from '@/presentation/components/organisms/Navbar';
 import { Footer } from '@/presentation/components/organisms/Footer';
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-sans',
+  weight: ['400', '500', '600', '700', '800'],
+});
+
+const playfairDisplay = Playfair_Display({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-serif',
+  weight: ['600', '700'],
+});
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nookmint.com';
 
@@ -77,7 +92,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="overflow-x-hidden w-full max-w-full">
-      <body className="min-h-screen flex flex-col bg-white text-slate-900 antialiased overflow-x-hidden w-full max-w-full selection:bg-blue-100 selection:text-blue-900">
+      <body className={`${plusJakartaSans.variable} ${playfairDisplay.variable} font-sans min-h-screen flex flex-col bg-white text-slate-900 antialiased overflow-x-hidden w-full max-w-full selection:bg-blue-100 selection:text-blue-900`}>
         <CartProvider>
           <Navbar />
           <main className="flex-1">{children}</main>

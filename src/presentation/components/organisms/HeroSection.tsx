@@ -69,7 +69,7 @@ export const HeroSection: React.FC = () => {
           <div className="pt-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3.5">
             <Link
               href="/products"
-              className="inline-flex items-center justify-center gap-2 px-6 sm:px-7 py-3 sm:py-3.5 bg-[#EA580C] hover:bg-[#C2410C] text-white font-extrabold text-sm sm:text-base rounded-xl shadow-md shadow-orange-500/25 transition-all hover:scale-102 active:scale-98 text-center"
+              className="inline-flex items-center justify-center gap-2 px-6 sm:px-7 py-3 sm:py-3.5 bg-[#C2410C] hover:bg-[#9A3412] text-white font-black text-sm sm:text-base rounded-xl shadow-md shadow-orange-900/20 transition-all hover:scale-102 active:scale-98 text-center"
             >
               <span>Explore Collection</span>
               <ArrowRight className="w-4 h-4 sm:w-4.5 sm:h-4.5 stroke-[2.5]" />

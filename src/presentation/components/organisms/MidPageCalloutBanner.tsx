@@ -21,7 +21,7 @@ export const MidPageCalloutBanner: React.FC = () => {
             <div className="pt-1 flex justify-center md:justify-start">
               <Link
                 href="/products"
-                className="inline-flex items-center gap-2 px-6 py-2.5 sm:py-3 bg-[#EA580C] hover:bg-[#C2410C] text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition-all hover:scale-101 active:scale-98"
+                className="inline-flex items-center gap-2 px-6 py-2.5 sm:py-3 bg-[#C2410C] hover:bg-[#9A3412] text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md transition-all hover:scale-101 active:scale-98"
               >
                 <span>Browse All Products</span>
                 <ArrowRight className="w-4 h-4 stroke-[2.5]" />
@@ -37,7 +37,6 @@ export const MidPageCalloutBanner: React.FC = () => {
               fill
               sizes="(max-width: 768px) 100vw, 450px"
               className="object-cover object-center"
-              unoptimized
               loading="lazy"
               decoding="async"
             />

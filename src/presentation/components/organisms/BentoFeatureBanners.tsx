@@ -19,9 +19,9 @@ export const BentoFeatureBanners: React.FC = () => {
               <span>Home & Garden</span>
             </span>
 
-            <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
               Cozy Living
-            </h3>
+            </h2>
             
             <p className="text-xs sm:text-sm text-slate-600 leading-snug">
               Gardening tools, indoor planters, and kitchenware essentials.
@@ -43,7 +43,6 @@ export const BentoFeatureBanners: React.FC = () => {
               fill
               sizes="(max-width: 640px) 180px, 240px"
               className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
-              unoptimized
               loading="lazy"
               decoding="async"
             />
@@ -62,9 +61,9 @@ export const BentoFeatureBanners: React.FC = () => {
               <span>Audio & Tech</span>
             </span>
 
-            <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
               Smart Gadgets
-            </h3>
+            </h2>
 
             <p className="text-xs sm:text-sm text-slate-600 leading-snug">
               Wireless earbuds, streaming lapel mics, and smart daily accessories.
@@ -86,7 +85,6 @@ export const BentoFeatureBanners: React.FC = () => {
               fill
               sizes="(max-width: 640px) 180px, 240px"
               className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
-              unoptimized
               loading="lazy"
               decoding="async"
             />

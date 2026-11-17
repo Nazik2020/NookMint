@@ -30,15 +30,15 @@ export const Footer: React.FC = () => {
           {/* Column 2: Shop */}
           <div className="lg:col-span-2 space-y-3">
             <h4 className="font-extrabold text-xs sm:text-sm tracking-wider uppercase text-white">Shop</h4>
-            <ul className="space-y-1.5 text-xs text-emerald-100/80 font-normal">
-              <li><Link href="/products" className="hover:text-white transition-colors">All Products</Link></li>
-              <li><Link href="/products?category=Kitchen+%26+Dining" className="hover:text-white transition-colors">Kitchen &amp; Dining</Link></li>
-              <li><Link href="/products?category=Smart+Gadgets+%26+Audio" className="hover:text-white transition-colors">Smart Gadgets &amp; Audio</Link></li>
-              <li><Link href="/products?category=Kids%2C+Baby+%26+Toys" className="hover:text-white transition-colors">Kids, Baby &amp; Toys</Link></li>
-              <li><Link href="/products?category=Home+%26+Living" className="hover:text-white transition-colors">Home &amp; Living</Link></li>
-              <li><Link href="/products?category=Home+%26+Garden" className="hover:text-white transition-colors">Home &amp; Garden</Link></li>
-              <li><Link href="/products?category=Car+%26+Vehicle+Accessories" className="hover:text-white transition-colors">Car &amp; Vehicle</Link></li>
-              <li><Link href="/products?category=Beauty+%26+Personal+Care" className="hover:text-white transition-colors">Beauty &amp; Care</Link></li>
+            <ul className="space-y-1 text-xs text-emerald-100/80 font-normal">
+              <li><Link href="/products" className="py-1 inline-block hover:text-white transition-colors">All Products</Link></li>
+              <li><Link href="/products?category=Kitchen+%26+Dining" className="py-1 inline-block hover:text-white transition-colors">Kitchen &amp; Dining</Link></li>
+              <li><Link href="/products?category=Smart+Gadgets+%26+Audio" className="py-1 inline-block hover:text-white transition-colors">Smart Gadgets &amp; Audio</Link></li>
+              <li><Link href="/products?category=Kids%2C+Baby+%26+Toys" className="py-1 inline-block hover:text-white transition-colors">Kids, Baby &amp; Toys</Link></li>
+              <li><Link href="/products?category=Home+%26+Living" className="py-1 inline-block hover:text-white transition-colors">Home &amp; Living</Link></li>
+              <li><Link href="/products?category=Home+%26+Garden" className="py-1 inline-block hover:text-white transition-colors">Home &amp; Garden</Link></li>
+              <li><Link href="/products?category=Car+%26+Vehicle+Accessories" className="py-1 inline-block hover:text-white transition-colors">Car &amp; Vehicle</Link></li>
+              <li><Link href="/products?category=Beauty+%26+Personal+Care" className="py-1 inline-block hover:text-white transition-colors">Beauty &amp; Care</Link></li>
             </ul>
           </div>
 
