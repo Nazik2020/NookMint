@@ -2505,9 +2505,11 @@ Total COD Amount: Rs. ${order.grandTotal}`;
                           <span className="text-sm font-black text-[#064E3B] font-serif">
                             {formatLKR(product.sellingPrice)}
                           </span>
-                          <span className="text-[11px] text-slate-400 line-through">
-                            {formatLKR(product.mrp)}
-                          </span>
+                          {product.mrp > product.sellingPrice && (
+                            <span className="text-[11px] text-slate-400 line-through font-mono">
+                              {formatLKR(product.mrp)}
+                            </span>
+                          )}
                         </div>
 
                         {/* Dropship Margin Display */}
@@ -4816,7 +4818,7 @@ Facebook Page: NookMint`;
             if (e.target === e.currentTarget) setIsAddingProduct(false);
           }}
         >
-          <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200/90 flex flex-col h-[90vh] max-h-[90vh] overflow-hidden">
+          <div className="bg-white rounded-3xl max-w-3xl sm:max-w-4xl w-full shadow-2xl border border-slate-200/90 flex flex-col h-[90vh] max-h-[90vh] overflow-hidden">
             <div className="px-6 py-4 sm:px-8 sm:py-5 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white rounded-t-3xl z-10">
               <div>
                 <div className="flex items-center gap-1.5 mb-1">
@@ -4873,121 +4875,122 @@ Facebook Page: NookMint`;
               )}
 
               {/* Sourcing Channel Selector (Dropship vs In-House) */}
-              <div className="p-3.5 rounded-2xl bg-[#FAF6F3] border border-slate-200/90 space-y-2">
+              <div className="p-3 sm:p-4 rounded-2xl bg-[#FAF6F3] border border-slate-200/90 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-800">
                     Product Sourcing Model *
                   </span>
-                  <span className="text-[10px] text-slate-500 font-medium">Customer only sees NookMint</span>
+                  <span className="text-[10px] text-slate-500 font-medium bg-white px-2 py-0.5 rounded-full border border-slate-200">
+                    Customer only sees NookMint
+                  </span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   <button
                     type="button"
                     onClick={() => setProductForm({ ...productForm, sourceType: 'dropship' })}
-                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-start gap-3 ${
                       productForm.sourceType === 'dropship'
                         ? 'bg-white border-[#064E3B] ring-2 ring-[#064E3B]/20 shadow-xs'
                         : 'bg-white/60 border-slate-200 hover:border-slate-300'
                     }`}
                   >
-                    <div className="flex items-center gap-2 font-extrabold text-xs text-slate-900">
-                      <div className="w-5 h-5 rounded-md bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
-                        <Package className="w-3.5 h-3.5" />
-                      </div>
-                      <span>A to Z Traders (Dropship)</span>
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                      productForm.sourceType === 'dropship'
+                        ? 'bg-[#064E3B] text-white shadow-xs'
+                        : 'bg-emerald-100 text-emerald-800'
+                    }`}>
+                      <Package className="w-4 h-4" />
                     </div>
-                    <p className="text-[11px] text-slate-500 mt-1 leading-snug">
-                      Catalog item fulfilled by A to Z Traders (iSales). You enter their product code & wholesale cost. They pack and ship islandwide.
-                    </p>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="font-extrabold text-xs text-slate-900">A to Z Traders (Dropship)</span>
+                        {productForm.sourceType === 'dropship' && (
+                          <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-50 text-[#064E3B] border border-emerald-200">
+                            Active
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                        Fulfilled via iSales. Automated islandwide packing, Prompt/Domex courier &amp; COD collection.
+                      </p>
+                    </div>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setProductForm({ ...productForm, sourceType: 'own' })}
-                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-start gap-3 ${
                       productForm.sourceType === 'own'
                         ? 'bg-white border-slate-900 ring-2 ring-slate-900/15 shadow-xs'
                         : 'bg-white/60 border-slate-200 hover:border-slate-300'
                     }`}
                   >
-                    <div className="flex items-center gap-1.5 font-extrabold text-xs text-slate-900">
-                      <Building2 className="w-3.5 h-3.5 text-slate-700" />
-                      <span>Own Inventory / In-House</span>
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                      productForm.sourceType === 'own'
+                        ? 'bg-slate-900 text-white shadow-xs'
+                        : 'bg-slate-200 text-slate-700'
+                    }`}>
+                      <Building2 className="w-4 h-4" />
                     </div>
-                    <p className="text-[11px] text-slate-500 mt-1 leading-snug">
-                      Your own manufactured or pre-stocked items. You pack the parcel and set custom shipping rates / delivery rules for customers.
-                    </p>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="font-extrabold text-xs text-slate-900">Own Inventory (In-House)</span>
+                        {productForm.sourceType === 'own' && (
+                          <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200">
+                            Active
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                        Your own stocked items. You pack parcels and customize delivery fees per district.
+                      </p>
+                    </div>
                   </button>
                 </div>
               </div>
 
-              {/* Sourcing Model Explanation Banner */}
-              {productForm.sourceType === 'dropship' ? (
-                <div className="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200 flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-[#064E3B] text-white flex items-center justify-center shrink-0 font-bold text-sm">
-                    <Truck className="w-4 h-4" />
-                  </div>
-                  <div className="space-y-0.5">
-                    <div className="font-extrabold text-xs text-emerald-950">A to Z Traders Dropshipping Model</div>
-                    <p className="text-[11px] text-emerald-800 leading-snug">
-                      No delivery fees or delivery dates needed. When orders arrive on NookMint, copy the customer details into iSales. A to Z Traders will pack, ship, and collect COD across Sri Lanka.
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-3.5 rounded-2xl bg-slate-100 border border-slate-200 flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0 font-bold text-sm">
-                    <Building2 className="w-4 h-4 text-emerald-400" />
-                  </div>
-                  <div className="space-y-0.5">
-                    <div className="font-extrabold text-xs text-slate-900">Own Inventory (In-House) Model</div>
-                    <p className="text-[11px] text-slate-600 leading-snug">
-                      You pack and ship directly. Below, you can configure your delivery fees (standard, free, or flat fee) and test delivery days per district.
-                    </p>
-                  </div>
-                </div>
-              )}
-
               {/* 1. Basic Product Details & Sourcing Code */}
               <div className="space-y-3.5">
-                <h4 className="font-extrabold text-xs uppercase tracking-wider text-slate-800 border-b border-slate-100 pb-1">
-                  1. Product Details & {productForm.sourceType === 'own' ? 'Internal SKU' : 'iSales Code'}
+                <h4 className="font-extrabold text-xs uppercase tracking-wider text-slate-800 border-b border-slate-100 pb-1.5 flex items-center gap-1.5">
+                  <span>1. Product Details &amp; {productForm.sourceType === 'own' ? 'Internal SKU' : 'iSales Code'}</span>
                 </h4>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="sm:col-span-2">
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Product Title *</label>
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                  <div className="sm:col-span-8">
+                    <div className="h-5 flex items-center justify-between mb-1.5">
+                      <label className="text-[11px] font-bold text-slate-700">Product Title *</label>
+                    </div>
                     <input
                       type="text"
                       required
                       value={productForm.title}
                       onChange={(e) => setProductForm({ ...productForm, title: e.target.value })}
                       placeholder="e.g. Pro Sound True Wireless Earbuds with ANC"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-medium focus:ring-2 focus:ring-[#064E3B]"
+                      className="w-full h-10 px-3.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-[#064E3B]"
                     />
                   </div>
 
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
-                      {productForm.sourceType === 'own' ? 'Product Code / Internal SKU *' : 'iSales Product Code / SKU *'}
-                    </label>
+                  <div className="sm:col-span-4">
+                    <div className="h-5 flex items-center justify-between mb-1.5">
+                      <label className="text-[11px] font-bold text-slate-700">
+                        {productForm.sourceType === 'own' ? 'Product Code / SKU *' : 'iSales Code / SKU *'}
+                      </label>
+                      <span className="text-[10px] text-slate-400">Searchable</span>
+                    </div>
                     <input
                       type="text"
                       required
                       value={productForm.sku}
                       onChange={(e) => setProductForm({ ...productForm, sku: e.target.value })}
                       placeholder={productForm.sourceType === 'own' ? 'e.g. OWN-MUG-01' : 'e.g. AZ-4040'}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono font-bold text-[#064E3B] bg-slate-50 focus:ring-2 focus:ring-[#064E3B]"
+                      className="w-full h-10 px-3.5 rounded-xl border border-slate-200 text-xs font-mono font-bold text-[#064E3B] bg-slate-50/80 focus:bg-white focus:ring-2 focus:ring-[#064E3B]"
                     />
-                    <span className="text-[10px] text-slate-400 block mt-0.5">
-                      Used in Order Details, Analytics &amp; Storefront Search
-                    </span>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <div className="flex items-center justify-between mb-1">
+                    <div className="h-5 flex items-center justify-between mb-1.5">
                       <label className="text-[11px] font-bold text-slate-700">
                         {isAddingCategory ? 'New Category *' : 'Category *'}
                       </label>
@@ -4997,10 +5000,10 @@ Facebook Page: NookMint`;
                           setIsAddingCategory(!isAddingCategory);
                           if (isAddingCategory) setNewCategoryName('');
                         }}
-                        className={`text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors ${
+                        className={`text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors px-1.5 py-0.5 rounded ${
                           isAddingCategory
-                            ? 'text-slate-500 hover:text-slate-800'
-                            : 'text-[#064E3B] hover:text-[#04382A]'
+                            ? 'text-slate-500 hover:text-slate-800 bg-slate-100'
+                            : 'text-[#064E3B] hover:text-[#04382A] bg-emerald-50 border border-emerald-200'
                         }`}
                       >
                         {isAddingCategory ? (
@@ -5022,7 +5025,7 @@ Facebook Page: NookMint`;
                             value={newCategoryName}
                             onChange={(e) => setNewCategoryName(e.target.value)}
                             placeholder="Category name..."
-                            className="w-full pl-3 pr-14 py-2 rounded-xl border border-emerald-600 text-xs font-bold bg-white focus:outline-none focus:ring-2 focus:ring-[#064E3B]"
+                            className="w-full h-10 pl-3 pr-14 rounded-xl border border-emerald-600 text-xs font-bold bg-white focus:outline-none focus:ring-2 focus:ring-[#064E3B]"
                             autoFocus
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
@@ -5034,7 +5037,7 @@ Facebook Page: NookMint`;
                           <button
                             type="button"
                             onClick={() => handleAddNewCategory()}
-                            className="absolute right-1 px-2.5 py-1 rounded-lg bg-[#064E3B] hover:bg-[#04382A] text-white text-[10px] font-extrabold uppercase tracking-wider transition-colors cursor-pointer shadow-2xs"
+                            className="absolute right-1 px-2.5 py-1.5 rounded-lg bg-[#064E3B] hover:bg-[#04382A] text-white text-[10px] font-extrabold uppercase tracking-wider transition-colors cursor-pointer shadow-2xs"
                           >
                             Save
                           </button>
@@ -5063,7 +5066,7 @@ Facebook Page: NookMint`;
                             setProductForm({ ...productForm, category: e.target.value });
                           }
                         }}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:ring-2 focus:ring-[#064E3B]"
+                        className="w-full h-10 px-3.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#064E3B] cursor-pointer"
                       >
                         {availableCategories.map((cat) => (
                           <option key={cat} value={cat}>
@@ -5076,33 +5079,39 @@ Facebook Page: NookMint`;
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Brand Name</label>
+                    <div className="h-5 flex items-center justify-between mb-1.5">
+                      <label className="text-[11px] font-bold text-slate-700">Brand Name</label>
+                      <span className="text-[10px] text-slate-400">Optional</span>
+                    </div>
                     <input
                       type="text"
                       value={productForm.brand}
                       onChange={(e) => setProductForm({ ...productForm, brand: e.target.value })}
                       placeholder="e.g. NookMint / ProSound"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-[#064E3B]"
+                      className="w-full h-10 px-3.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#064E3B]"
                     />
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Unit / Package</label>
+                    <div className="h-5 flex items-center justify-between mb-1.5">
+                      <label className="text-[11px] font-bold text-slate-700">Unit / Package</label>
+                      <span className="text-[10px] text-slate-400">e.g. 1 Pc, 300ml</span>
+                    </div>
                     <input
                       type="text"
                       value={productForm.unit}
                       onChange={(e) => setProductForm({ ...productForm, unit: e.target.value })}
                       placeholder="e.g. 1 Unit / 12 Pcs Set"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-[#064E3B]"
+                      className="w-full h-10 px-3.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#064E3B]"
                     />
                   </div>
                 </div>
 
                 {/* 2. Storefront Merchandising Badges */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                  <label className={`p-3 rounded-2xl border cursor-pointer flex items-center gap-3 transition-all ${
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <label className={`p-3 sm:p-3.5 rounded-2xl border cursor-pointer flex items-center gap-3 transition-all ${
                     productForm.isNewArrival
-                      ? 'bg-amber-50/80 border-amber-300 ring-2 ring-amber-300/30'
+                      ? 'bg-amber-50/90 border-amber-300 ring-2 ring-amber-300/40 shadow-xs'
                       : 'bg-slate-50 border-slate-200 hover:border-slate-300'
                   }`}>
                     <input
@@ -5111,20 +5120,20 @@ Facebook Page: NookMint`;
                       onChange={(e) => setProductForm({ ...productForm, isNewArrival: e.target.checked })}
                       className="w-4 h-4 text-amber-500 rounded focus:ring-amber-400"
                     />
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <div className="font-bold text-xs text-amber-950 flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                        <Sparkles className="w-3.5 h-3.5 fill-amber-500 text-amber-500 shrink-0" />
                         <span>Feature in &quot;New Arrivals&quot; Section</span>
                       </div>
-                      <div className="text-[10px] text-amber-800 mt-0.5">
+                      <div className="text-[10px] text-amber-800 mt-0.5 truncate sm:whitespace-normal">
                         Showcase immediately in the Homepage New Arrivals grid
                       </div>
                     </div>
                   </label>
 
-                  <label className={`p-3 rounded-2xl border cursor-pointer flex items-center gap-3 transition-all ${
+                  <label className={`p-3 sm:p-3.5 rounded-2xl border cursor-pointer flex items-center gap-3 transition-all ${
                     productForm.isBestSeller
-                      ? 'bg-rose-50/80 border-rose-300 ring-2 ring-rose-300/30'
+                      ? 'bg-rose-50/90 border-rose-300 ring-2 ring-rose-300/40 shadow-xs'
                       : 'bg-slate-50 border-slate-200 hover:border-slate-300'
                   }`}>
                     <input
@@ -5133,12 +5142,12 @@ Facebook Page: NookMint`;
                       onChange={(e) => setProductForm({ ...productForm, isBestSeller: e.target.checked })}
                       className="w-4 h-4 text-rose-600 rounded focus:ring-rose-400"
                     />
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <div className="font-bold text-xs text-rose-950 flex items-center gap-1.5">
-                        <Flame className="w-3.5 h-3.5 fill-rose-600 text-rose-600" />
+                        <Flame className="w-3.5 h-3.5 fill-rose-600 text-rose-600 shrink-0" />
                         <span>Feature in &quot;Popular Products&quot; Showcase</span>
                       </div>
-                      <div className="text-[10px] text-rose-800 mt-0.5">
+                      <div className="text-[10px] text-rose-800 mt-0.5 truncate sm:whitespace-normal">
                         Showcase prominently in the customer Homepage Popular section
                       </div>
                     </div>
@@ -5147,14 +5156,18 @@ Facebook Page: NookMint`;
               </div>
 
               {/* 3. Pricing, Cost & Live Profit Margin */}
-              <div className="space-y-3 p-4 rounded-2xl bg-emerald-50/40 border border-emerald-200">
+              <div className="space-y-3.5 p-4 sm:p-5 rounded-2xl bg-emerald-50/50 border border-emerald-200">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-extrabold text-xs uppercase tracking-wider text-emerald-950 flex items-center gap-1.5">
-                    <Percent className="w-3.5 h-3.5 text-emerald-700" />
-                    <span>3. Pricing & {productForm.sourceType === 'own' ? 'In-House Profit Margin' : 'Dropship Profit Margin'}</span>
-                  </h4>
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-md bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
+                      <Percent className="w-3.5 h-3.5" />
+                    </div>
+                    <h4 className="font-extrabold text-xs uppercase tracking-wider text-emerald-950">
+                      3. Pricing &amp; {productForm.sourceType === 'own' ? 'In-House Profit Margin' : 'Dropship Profit Margin'}
+                    </h4>
+                  </div>
                   {productForm.offerPercentage > 0 && (
-                    <span className="px-2.5 py-0.5 rounded-full bg-amber-500 text-white font-black text-[10px] tracking-wide uppercase">
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 font-black text-[10px] tracking-wide uppercase">
                       {productForm.offerPercentage}% OFF APPLIED
                     </span>
                   )}
@@ -5162,9 +5175,11 @@ Facebook Page: NookMint`;
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div>
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
-                      {productForm.sourceType === 'own' ? 'Unit Cost / Mfg (Rs.) *' : 'Wholesale Cost (Rs.) *'}
-                    </label>
+                    <div className="h-5 flex items-center justify-between mb-1.5">
+                      <label className="text-[11px] font-bold text-slate-700">
+                        {productForm.sourceType === 'own' ? 'Unit Cost (Rs.) *' : 'Wholesale Cost *'}
+                      </label>
+                    </div>
                     <input
                       type="number"
                       required
@@ -5172,17 +5187,19 @@ Facebook Page: NookMint`;
                       value={productForm.costPrice}
                       onChange={(e) => setProductForm({ ...productForm, costPrice: Number(e.target.value) })}
                       placeholder="e.g. 2500"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-mono text-xs font-bold text-slate-700 bg-white focus:ring-2 focus:ring-[#064E3B]"
+                      className="w-full h-10 px-3.5 rounded-xl border border-slate-200 font-mono text-xs font-bold text-slate-700 bg-white focus:ring-2 focus:ring-[#064E3B]"
                     />
-                    <span className="text-[10px] text-slate-400 block mt-0.5">
+                    <span className="text-[10px] text-slate-400 block mt-1">
                       {productForm.sourceType === 'own' ? 'Your stock cost' : 'A to Z catalogue price'}
                     </span>
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
-                      Selling Price (Rs.) *
-                    </label>
+                    <div className="h-5 flex items-center justify-between mb-1.5">
+                      <label className="text-[11px] font-bold text-slate-700">
+                        Selling Price (Rs.) *
+                      </label>
+                    </div>
                     <input
                       type="number"
                       required
@@ -5190,15 +5207,17 @@ Facebook Page: NookMint`;
                       value={productForm.sellingPrice}
                       onChange={(e) => handlePriceChange('sellingPrice', Number(e.target.value))}
                       placeholder="e.g. 3890"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-mono text-xs font-black text-[#064E3B] bg-white focus:ring-2 focus:ring-[#064E3B]"
+                      className="w-full h-10 px-3.5 rounded-xl border border-slate-200 font-mono text-xs font-black text-[#064E3B] bg-white focus:ring-2 focus:ring-[#064E3B]"
                     />
-                    <span className="text-[10px] text-slate-400 block mt-0.5">Customer COD total</span>
+                    <span className="text-[10px] text-slate-400 block mt-1">Customer COD total</span>
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
-                      MRP / Strike Price (Rs.) *
-                    </label>
+                    <div className="h-5 flex items-center justify-between mb-1.5">
+                      <label className="text-[11px] font-bold text-slate-700">
+                        MRP / Strike Price *
+                      </label>
+                    </div>
                     <input
                       type="number"
                       required
@@ -5206,15 +5225,17 @@ Facebook Page: NookMint`;
                       value={productForm.mrp}
                       onChange={(e) => handlePriceChange('mrp', Number(e.target.value))}
                       placeholder="e.g. 4900"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-mono text-xs text-slate-500 bg-white focus:ring-2 focus:ring-[#064E3B]"
+                      className="w-full h-10 px-3.5 rounded-xl border border-slate-200 font-mono text-xs text-slate-500 bg-white focus:ring-2 focus:ring-[#064E3B]"
                     />
-                    <span className="text-[10px] text-slate-400 block mt-0.5">Reference market price</span>
+                    <span className="text-[10px] text-slate-400 block mt-1">Reference market price</span>
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
-                      Offer Discount (%)
-                    </label>
+                    <div className="h-5 flex items-center justify-between mb-1.5">
+                      <label className="text-[11px] font-bold text-slate-700">
+                        Offer Discount (%)
+                      </label>
+                    </div>
                     <input
                       type="number"
                       min={0}
@@ -5222,26 +5243,26 @@ Facebook Page: NookMint`;
                       value={productForm.offerPercentage}
                       onChange={(e) => handleOfferChange(Number(e.target.value))}
                       placeholder="e.g. 20"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-mono text-xs font-bold text-slate-800 bg-white focus:ring-2 focus:ring-[#064E3B]"
+                      className="w-full h-10 px-3.5 rounded-xl border border-slate-200 font-mono text-xs font-bold text-slate-800 bg-white focus:ring-2 focus:ring-[#064E3B]"
                     />
-                    <span className="text-[10px] text-slate-400 block mt-0.5">Auto-computed</span>
+                    <span className="text-[10px] text-slate-400 block mt-1">Auto-computed</span>
                   </div>
                 </div>
 
                 {/* Live Profit Calculation Card */}
-                <div className="p-3 rounded-xl bg-white border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                <div className="p-3.5 rounded-xl bg-white border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs shadow-2xs">
                   <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-slate-600">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                    <span className="text-slate-600 font-medium">
                       {productForm.sourceType === 'own' ? 'Your In-House Net Profit per Sale:' : 'Your Estimated Dropship Profit per Sale:'}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 shrink-0">
                     <strong className="text-sm font-black text-emerald-800 font-mono">
                       +{formatLKR(productForm.sellingPrice - (productForm.costPrice || 0))} Net Profit
                     </strong>
                     {productForm.sellingPrice > 0 && (
-                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">
                         {Math.round(((productForm.sellingPrice - (productForm.costPrice || 0)) / productForm.sellingPrice) * 100)}% Margin
                       </span>
                     )}
@@ -5273,8 +5294,8 @@ Facebook Page: NookMint`;
                 </div>
 
                 {/* Upload & Add Bar */}
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <label className={`cursor-pointer px-4 py-2.5 ${isUploadingImage ? 'bg-emerald-700' : 'bg-[#064E3B] hover:bg-[#04382A]'} text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-xs`}>
+                <div className="flex flex-col sm:flex-row gap-2.5">
+                  <label className={`cursor-pointer h-10 px-4 ${isUploadingImage ? 'bg-emerald-700' : 'bg-[#064E3B] hover:bg-[#04382A]'} text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-xs shrink-0`}>
                     <UploadCloud className={`w-4 h-4 ${isUploadingImage ? 'animate-bounce' : ''}`} />
                     <span>{isUploadingImage ? 'Optimizing & Uploading...' : '+ Upload Photo from Device'}</span>
                     <input
@@ -5293,7 +5314,7 @@ Facebook Page: NookMint`;
                       value={newProductImageUrl}
                       onChange={(e) => setNewProductImageUrl(e.target.value)}
                       placeholder="Or paste photo URL (/nookmint_images/... or https://...)"
-                      className="flex-1 px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-[#064E3B]"
+                      className="flex-1 h-10 px-3.5 bg-white rounded-xl border border-slate-200 text-xs text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-[#064E3B]"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           e.preventDefault();
@@ -5304,7 +5325,7 @@ Facebook Page: NookMint`;
                     <button
                       type="button"
                       onClick={() => handleAddProductImageUrl()}
-                      className="px-3.5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                      className="h-10 px-4 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl text-xs font-bold transition-colors cursor-pointer shrink-0"
                     >
                       Add URL
                     </button>
@@ -5388,8 +5409,8 @@ Facebook Page: NookMint`;
                     Add a hands-on unboxing, feature showcase, or video clip. Appears with a play button in the storefront gallery.
                   </p>
 
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <label className={`cursor-pointer px-4 py-2.5 ${isUploadingVideo ? 'bg-emerald-700' : 'bg-slate-800 hover:bg-slate-900'} text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-xs shrink-0`}>
+                  <div className="flex flex-col sm:flex-row gap-2.5">
+                    <label className={`cursor-pointer h-10 px-4 ${isUploadingVideo ? 'bg-emerald-700' : 'bg-slate-800 hover:bg-slate-900'} text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-xs shrink-0`}>
                       <Video className={`w-4 h-4 ${isUploadingVideo ? 'animate-bounce text-emerald-300' : ''}`} />
                       <span>{isUploadingVideo ? 'Uploading Video to Supabase...' : '+ Upload Video (MP4)'}</span>
                       <input
@@ -5407,13 +5428,13 @@ Facebook Page: NookMint`;
                         value={productForm.videoUrl || ''}
                         onChange={(e) => setProductForm((prev) => ({ ...prev, videoUrl: e.target.value }))}
                         placeholder="Or paste video URL (https://... or .mp4)"
-                        className="flex-1 px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-[#064E3B]"
+                        className="flex-1 h-10 px-3.5 bg-white rounded-xl border border-slate-200 text-xs text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-[#064E3B]"
                       />
                       {productForm.videoUrl && (
                         <button
                           type="button"
                           onClick={() => setProductForm((prev) => ({ ...prev, videoUrl: '' }))}
-                          className="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                          className="h-10 px-4 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-bold transition-colors cursor-pointer shrink-0"
                         >
                           Clear
                         </button>
@@ -5794,16 +5815,21 @@ Facebook Page: NookMint`;
               )}
 
               {/* 7. Description & Specifications */}
-              <div>
-                <label className="text-[11px] font-bold text-slate-700 block mb-1">
-                  Product Description & Specifications
-                </label>
+              <div className="space-y-1.5 pb-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-bold text-slate-700">
+                    Product Description &amp; Specifications
+                  </label>
+                  <span className="text-[10px] text-slate-400">
+                    Supports line breaks &amp; paragraphs
+                  </span>
+                </div>
                 <textarea
-                  rows={3}
+                  rows={4}
                   value={productForm.description}
                   onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
                   placeholder="Describe product highlights, technical specs, material quality, and usage instructions..."
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-[#064E3B]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-normal leading-relaxed focus:ring-2 focus:ring-[#064E3B]"
                 />
               </div>
             </form>
