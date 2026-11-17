@@ -84,3 +84,38 @@ export async function PATCH(req: NextRequest) {
     );
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  if (!isAuthorizedAdmin(req)) {
+    return NextResponse.json({ success: false, message: 'Unauthorized. Admin session required.' }, { status: 401 });
+  }
+
+  try {
+    const { searchParams } = new URL(req.url);
+    const orderId = searchParams.get('orderId');
+    const clearAll = searchParams.get('clearAll') === 'true';
+
+    const orderRepo = new MockOrderRepository();
+
+    if (clearAll) {
+      await orderRepo.clearAll();
+      return NextResponse.json({ success: true, message: 'All demo and test orders cleared successfully.' });
+    }
+
+    if (!orderId) {
+      return NextResponse.json({ success: false, message: 'orderId is required' }, { status: 400 });
+    }
+
+    const deleted = await orderRepo.delete(orderId);
+    if (!deleted) {
+      return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, message: 'Order deleted successfully' });
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, message: error.message || 'Failed to delete order' },
+      { status: 500 }
+    );
+  }
+}

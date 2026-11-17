@@ -61,10 +61,14 @@ export class MockProductRepository implements IProductRepository {
   }
 
   private getStore(): Product[] {
+    const fileProducts = this.loadFromFile();
+    if (fileProducts !== null) {
+      this.db.set(MockProductRepository.STORAGE_KEY, fileProducts);
+      return fileProducts;
+    }
     let list = this.db.get<Product[]>(MockProductRepository.STORAGE_KEY);
     if (!list) {
-      const fileProducts = this.loadFromFile();
-      list = fileProducts !== null ? fileProducts : [...MockProductRepository.INITIAL_PRODUCTS];
+      list = [...MockProductRepository.INITIAL_PRODUCTS];
       this.db.set(MockProductRepository.STORAGE_KEY, list);
     }
     return list;

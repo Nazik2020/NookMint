@@ -606,6 +606,54 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const handleDeleteOrder = async (orderId: string, orderNumber: string) => {
+    if (!window.confirm(`Are you sure you want to permanently delete order #${orderNumber}?`)) {
+      return;
+    }
+    try {
+      const res = await fetch(`/api/admin/orders?orderId=${encodeURIComponent(orderId)}`, {
+        method: 'DELETE',
+        headers: { 'x-admin-token': ADMIN_PIN_HASH },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setOrders((prev) => prev.filter((o) => o.id !== orderId));
+        if (selectedOrder && selectedOrder.id === orderId) {
+          setSelectedOrder(null);
+        }
+        setOrderUpdateFeedback(`Order #${orderNumber} deleted.`);
+        setTimeout(() => setOrderUpdateFeedback(''), 3000);
+      } else {
+        alert(data.message || 'Failed to delete order');
+      }
+    } catch (err) {
+      console.error('Failed to delete order:', err);
+    }
+  };
+
+  const handleClearAllOrders = async () => {
+    if (!window.confirm('Are you sure you want to delete ALL test and demo orders? This resets your order catalog to 0.')) {
+      return;
+    }
+    try {
+      const res = await fetch('/api/admin/orders?clearAll=true', {
+        method: 'DELETE',
+        headers: { 'x-admin-token': ADMIN_PIN_HASH },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setOrders([]);
+        setSelectedOrder(null);
+        setOrderUpdateFeedback('All test orders cleared! Your store is on a clean slate.');
+        setTimeout(() => setOrderUpdateFeedback(''), 3000);
+      } else {
+        alert(data.message || 'Failed to clear orders');
+      }
+    } catch (err) {
+      console.error('Failed to clear all orders:', err);
+    }
+  };
+
   const handleToggleProductVisibility = async (productId: string, currentHidden: boolean) => {
     const nextHidden = !currentHidden;
     try {
@@ -1703,15 +1751,29 @@ export default function AdminDashboardPage() {
                 </button>
               </div>
 
-              <div className="relative min-w-[240px]">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search order #, customer, phone..."
-                  className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#064E3B] focus:border-transparent font-medium"
-                />
+              <div className="flex items-center gap-2">
+                {orders.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleClearAllOrders}
+                    className="px-3 py-2 rounded-xl text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                    title="Clear all test / demo orders"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                    <span>Clear All Orders</span>
+                  </button>
+                )}
+
+                <div className="relative min-w-[220px]">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search order #, customer, phone..."
+                    className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#064E3B] focus:border-transparent font-medium"
+                  />
+                </div>
               </div>
             </div>
 
@@ -1942,6 +2004,15 @@ Total COD Amount: Rs. ${order.grandTotal}`;
                                   className="px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-emerald-700 text-white text-[11px] font-bold transition-all shadow-xs"
                                 >
                                   Manage Order
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteOrder(order.id, order.orderNumber)}
+                                  className="w-8 h-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-800 border border-rose-200 flex items-center justify-center transition-colors shadow-2xs shrink-0 cursor-pointer"
+                                  title="Delete order"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                               </div>
                             </td>

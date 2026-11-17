@@ -57,17 +57,20 @@ export class MockOrderRepository implements IOrderRepository {
   }
 
   private getStore(): Map<string, Order> {
+    const fileOrders = this.loadFromFile();
+    if (fileOrders !== null && Array.isArray(fileOrders)) {
+      const store = new Map<string, Order>();
+      for (const order of fileOrders) {
+        if (order && order.id) {
+          store.set(order.id, order);
+        }
+      }
+      this.db.set(MockOrderRepository.STORAGE_KEY, store);
+      return store;
+    }
     let store = this.db.get<Map<string, Order>>(MockOrderRepository.STORAGE_KEY);
     if (!store) {
       store = new Map<string, Order>();
-      const fileOrders = this.loadFromFile();
-      if (fileOrders && Array.isArray(fileOrders)) {
-        for (const order of fileOrders) {
-          if (order && order.id) {
-            store.set(order.id, order);
-          }
-        }
-      }
       this.db.set(MockOrderRepository.STORAGE_KEY, store);
     }
     return store;
@@ -121,5 +124,20 @@ export class MockOrderRepository implements IOrderRepository {
     return Array.from(store.values()).sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
+  }
+
+  public async delete(orderId: string): Promise<boolean> {
+    const store = this.getStore();
+    const existed = store.delete(orderId);
+    if (existed) {
+      this.saveToFile(Array.from(store.values()));
+    }
+    return existed;
+  }
+
+  public async clearAll(): Promise<void> {
+    const store = new Map<string, Order>();
+    this.db.set(MockOrderRepository.STORAGE_KEY, store);
+    this.saveToFile([]);
   }
 }

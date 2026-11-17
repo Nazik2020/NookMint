@@ -11,4 +11,5 @@ export interface IOrderRepository {
   findByOrderNumber(orderNumber: string): Promise<Order | null>;
   findByPhone(phone: string): Promise<Order[]>;
   findAll(): Promise<Order[]>;
+  delete(orderId: string): Promise<boolean>;
 }
