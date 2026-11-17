@@ -39,15 +39,16 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const settings = await new SettingsRepository().getSettings();
   const rawCategories = settings.categories && settings.categories.length > 0
     ? settings.categories
-    : ['Household & Kitchen', 'Home & Garden', 'Smart Gadgets & Audio'];
-  // Deduplicate and filter out legacy/empty category names
-  const categories = Array.from(
-    new Set(
-      rawCategories
-        .map((c) => (c === 'Household & Daily Items' ? 'Household & Kitchen' : c))
-        .filter((c) => c !== 'Groceries & Essentials' && c !== 'Fashion' && c !== 'Outfits')
-    )
-  );
+    : [
+        'Kitchen & Dining',
+        'Smart Gadgets & Audio',
+        'Kids, Baby & Toys',
+        'Home & Living',
+        'Home & Garden',
+        'Car & Vehicle Accessories',
+        'Beauty & Personal Care',
+      ];
+  const categories = Array.from(new Set(rawCategories));
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 space-y-8">

@@ -24,6 +24,9 @@ import {
   Sprout,
   Headphones,
   Sparkles,
+  UtensilsCrossed,
+  Baby,
+  Car,
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -118,48 +121,106 @@ export const Navbar: React.FC = () => {
             </span>
             <nav className="flex flex-col space-y-1.5 text-sm font-bold text-slate-800">
               <Link
-                href="/products?category=Household+%26+Kitchen"
+                href="/products?category=Kitchen+%26+Dining"
                 onClick={() => setMobileMenuOpen(false)}
-                className="px-3.5 py-3 rounded-2xl bg-slate-50/80 hover:bg-emerald-50/70 active:bg-emerald-100 flex items-center gap-3 text-slate-900 border border-slate-100 transition-colors"
+                className="px-3.5 py-2.5 rounded-2xl bg-slate-50/80 hover:bg-emerald-50/70 active:bg-emerald-100 flex items-center gap-3 text-slate-900 border border-slate-100 transition-colors"
               >
-                <div className="w-9 h-9 rounded-xl bg-emerald-100/70 text-emerald-800 flex items-center justify-center shrink-0">
-                  <Home className="w-4.5 h-4.5" />
+                <div className="w-8 h-8 rounded-xl bg-emerald-100/70 text-emerald-800 flex items-center justify-center shrink-0">
+                  <UtensilsCrossed className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="font-bold text-slate-900">Household &amp; Kitchen</div>
-                  <div className="text-[11px] text-slate-500 font-normal">Cookware, storage &amp; home essentials</div>
+                  <div className="font-bold text-slate-900 text-xs">Kitchen &amp; Dining</div>
+                  <div className="text-[10px] text-slate-500 font-normal">Cookware, food prep &amp; slicers</div>
                 </div>
               </Link>
-              <Link
-                href="/products?category=Home+%26+Garden"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3.5 py-3 rounded-2xl bg-slate-50/80 hover:bg-emerald-50/70 active:bg-emerald-100 flex items-center gap-3 text-slate-900 border border-slate-100 transition-colors"
-              >
-                <div className="w-9 h-9 rounded-xl bg-emerald-100/70 text-emerald-800 flex items-center justify-center shrink-0">
-                  <Sprout className="w-4.5 h-4.5" />
-                </div>
-                <div>
-                  <div className="font-bold text-slate-900">Home &amp; Garden</div>
-                  <div className="text-[11px] text-slate-500 font-normal">Gardening tools, planters &amp; outdoor</div>
-                </div>
-              </Link>
+
               <Link
                 href="/products?category=Smart+Gadgets+%26+Audio"
                 onClick={() => setMobileMenuOpen(false)}
-                className="px-3.5 py-3 rounded-2xl bg-slate-50/80 hover:bg-emerald-50/70 active:bg-emerald-100 flex items-center justify-between text-slate-900 border border-slate-100 transition-colors"
+                className="px-3.5 py-2.5 rounded-2xl bg-slate-50/80 hover:bg-emerald-50/70 active:bg-emerald-100 flex items-center justify-between text-slate-900 border border-slate-100 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-100/70 text-emerald-800 flex items-center justify-center shrink-0">
-                    <Headphones className="w-4.5 h-4.5" />
+                  <div className="w-8 h-8 rounded-xl bg-emerald-100/70 text-emerald-800 flex items-center justify-center shrink-0">
+                    <Headphones className="w-4 h-4" />
                   </div>
                   <div>
-                    <div className="font-bold text-slate-900">Smart Gadgets &amp; Audio</div>
-                    <div className="text-[11px] text-slate-500 font-normal">Wireless earbuds &amp; lapel mics</div>
+                    <div className="font-bold text-slate-900 text-xs">Smart Gadgets &amp; Audio</div>
+                    <div className="text-[10px] text-slate-500 font-normal">AirPods, earbuds &amp; torches</div>
                   </div>
                 </div>
                 <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 shrink-0">
                   Hot
                 </span>
+              </Link>
+
+              <Link
+                href="/products?category=Kids%2C+Baby+%26+Toys"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3.5 py-2.5 rounded-2xl bg-slate-50/80 hover:bg-emerald-50/70 active:bg-emerald-100 flex items-center gap-3 text-slate-900 border border-slate-100 transition-colors"
+              >
+                <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center shrink-0">
+                  <Baby className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="font-bold text-slate-900 text-xs">Kids, Baby &amp; Toys</div>
+                  <div className="text-[10px] text-slate-500 font-normal">Smartwatches, tablets &amp; bottles</div>
+                </div>
+              </Link>
+
+              <Link
+                href="/products?category=Home+%26+Living"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3.5 py-2.5 rounded-2xl bg-slate-50/80 hover:bg-emerald-50/70 active:bg-emerald-100 flex items-center gap-3 text-slate-900 border border-slate-100 transition-colors"
+              >
+                <div className="w-8 h-8 rounded-xl bg-emerald-100/70 text-emerald-800 flex items-center justify-center shrink-0">
+                  <Home className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="font-bold text-slate-900 text-xs">Home &amp; Living</div>
+                  <div className="text-[10px] text-slate-500 font-normal">Organizers, storage &amp; daily utilities</div>
+                </div>
+              </Link>
+
+              <Link
+                href="/products?category=Home+%26+Garden"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3.5 py-2.5 rounded-2xl bg-slate-50/80 hover:bg-emerald-50/70 active:bg-emerald-100 flex items-center gap-3 text-slate-900 border border-slate-100 transition-colors"
+              >
+                <div className="w-8 h-8 rounded-xl bg-emerald-100/70 text-emerald-800 flex items-center justify-center shrink-0">
+                  <Sprout className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="font-bold text-slate-900 text-xs">Home &amp; Garden</div>
+                  <div className="text-[10px] text-slate-500 font-normal">Gardening tools &amp; planters</div>
+                </div>
+              </Link>
+
+              <Link
+                href="/products?category=Car+%26+Vehicle+Accessories"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3.5 py-2.5 rounded-2xl bg-slate-50/80 hover:bg-emerald-50/70 active:bg-emerald-100 flex items-center gap-3 text-slate-900 border border-slate-100 transition-colors"
+              >
+                <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center shrink-0">
+                  <Car className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="font-bold text-slate-900 text-xs">Car &amp; Vehicle Accessories</div>
+                  <div className="text-[10px] text-slate-500 font-normal">Mounts, chargers &amp; auto gadgets</div>
+                </div>
+              </Link>
+
+              <Link
+                href="/products?category=Beauty+%26+Personal+Care"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3.5 py-2.5 rounded-2xl bg-slate-50/80 hover:bg-emerald-50/70 active:bg-emerald-100 flex items-center gap-3 text-slate-900 border border-slate-100 transition-colors"
+              >
+                <div className="w-8 h-8 rounded-xl bg-rose-100 text-rose-800 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="font-bold text-slate-900 text-xs">Beauty &amp; Personal Care</div>
+                  <div className="text-[10px] text-slate-500 font-normal">Makeup sets, brushes &amp; stylers</div>
+                </div>
               </Link>
               <Link
                 href="/products"
@@ -309,24 +370,17 @@ export const Navbar: React.FC = () => {
             {categoriesOpen && (
               <div
                 onMouseLeave={() => setCategoriesOpen(false)}
-                className="absolute top-full left-0 mt-1 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 p-2.5 z-50 animate-fadeIn"
+                className="absolute top-full left-0 mt-1 w-72 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 animate-fadeIn space-y-0.5"
               >
                 <Link
-                  href="/products?category=Household+%26+Kitchen"
+                  href="/products?category=Kitchen+%26+Dining"
                   onClick={() => setCategoriesOpen(false)}
                   className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-[#004D40] rounded-xl transition-colors"
                 >
-                  <Home className="w-4 h-4 text-emerald-600" />
-                  <span>Household & Kitchen</span>
+                  <UtensilsCrossed className="w-4 h-4 text-emerald-600" />
+                  <span>Kitchen &amp; Dining</span>
                 </Link>
-                <Link
-                  href="/products?category=Home+%26+Garden"
-                  onClick={() => setCategoriesOpen(false)}
-                  className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-[#004D40] rounded-xl transition-colors"
-                >
-                  <Sprout className="w-4 h-4 text-emerald-600" />
-                  <span>Home & Garden Supplies</span>
-                </Link>
+
                 <Link
                   href="/products?category=Smart+Gadgets+%26+Audio"
                   onClick={() => setCategoriesOpen(false)}
@@ -334,12 +388,58 @@ export const Navbar: React.FC = () => {
                 >
                   <div className="flex items-center gap-2.5">
                     <Headphones className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
-                    <span>Smart Gadgets (Earbuds, Mics)</span>
+                    <span>Smart Gadgets &amp; Audio</span>
                   </div>
                   <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 tracking-wider">
                     Hot
                   </span>
                 </Link>
+
+                <Link
+                  href="/products?category=Kids%2C+Baby+%26+Toys"
+                  onClick={() => setCategoriesOpen(false)}
+                  className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-[#004D40] rounded-xl transition-colors"
+                >
+                  <Baby className="w-4 h-4 text-purple-600" />
+                  <span>Kids, Baby &amp; Toys</span>
+                </Link>
+
+                <Link
+                  href="/products?category=Home+%26+Living"
+                  onClick={() => setCategoriesOpen(false)}
+                  className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-[#004D40] rounded-xl transition-colors"
+                >
+                  <Home className="w-4 h-4 text-emerald-600" />
+                  <span>Home &amp; Living</span>
+                </Link>
+
+                <Link
+                  href="/products?category=Home+%26+Garden"
+                  onClick={() => setCategoriesOpen(false)}
+                  className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-[#004D40] rounded-xl transition-colors"
+                >
+                  <Sprout className="w-4 h-4 text-emerald-600" />
+                  <span>Home &amp; Garden</span>
+                </Link>
+
+                <Link
+                  href="/products?category=Car+%26+Vehicle+Accessories"
+                  onClick={() => setCategoriesOpen(false)}
+                  className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-[#004D40] rounded-xl transition-colors"
+                >
+                  <Car className="w-4 h-4 text-blue-600" />
+                  <span>Car &amp; Vehicle Accessories</span>
+                </Link>
+
+                <Link
+                  href="/products?category=Beauty+%26+Personal+Care"
+                  onClick={() => setCategoriesOpen(false)}
+                  className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-[#004D40] rounded-xl transition-colors"
+                >
+                  <Sparkles className="w-4 h-4 text-rose-600" />
+                  <span>Beauty &amp; Personal Care</span>
+                </Link>
+
                 <Link
                   href="/products"
                   onClick={() => setCategoriesOpen(false)}
@@ -351,37 +451,69 @@ export const Navbar: React.FC = () => {
             )}
           </div>
 
-          {/* Department Horizontal Links matching Updated Inventory Focus */}
-          <nav className="flex items-center gap-7 text-xs font-bold text-slate-700" aria-label="Department Links">
+          {/* Department Horizontal Links matching Store Inventory Focus */}
+          <nav className="flex items-center gap-5 text-xs font-bold text-slate-700 overflow-x-auto no-scrollbar" aria-label="Department Links">
             <Link
-              href="/products?category=Household+%26+Kitchen"
-              className="flex items-center gap-1.5 hover:text-[#004D40] transition-colors py-1"
+              href="/products?category=Kitchen+%26+Dining"
+              className="flex items-center gap-1.5 hover:text-[#004D40] transition-colors py-1 whitespace-nowrap"
             >
-              <Home className="w-3.5 h-3.5 text-slate-500" />
-              <span>Household & Kitchen</span>
-            </Link>
-
-            <Link
-              href="/products?category=Home+%26+Garden"
-              className="flex items-center gap-1.5 hover:text-[#004D40] transition-colors py-1"
-            >
-              <Sprout className="w-3.5 h-3.5 text-slate-500" />
-              <span>Gardening</span>
+              <UtensilsCrossed className="w-3.5 h-3.5 text-slate-400" />
+              <span>Kitchen</span>
             </Link>
 
             <Link
               href="/products?category=Smart+Gadgets+%26+Audio"
-              className="flex items-center gap-1.5 hover:text-[#004D40] transition-colors py-1"
+              className="flex items-center gap-1.5 hover:text-[#004D40] transition-colors py-1 whitespace-nowrap"
             >
-              <Headphones className="w-3.5 h-3.5 text-slate-500" />
+              <Headphones className="w-3.5 h-3.5 text-slate-400" />
               <span>Smart Gadgets</span>
             </Link>
 
             <Link
-              href="/contact"
-              className="flex items-center gap-1.5 hover:text-[#004D40] transition-colors py-1"
+              href="/products?category=Kids%2C+Baby+%26+Toys"
+              className="flex items-center gap-1.5 hover:text-[#004D40] transition-colors py-1 whitespace-nowrap"
             >
-              <Phone className="w-3.5 h-3.5 text-slate-500" />
+              <Baby className="w-3.5 h-3.5 text-slate-400" />
+              <span>Kids &amp; Baby</span>
+            </Link>
+
+            <Link
+              href="/products?category=Home+%26+Living"
+              className="flex items-center gap-1.5 hover:text-[#004D40] transition-colors py-1 whitespace-nowrap"
+            >
+              <Home className="w-3.5 h-3.5 text-slate-400" />
+              <span>Home &amp; Living</span>
+            </Link>
+
+            <Link
+              href="/products?category=Home+%26+Garden"
+              className="flex items-center gap-1.5 hover:text-[#004D40] transition-colors py-1 whitespace-nowrap"
+            >
+              <Sprout className="w-3.5 h-3.5 text-slate-400" />
+              <span>Garden</span>
+            </Link>
+
+            <Link
+              href="/products?category=Car+%26+Vehicle+Accessories"
+              className="flex items-center gap-1.5 hover:text-[#004D40] transition-colors py-1 whitespace-nowrap"
+            >
+              <Car className="w-3.5 h-3.5 text-slate-400" />
+              <span>Car Accessories</span>
+            </Link>
+
+            <Link
+              href="/products?category=Beauty+%26+Personal+Care"
+              className="flex items-center gap-1.5 hover:text-[#004D40] transition-colors py-1 whitespace-nowrap"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-slate-400" />
+              <span>Beauty</span>
+            </Link>
+
+            <Link
+              href="/contact"
+              className="flex items-center gap-1.5 hover:text-[#004D40] transition-colors py-1 whitespace-nowrap"
+            >
+              <Phone className="w-3.5 h-3.5 text-slate-400" />
               <span>Contact</span>
             </Link>
           </nav>

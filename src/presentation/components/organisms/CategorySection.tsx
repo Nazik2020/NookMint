@@ -7,16 +7,28 @@ import { ArrowRight, ShoppingBag, Sparkles } from 'lucide-react';
 
 export const getCategoryImage = (categoryName: string): string => {
   const lower = categoryName.toLowerCase();
-  if (lower.includes('grocer') || lower.includes('food') || lower.includes('rice') || lower.includes('tea')) {
-    return '/images/optimized/cat-groceries-opt.jpg';
+  if (lower.includes('kitchen') || lower.includes('dining') || lower.includes('cookware')) {
+    return '/nookmint_images/kitchen and dining.png';
   }
-  if (lower.includes('house') || lower.includes('kitchen') || lower.includes('home') || lower.includes('cleaning')) {
-    return '/images/optimized/cat-household-opt.jpg';
+  if (lower.includes('gadget') || lower.includes('audio') || lower.includes('earbud') || lower.includes('tech')) {
+    return '/nookmint_images/smart gadgets.png';
   }
-  if (lower.includes('cloth') || lower.includes('fashion') || lower.includes('apparel') || lower.includes('shirt')) {
-    return '/images/optimized/cat-fashion-opt.jpg';
+  if (lower.includes('kid') || lower.includes('baby') || lower.includes('toy')) {
+    return '/nookmint_images/kids baby toys.png';
   }
-  return '/images/optimized/cat-groceries-opt.jpg';
+  if (lower.includes('garden') || lower.includes('plant') || lower.includes('trowel')) {
+    return '/nookmint_images/home and garden.png';
+  }
+  if (lower.includes('living') || lower.includes('house') || lower.includes('home')) {
+    return '/nookmint_images/home and living.png';
+  }
+  if (lower.includes('car') || lower.includes('vehicle') || lower.includes('auto')) {
+    return '/nookmint_images/car and vehicle.png';
+  }
+  if (lower.includes('beauty') || lower.includes('makeup') || lower.includes('cosmetic') || lower.includes('persenal') || lower.includes('personal')) {
+    return '/nookmint_images/beauty and persenal care.png';
+  }
+  return '/nookmint_images/home and living.png';
 };
 
 export const CategorySection: React.FC = () => {
@@ -27,7 +39,7 @@ export const CategorySection: React.FC = () => {
       badge: 'Daily Essentials',
       subtitle: 'Cookware, slicers, utensils, and food prep.',
       href: '/products?category=Kitchen+%26+Dining',
-      image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=600&auto=format&fit=crop&q=80',
+      image: '/nookmint_images/kitchen and dining.png',
       alt: 'Kitchen cookware, tools, and food prep items',
     },
     {
@@ -36,7 +48,7 @@ export const CategorySection: React.FC = () => {
       badge: 'Trending Tech',
       subtitle: 'AirPods, earbuds, lapel mics, and torches.',
       href: '/products?category=Smart+Gadgets+%26+Audio',
-      image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&auto=format&fit=crop&q=80',
+      image: '/nookmint_images/smart gadgets.png',
       alt: 'AirPods, wireless earpods, and tech gadgets',
     },
     {
@@ -45,7 +57,7 @@ export const CategorySection: React.FC = () => {
       badge: 'Kids Collection',
       subtitle: 'Smartwatches, learning tablets, bottles, and toys.',
       href: '/products?category=Kids%2C+Baby+%26+Toys',
-      image: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=600&auto=format&fit=crop&q=80',
+      image: '/nookmint_images/kids baby toys.png',
       alt: 'Kids watches, baby care, and learning toys',
     },
     {
@@ -54,7 +66,7 @@ export const CategorySection: React.FC = () => {
       badge: 'Home Utilities',
       subtitle: 'Organizers, emergency lights, and daily essentials.',
       href: '/products?category=Home+%26+Living',
-      image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&auto=format&fit=crop&q=80',
+      image: '/nookmint_images/home and living.png',
       alt: 'Home storage organizers, daily essentials, and lighting',
     },
     {
@@ -63,7 +75,7 @@ export const CategorySection: React.FC = () => {
       badge: 'Garden Tools',
       subtitle: 'Hand trowels, planters, shears, and supplies.',
       href: '/products?category=Home+%26+Garden',
-      image: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&auto=format&fit=crop&q=80',
+      image: '/nookmint_images/home and garden.png',
       alt: 'Gardening hand tools, planters, and pots',
     },
     {
@@ -72,7 +84,7 @@ export const CategorySection: React.FC = () => {
       badge: 'Auto Gadgets',
       subtitle: 'Car mounts, fast chargers, inflators, and tools.',
       href: '/products?category=Car+%26+Vehicle+Accessories',
-      image: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=600&auto=format&fit=crop&q=80',
+      image: '/nookmint_images/car and vehicle.png',
       alt: 'Car gadgets, wireless chargers, and auto accessories',
     },
     {
@@ -81,7 +93,7 @@ export const CategorySection: React.FC = () => {
       badge: 'Cosmetics & Care',
       subtitle: 'Makeup sets, cosmetic brush kits, and stylers.',
       href: '/products?category=Beauty+%26+Personal+Care',
-      image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=600&auto=format&fit=crop&q=80',
+      image: '/nookmint_images/beauty and persenal care.png',
       alt: 'Women makeup sets, brushes, and personal care',
     },
   ];
