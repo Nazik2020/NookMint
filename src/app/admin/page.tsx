@@ -282,6 +282,7 @@ export default function AdminDashboardPage() {
   const defaultCategoryList = [
     'Kitchen & Dining',
     'Smart Gadgets & Audio',
+    'Kids, Baby & Toys',
     'Home & Living',
     'Home & Garden',
     'Car & Vehicle Accessories',
