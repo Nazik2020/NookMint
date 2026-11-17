@@ -1,0 +1,142 @@
+{
+  "bankAccounts": [
+    {
+      "bankName": "Commercial Bank of Ceylon (COMBANK)",
+      "accountName": "Innovative Consultants (Pvt) Ltd",
+      "accountNumber": "1000293847",
+      "branch": "Kollupitiya Branch, Colombo 03",
+      "branchCode": "045",
+      "swiftCode": "CCBCLKHX"
+    },
+    {
+      "bankName": "Bank of Ceylon (BOC)",
+      "accountName": "Innovative Consultants (Pvt) Ltd",
+      "accountNumber": "0004928371",
+      "branch": "Corporate Branch, Colombo 01",
+      "branchCode": "001",
+      "swiftCode": "BCEYLKLX"
+    },
+    {
+      "bankName": "Hatton National Bank (HNB)",
+      "accountName": "Innovative Consultants (Pvt) Ltd",
+      "accountNumber": "0392817462",
+      "branch": "Green Path Branch, Colombo 07",
+      "branchCode": "039",
+      "swiftCode": "HBLILKLX"
+    }
+  ],
+  "delivery": {
+    "colomboFee": 350,
+    "westernProvinceFee": 400,
+    "outstationFee": 500,
+    "freeShippingThreshold": 5000,
+    "codMinOrder": 1000,
+    "codMaxOrder": 50000,
+    "districtRates": [
+      {
+        "id": "rate-colombo",
+        "name": "Colombo City & Suburbs",
+        "districts": [
+          "Colombo"
+        ],
+        "fee": 350,
+        "estimatedDays": "Same-Day / 1 Day"
+      },
+      {
+        "id": "rate-wp",
+        "name": "Western Province (Gampaha & Kalutara)",
+        "districts": [
+          "Gampaha",
+          "Kalutara"
+        ],
+        "fee": 400,
+        "estimatedDays": "1-2 Days"
+      },
+      {
+        "id": "rate-central",
+        "name": "Central (Kandy, Matale, Nuwara Eliya)",
+        "districts": [
+          "Kandy",
+          "Matale",
+          "Nuwara Eliya"
+        ],
+        "fee": 450,
+        "estimatedDays": "2-3 Days"
+      },
+      {
+        "id": "rate-southern",
+        "name": "Southern (Galle, Matara, Hambantota)",
+        "districts": [
+          "Galle",
+          "Matara",
+          "Hambantota"
+        ],
+        "fee": 450,
+        "estimatedDays": "2-3 Days"
+      },
+      {
+        "id": "rate-outstation",
+        "name": "Outstation Islandwide (All Other Districts)",
+        "districts": [
+          "*"
+        ],
+        "fee": 500,
+        "estimatedDays": "2-3 Days"
+      }
+    ]
+  },
+  "contact": {
+    "phone": "+94 71 489 7262",
+    "whatsapp": "94714897262",
+    "address": "NookMint Operations Center, Colombo, Sri Lanka",
+    "email": "support@nookmint.lk",
+    "workingHours": "Mon - Sat: 8:30 AM - 7:30 PM | Direct Orders & WhatsApp 24/7"
+  },
+  "categories": [
+    "Kitchen & Dining",
+    "Smart Gadgets & Audio",
+    "Kids, Baby & Toys",
+    "Home & Living",
+    "Home & Garden",
+    "Car & Vehicle Accessories",
+    "Beauty & Personal Care"
+  ],
+  "categoryDetails": [
+    {
+      "id": "cat-kitchen",
+      "name": "Kitchen & Dining",
+      "image": "/nookmint_images/kitchen and dining.png"
+    },
+    {
+      "id": "cat-gadgets",
+      "name": "Smart Gadgets & Audio",
+      "image": "/nookmint_images/smart gadgets.png"
+    },
+    {
+      "id": "cat-kids",
+      "name": "Kids, Baby & Toys",
+      "image": "/nookmint_images/kids baby toys.png"
+    },
+    {
+      "id": "cat-home",
+      "name": "Home & Living",
+      "image": "/nookmint_images/home and living.png"
+    },
+    {
+      "id": "cat-garden",
+      "name": "Home & Garden",
+      "image": "/nookmint_images/home and garden.png"
+    },
+    {
+      "id": "cat-vehicle",
+      "name": "Car & Vehicle Accessories",
+      "image": "/nookmint_images/car and vehicle.png"
+    },
+    {
+      "id": "cat-beauty",
+      "name": "Beauty & Personal Care",
+      "image": "/nookmint_images/beauty and persenal care.png"
+    }
+  ],
+  "updatedAt": "2026-11-17T07:00:46.716Z"
+}
