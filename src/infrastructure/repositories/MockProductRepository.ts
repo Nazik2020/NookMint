@@ -3,12 +3,14 @@ import path from 'path';
 import { IProductRepository, ProductFilterOptions } from './IProductRepository';
 import { Product } from '@/core/entities/Product';
 import { DatabaseClient } from '../database/DatabaseClient';
+import { getServiceSupabase } from '../database/supabaseClient';
 
 /**
  * Product Repository (SADP Repository Pattern)
  * Clean, production-ready product store for NookMint.
- * Supports persistent local storage via data/products.json and in-memory cache.
- * When store starts, demo products are cleared so only real admin products are displayed.
+ * Supports synchronized cloud persistence via Supabase Storage ('store/products.json')
+ * and local file cache (data/products.json) so all Vercel serverless instances,
+ * admin sessions, and customer storefronts share live products in real time.
  */
 export class MockProductRepository implements IProductRepository {
   private static readonly STORAGE_KEY = 'products_store';
@@ -52,6 +54,42 @@ export class MockProductRepository implements IProductRepository {
     return null;
   }
 
+  /**
+   * Synchronizes with Supabase Storage ('store/products.json')
+   * Enables persistent shared state across all Vercel lambdas & local servers
+   */
+  public async syncWithCloud(): Promise<Product[]> {
+    try {
+      const supabase = getServiceSupabase();
+      const { data, error } = await supabase.storage.from('products').download('store/products.json');
+      if (data && !error) {
+        const text = await data.text();
+        const parsed = JSON.parse(text);
+        if (Array.isArray(parsed)) {
+          this.db.set(MockProductRepository.STORAGE_KEY, parsed);
+          this.saveToFile(parsed);
+          return parsed;
+        }
+      }
+    } catch {
+      // Fallback to local store
+    }
+    return this.getStore();
+  }
+
+  private async saveToCloud(products: Product[]): Promise<void> {
+    try {
+      const supabase = getServiceSupabase();
+      const buffer = Buffer.from(JSON.stringify(products, null, 2));
+      await supabase.storage.from('products').upload('store/products.json', buffer, {
+        upsert: true,
+        contentType: 'application/json',
+      });
+    } catch (err) {
+      console.warn('[MockProductRepository] Cloud save warning:', err);
+    }
+  }
+
   public static getPopularReferenceProducts(): Product[] {
     return [];
   }
@@ -75,7 +113,7 @@ export class MockProductRepository implements IProductRepository {
   }
 
   public async getAllProducts(includeHidden: boolean = false): Promise<Product[]> {
-    const products = this.getStore();
+    const products = await this.syncWithCloud();
     if (includeHidden) {
       return products;
     }
@@ -83,17 +121,17 @@ export class MockProductRepository implements IProductRepository {
   }
 
   public async getProductById(id: string): Promise<Product | null> {
-    const products = this.getStore();
+    const products = await this.syncWithCloud();
     return products.find((p) => p.id === id) || null;
   }
 
   public async getProductBySlug(slug: string): Promise<Product | null> {
-    const products = this.getStore();
+    const products = await this.syncWithCloud();
     return products.find((p) => p.slug === slug) || null;
   }
 
   public async filterProducts(options: ProductFilterOptions): Promise<Product[]> {
-    const products = this.getStore();
+    const products = await this.syncWithCloud();
 
     let filtered = products.filter((product) => {
       // 0. Exclude hidden or inactive products for customer storefront
@@ -198,7 +236,7 @@ export class MockProductRepository implements IProductRepository {
   }
 
   public async updateProduct(id: string, updates: Partial<Product>): Promise<Product | null> {
-    const products = this.getStore();
+    const products = await this.syncWithCloud();
     const index = products.findIndex((p) => p.id === id);
     if (index === -1) return null;
 
@@ -208,11 +246,12 @@ export class MockProductRepository implements IProductRepository {
     };
     this.db.set(MockProductRepository.STORAGE_KEY, products);
     this.saveToFile(products);
+    await this.saveToCloud(products);
     return products[index];
   }
 
   public async toggleStock(id: string, inStock: boolean): Promise<Product | null> {
-    const products = this.getStore();
+    const products = await this.syncWithCloud();
     const product = products.find((p) => p.id === id);
     if (!product) return null;
 
@@ -223,23 +262,26 @@ export class MockProductRepository implements IProductRepository {
 
     this.db.set(MockProductRepository.STORAGE_KEY, products);
     this.saveToFile(products);
+    await this.saveToCloud(products);
     return product;
   }
 
   public async createProduct(newProduct: Product): Promise<Product> {
-    const products = this.getStore();
-    products.unshift(newProduct);
-    this.db.set(MockProductRepository.STORAGE_KEY, products);
-    this.saveToFile(products);
+    const products = await this.syncWithCloud();
+    const updated = [newProduct, ...products.filter((p) => p.id !== newProduct.id)];
+    this.db.set(MockProductRepository.STORAGE_KEY, updated);
+    this.saveToFile(updated);
+    await this.saveToCloud(updated);
     return newProduct;
   }
 
   public async deleteProduct(id: string): Promise<boolean> {
-    const products = this.getStore();
+    const products = await this.syncWithCloud();
     const filtered = products.filter((p) => p.id !== id);
     if (filtered.length !== products.length) {
       this.db.set(MockProductRepository.STORAGE_KEY, filtered);
       this.saveToFile(filtered);
+      await this.saveToCloud(filtered);
       return true;
     }
     return false;

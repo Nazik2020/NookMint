@@ -275,9 +275,16 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
     }
   };
 
+  const [currentUrl, setCurrentUrl] = useState<string>('');
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setCurrentUrl(window.location.href);
+    }
+  }, []);
+
   const shareOnWhatsAppUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(
     `Check out this on NookMint: ${product.title} (${formatLKR(product.sellingPrice)})\nOption: ${selectedSize}\n100% Cash on Delivery across Sri Lanka!\n👉 Buy directly here: ${
-      typeof window !== 'undefined' ? window.location.href : ''
+      currentUrl
     }`
   )}`;
 
@@ -332,9 +339,9 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
             {product.title}
           </h1>
 
-          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
+          <div className="text-xs sm:text-sm text-slate-700 leading-relaxed font-normal whitespace-pre-line space-y-2.5 pt-0.5">
             {product.description}
-          </p>
+          </div>
 
           <div className="flex items-center gap-4 text-xs text-slate-500 font-medium pt-1">
             <span>Category: <strong className="text-slate-900">{categoryName}</strong></span>
@@ -536,6 +543,7 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
                 href={shareOnWhatsAppUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                suppressHydrationWarning
                 className="h-10 px-3.5 rounded-2xl border border-emerald-200/90 bg-emerald-50 hover:bg-emerald-100/80 text-[#064E3B] font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs shrink-0 active:scale-98"
                 title="Send product directly on WhatsApp"
               >

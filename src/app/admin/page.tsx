@@ -2358,11 +2358,11 @@ Total COD Amount: Rs. ${order.grandTotal}`;
                     <div className="p-5 flex gap-4 items-start">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={product.images?.[0] || '/nookmint_images/hero.png'}
+                        src={product.images?.[0] || getCategoryImage(product.category)}
                         alt={product.title}
                         onError={(e) => {
                           e.currentTarget.onerror = null;
-                          e.currentTarget.src = '/nookmint_images/hero.png';
+                          e.currentTarget.src = getCategoryImage(product.category);
                         }}
                         className="w-20 h-24 object-cover object-center rounded-2xl bg-stone-50 shrink-0 border border-slate-100 shadow-2xs"
                       />
@@ -2473,7 +2473,7 @@ Total COD Amount: Rs. ${order.grandTotal}`;
                                         ],
                                   deliveryFeeType: product.deliveryFeeType || 'default',
                                   customDeliveryFee: product.customDeliveryFee || 350,
-                                  images: product.images && product.images.length > 0 ? [...product.images] : ['/nookmint_images/hero.png'],
+                                  images: product.images && product.images.length > 0 ? [...product.images] : [],
                                   videoUrl: product.videoUrl || '',
                                 });
                                 setIsAddingProduct(true);

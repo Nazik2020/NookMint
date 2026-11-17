@@ -7,6 +7,7 @@ import { Product } from '@/core/entities/Product';
 import { formatLKR } from '@/shared/utils/currency';
 import { useCart } from '@/presentation/context/CartContext';
 import { ShoppingCart, Check, MessageSquare, Ban, MessageCircle } from 'lucide-react';
+import { getCategoryImage } from '@/presentation/components/organisms/CategorySection';
 
 interface ProductCardProps {
   product: Product;
@@ -27,7 +28,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const initialImg =
     product.images?.[0] ||
     LOCAL_FALLBACKS[product.id] ||
-    '/nookmint_images/hero.png';
+    getCategoryImage(product.category as string);
   const [imgSrc, setImgSrc] = useState<string>(initialImg);
 
   const totalStock = product.variants && product.variants.length > 0
@@ -101,7 +102,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             decoding="async"
             unoptimized={imgSrc.startsWith('http') && !imgSrc.includes('unsplash.com') && !imgSrc.includes('supabase.co')}
             onError={() => {
-              const fallback = LOCAL_FALLBACKS[product.id] || '/nookmint_images/hero.png';
+              const fallback = LOCAL_FALLBACKS[product.id] || getCategoryImage(product.category as string);
               if (imgSrc !== fallback) {
                 setImgSrc(fallback);
               }
