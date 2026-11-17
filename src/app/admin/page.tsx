@@ -199,7 +199,7 @@ export default function AdminDashboardPage() {
     mrp: 4900,
     offerPercentage: 20,
     description: '',
-    images: ['https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=900&auto=format&fit=crop&q=80'],
+    images: [],
     videoUrl: '',
     variants: [
       { size: 'Standard', stock: 25, sku: 'PROD-01' },
@@ -234,7 +234,7 @@ export default function AdminDashboardPage() {
       ],
       deliveryFeeType: 'default',
       customDeliveryFee: 350,
-      images: ['/nookmint_images/hero.png'],
+      images: [],
       videoUrl: '',
     });
     setIsAddingProduct(true);
@@ -793,7 +793,7 @@ export default function AdminDashboardPage() {
   const handleRemoveProductImage = (index: number) => {
     setProductForm((prev) => {
       const updated = prev.images.filter((_, i) => i !== index);
-      return { ...prev, images: updated.length > 0 ? updated : ['/nookmint_images/hero.png'] };
+      return { ...prev, images: updated };
     });
   };
 
@@ -5245,55 +5245,65 @@ Facebook Page: NookMint`;
                 </div>
 
                 {/* Thumbnails Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
-                  {productForm.images.map((img, idx) => (
-                    <div
-                      key={`${img}-${idx}`}
-                      className={`relative aspect-4/5 rounded-2xl overflow-hidden border-2 bg-white group shadow-2xs ${
-                        idx === 0 ? 'border-[#064E3B] ring-2 ring-[#064E3B]/20' : 'border-slate-200'
-                      }`}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={img}
-                        alt={`Photo angle ${idx + 1}`}
-                        className="w-full h-full object-cover object-center"
-                      />
+                {productForm.images.length === 0 ? (
+                  <div className="p-6 text-center rounded-2xl border-2 border-dashed border-slate-300 bg-white space-y-1.5">
+                    <Camera className="w-6 h-6 text-slate-400 mx-auto" />
+                    <p className="text-xs font-bold text-slate-700">No photos uploaded yet</p>
+                    <p className="text-[11px] text-slate-400">
+                      Click <strong className="text-[#064E3B]">+ Upload Photo from Device</strong> above to add your main Storefront Cover Photo.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                    {productForm.images.map((img, idx) => (
+                      <div
+                        key={`${img}-${idx}`}
+                        className={`relative aspect-4/5 rounded-2xl overflow-hidden border-2 bg-white group shadow-2xs ${
+                          idx === 0 ? 'border-[#064E3B] ring-2 ring-[#064E3B]/20' : 'border-slate-200'
+                        }`}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={img}
+                          alt={`Photo angle ${idx + 1}`}
+                          className="w-full h-full object-cover object-center"
+                        />
 
-                      {/* Cover Badge or Make Cover Button */}
-                      <div className="absolute top-1.5 left-1.5 right-1.5 flex items-center justify-between">
-                        {idx === 0 ? (
-                          <span className="px-2 py-0.5 rounded-md bg-[#064E3B] text-white font-extrabold text-[9px] uppercase tracking-wider flex items-center gap-1 shadow-sm">
-                            <Star className="w-2.5 h-2.5 fill-white" />
-                            <span>COVER</span>
-                          </span>
-                        ) : (
+                        {/* Cover Badge or Make Cover Button */}
+                        <div className="absolute top-1.5 left-1.5 right-1.5 flex items-center justify-between">
+                          {idx === 0 ? (
+                            <span className="px-2 py-0.5 rounded-md bg-[#064E3B] text-white font-extrabold text-[9px] uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                              <Star className="w-2.5 h-2.5 fill-white" />
+                              <span>COVER</span>
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleSetCoverImage(idx)}
+                              className="px-1.5 py-0.5 rounded-md bg-slate-900/80 hover:bg-[#064E3B] text-white font-bold text-[9px] transition-colors shadow-sm cursor-pointer"
+                              title="Set as Main Cover Photo"
+                            >
+                              Set Cover
+                            </button>
+                          )}
+
                           <button
                             type="button"
-                            onClick={() => handleSetCoverImage(idx)}
-                            className="px-1.5 py-0.5 rounded-md bg-slate-900/80 hover:bg-[#064E3B] text-white font-bold text-[9px] transition-colors shadow-sm"
-                            title="Set as Main Cover Photo"
+                            onClick={() => handleRemoveProductImage(idx)}
+                            className="w-6 h-6 rounded-md bg-slate-900/80 hover:bg-red-600 text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer"
+                            title="Delete photo"
                           >
-                            Set Cover
+                            <Trash2 className="w-3 h-3" />
                           </button>
-                        )}
+                        </div>
 
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveProductImage(idx)}
-                          className="w-6 h-6 rounded-md bg-slate-900/80 hover:bg-red-600 text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer"
-                          title="Delete photo"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
+                        <span className="absolute bottom-1.5 left-1.5 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-black/60 text-white">
+                          Angle #{idx + 1}
+                        </span>
                       </div>
-
-                      <span className="absolute bottom-1.5 left-1.5 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-black/60 text-white">
-                        Angle #{idx + 1}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
 
                 {/* 4.2 Product Video Showcase (Optional) */}
                 <div className="mt-4 pt-3.5 border-t border-slate-200/80 space-y-2.5">
