@@ -280,12 +280,12 @@ export default function AdminDashboardPage() {
   const [newCategoryImage, setNewCategoryImage] = useState<string>('');
 
   const defaultCategoryList = [
-    'Household & Kitchen',
-    'Home & Garden',
+    'Kitchen & Dining',
     'Smart Gadgets & Audio',
-    'Kitchen & Cookware',
-    'Gardening Tools & Pots',
-    'Audio & Smart Accessories',
+    'Home & Living',
+    'Home & Garden',
+    'Car & Vehicle Accessories',
+    'Beauty & Personal Care',
   ];
 
   const categoryItemList: StoreCategoryItem[] =

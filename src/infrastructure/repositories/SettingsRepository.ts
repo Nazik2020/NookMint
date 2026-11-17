@@ -16,10 +16,12 @@ const DEFAULT_DISTRICT_RATES = [
 ];
 
 export const DEFAULT_CATEGORY_ITEMS: StoreCategoryItem[] = [
-  { id: 'cat-household', name: 'Household & Daily Items', image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&auto=format&fit=crop&q=80' },
-  { id: 'cat-kitchen', name: 'Household & Kitchen', image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=600&auto=format&fit=crop&q=80' },
-  { id: 'cat-garden', name: 'Home & Garden', image: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&auto=format&fit=crop&q=80' },
+  { id: 'cat-kitchen', name: 'Kitchen & Dining', image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=600&auto=format&fit=crop&q=80' },
   { id: 'cat-gadgets', name: 'Smart Gadgets & Audio', image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&auto=format&fit=crop&q=80' },
+  { id: 'cat-home', name: 'Home & Living', image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&auto=format&fit=crop&q=80' },
+  { id: 'cat-garden', name: 'Home & Garden', image: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&auto=format&fit=crop&q=80' },
+  { id: 'cat-vehicle', name: 'Car & Vehicle Accessories', image: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=600&auto=format&fit=crop&q=80' },
+  { id: 'cat-beauty', name: 'Beauty & Personal Care', image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=600&auto=format&fit=crop&q=80' },
 ];
 
 const DEFAULT_CATEGORIES = DEFAULT_CATEGORY_ITEMS.map((c) => c.name);
