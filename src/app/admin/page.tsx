@@ -193,7 +193,7 @@ export default function AdminDashboardPage() {
     title: '',
     sku: '',
     sourceType: 'dropship',
-    category: 'Household & Kitchen',
+    category: 'Kitchen & Dining',
     brand: 'NookMint',
     unit: 'item',
     isNewArrival: true,
@@ -223,7 +223,7 @@ export default function AdminDashboardPage() {
       title: '',
       sku: sourceType === 'dropship' ? `AZ-${Math.floor(1000 + Math.random() * 9000)}` : `NM-${Math.floor(1000 + Math.random() * 9000)}`,
       sourceType,
-      category: 'Household & Kitchen',
+      category: 'Kitchen & Dining',
       brand: 'NookMint',
       unit: '1 item',
       isNewArrival: true,
@@ -289,21 +289,20 @@ export default function AdminDashboardPage() {
     'Beauty & Personal Care',
   ];
 
-  const categoryItemList: StoreCategoryItem[] =
-    settingsForm?.categoryDetails && settingsForm.categoryDetails.length > 0
-      ? settingsForm.categoryDetails
-      : (settingsForm?.categories || defaultCategoryList).map((name) => ({
-          id: `cat-${name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
-          name,
-          image: getCategoryImage(name),
-        }));
+  // Guaranteed standard categories + any custom admin categories (strips old legacy names)
+  const customCategories = (settingsForm?.categories || []).filter(
+    (c) =>
+      c !== 'Household & Daily Items' &&
+      c !== 'Household & Kitchen' &&
+      !defaultCategoryList.includes(c)
+  );
+  const availableCategories = [...defaultCategoryList, ...customCategories];
 
-  const availableCategories =
-    categoryItemList.length > 0
-      ? categoryItemList.map((c) => c.name)
-      : (settingsForm?.categories && settingsForm.categories.length > 0
-          ? settingsForm.categories
-          : defaultCategoryList);
+  const categoryItemList: StoreCategoryItem[] = availableCategories.map((name) => ({
+    id: `cat-${name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+    name,
+    image: getCategoryImage(name),
+  }));
 
   // Check existing session
   useEffect(() => {

@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { DatabaseClient } from '../database/DatabaseClient';
 import { StoreSettings, StoreCategoryItem } from '@/core/entities/StoreSettings';
 import { SRI_LANKAN_BANK_ACCOUNTS } from '@/core/constants/BankAccounts';
@@ -5,7 +7,7 @@ import { SRI_LANKAN_BANK_ACCOUNTS } from '@/core/constants/BankAccounts';
 /**
  * SettingsRepository (SADP Repository Pattern)
  * Persists store configurations (Bank Accounts, Delivery Fees, Contact Info, Categories with Images)
- * in the centralized DatabaseClient singleton.
+ * to data/settings.json and in-memory cache.
  */
 const DEFAULT_DISTRICT_RATES = [
   { id: 'rate-colombo', name: 'Colombo City & Suburbs', districts: ['Colombo'], fee: 350, estimatedDays: 'Same-Day / 1 Day' },
@@ -29,79 +31,82 @@ const DEFAULT_CATEGORIES = DEFAULT_CATEGORY_ITEMS.map((c) => c.name);
 
 export class SettingsRepository {
   private static readonly STORAGE_KEY = 'store_settings';
+  private static readonly DATA_FILE_PATH = path.resolve(process.cwd(), 'data', 'settings.json');
   private db: DatabaseClient;
 
   constructor() {
     this.db = DatabaseClient.getInstance();
-    if (!this.db.has(SettingsRepository.STORAGE_KEY)) {
-      const defaultSettings: StoreSettings = {
-        bankAccounts: [...SRI_LANKAN_BANK_ACCOUNTS],
-        delivery: {
-          colomboFee: 350,
-          westernProvinceFee: 400,
-          outstationFee: 500,
-          freeShippingThreshold: 5000,
-          codMinOrder: 1000,
-          codMaxOrder: 50000,
-          districtRates: [...DEFAULT_DISTRICT_RATES],
-        },
-        contact: {
-          phone: '+94 71 489 7262',
-          whatsapp: '94714897262',
-          address: 'NookMint Operations Center, Colombo, Sri Lanka',
-          email: 'support@nookmint.lk',
-          workingHours: 'Mon - Sat: 8:30 AM - 7:30 PM | Direct Orders & WhatsApp 24/7',
-        },
-        categories: [...DEFAULT_CATEGORIES],
-        categoryDetails: [...DEFAULT_CATEGORY_ITEMS],
-        updatedAt: new Date().toISOString(),
-      };
+    const fileSettings = this.loadFromFile();
+    if (fileSettings) {
+      this.db.set(SettingsRepository.STORAGE_KEY, fileSettings);
+    } else if (!this.db.has(SettingsRepository.STORAGE_KEY)) {
+      const defaultSettings = this.buildDefaultSettings();
       this.db.set(SettingsRepository.STORAGE_KEY, defaultSettings);
+      this.saveToFile(defaultSettings);
     }
   }
 
-  public async getSettings(): Promise<StoreSettings> {
-    const stored = this.db.get<StoreSettings>(SettingsRepository.STORAGE_KEY);
-    if (!stored || !stored.bankAccounts || stored.bankAccounts.length === 0) {
-      const defaultSettings: StoreSettings = {
-        bankAccounts: [...SRI_LANKAN_BANK_ACCOUNTS],
-        delivery: stored?.delivery || {
-          colomboFee: 350,
-          westernProvinceFee: 400,
-          outstationFee: 500,
-          freeShippingThreshold: 5000,
-          codMinOrder: 1000,
-          codMaxOrder: 50000,
-          districtRates: [...DEFAULT_DISTRICT_RATES],
-        },
-        contact: stored?.contact || {
-          phone: '+94 71 489 7262',
-          whatsapp: '94714897262',
-          address: 'Innovative Consultants HQ, High-Level Road, Colombo, Sri Lanka',
-          email: 'orders@innovative.lk',
-          workingHours: 'Mon - Sat: 8:30 AM - 7:30 PM | Direct Orders & WhatsApp 24/7',
-        },
-        categories: stored?.categories || [...DEFAULT_CATEGORIES],
-        categoryDetails: stored?.categoryDetails || [...DEFAULT_CATEGORY_ITEMS],
-        updatedAt: new Date().toISOString(),
-      };
-      if (!defaultSettings.delivery.districtRates || defaultSettings.delivery.districtRates.length === 0) {
-        defaultSettings.delivery.districtRates = [...DEFAULT_DISTRICT_RATES];
+  private buildDefaultSettings(): StoreSettings {
+    return {
+      bankAccounts: [...SRI_LANKAN_BANK_ACCOUNTS],
+      delivery: {
+        colomboFee: 350,
+        westernProvinceFee: 400,
+        outstationFee: 500,
+        freeShippingThreshold: 5000,
+        codMinOrder: 1000,
+        codMaxOrder: 50000,
+        districtRates: [...DEFAULT_DISTRICT_RATES],
+      },
+      contact: {
+        phone: '+94 71 489 7262',
+        whatsapp: '94714897262',
+        address: 'NookMint Operations Center, Colombo, Sri Lanka',
+        email: 'support@nookmint.lk',
+        workingHours: 'Mon - Sat: 8:30 AM - 7:30 PM | Direct Orders & WhatsApp 24/7',
+      },
+      categories: [...DEFAULT_CATEGORIES],
+      categoryDetails: [...DEFAULT_CATEGORY_ITEMS],
+      updatedAt: new Date().toISOString(),
+    };
+  }
+
+  private saveToFile(settings: StoreSettings): void {
+    try {
+      const dir = path.dirname(SettingsRepository.DATA_FILE_PATH);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
       }
-      this.db.set(SettingsRepository.STORAGE_KEY, defaultSettings);
-      return defaultSettings;
+      fs.writeFileSync(SettingsRepository.DATA_FILE_PATH, JSON.stringify(settings, null, 2), 'utf-8');
+    } catch (err) {
+      console.warn('[SettingsRepository] Warning: Could not save settings to file:', err);
     }
-    if (!stored.delivery.districtRates || stored.delivery.districtRates.length === 0) {
-      stored.delivery.districtRates = [...DEFAULT_DISTRICT_RATES];
-      this.db.set(SettingsRepository.STORAGE_KEY, stored);
+  }
+
+  private loadFromFile(): StoreSettings | null {
+    try {
+      if (fs.existsSync(SettingsRepository.DATA_FILE_PATH)) {
+        const raw = fs.readFileSync(SettingsRepository.DATA_FILE_PATH, 'utf-8');
+        const parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.categories)) return parsed;
+      }
+    } catch (err) {
+      console.warn('[SettingsRepository] Warning: Could not read settings from file:', err);
     }
-    if (!stored.categoryDetails || stored.categoryDetails.length === 0) {
-      stored.categoryDetails = [...DEFAULT_CATEGORY_ITEMS];
-      stored.categories = stored.categoryDetails.map((c) => c.name);
+    return null;
+  }
+
+  public async getSettings(): Promise<StoreSettings> {
+    const fileSettings = this.loadFromFile();
+    if (fileSettings) {
+      this.db.set(SettingsRepository.STORAGE_KEY, fileSettings);
+      return fileSettings;
+    }
+    let stored = this.db.get<StoreSettings>(SettingsRepository.STORAGE_KEY);
+    if (!stored || !stored.bankAccounts || stored.bankAccounts.length === 0) {
+      stored = this.buildDefaultSettings();
       this.db.set(SettingsRepository.STORAGE_KEY, stored);
-    } else if (!stored.categories || stored.categories.length === 0) {
-      stored.categories = stored.categoryDetails.map((c) => c.name);
-      this.db.set(SettingsRepository.STORAGE_KEY, stored);
+      this.saveToFile(stored);
     }
     return stored;
   }
@@ -145,6 +150,7 @@ export class SettingsRepository {
       updatedAt: new Date().toISOString(),
     };
     this.db.set(SettingsRepository.STORAGE_KEY, updated);
+    this.saveToFile(updated);
     return updated;
   }
 }

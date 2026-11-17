@@ -124,9 +124,8 @@ export const CategorySection: React.FC = () => {
                 src={cat.image}
                 alt={cat.alt}
                 fill
-                sizes="120px"
+                sizes="(max-width: 640px) 80px, 96px"
                 className="object-cover object-center"
-                unoptimized
                 loading="lazy"
                 decoding="async"
               />
