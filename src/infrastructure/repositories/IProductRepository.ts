@@ -7,9 +7,12 @@ import { AgeGroup, ClothingCategory, Gender } from '@/shared/types/common';
  */
 export interface ProductFilterOptions {
   category?: ClothingCategory | string;
+  subcategory?: string;
   ageGroup?: AgeGroup;
   gender?: Gender;
+  minPrice?: number;
   maxPrice?: number;
+  size?: string;
   codOnly?: boolean;
   searchQuery?: string;
   sortBy?: 'price-low' | 'price-high' | 'rating' | 'newest';

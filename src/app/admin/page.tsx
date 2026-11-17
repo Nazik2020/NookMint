@@ -140,10 +140,14 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // Dropship Business Analytics State (Aligned with Executive Dashboard)
+  // Dropship Business Analytics State (Production Live Store Metrics)
   const [analyticsPeriod, setAnalyticsPeriod] = useState<'3m' | '6m' | '1y' | 'custom'>('3m');
-  const [analyticsStartDate, setAnalyticsStartDate] = useState<string>('2026-08-01');
-  const [analyticsEndDate, setAnalyticsEndDate] = useState<string>('2026-10-31');
+  const [analyticsStartDate, setAnalyticsStartDate] = useState<string>(() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - 3);
+    return d.toISOString().split('T')[0];
+  });
+  const [analyticsEndDate, setAnalyticsEndDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
   const [showCustomDatePicker, setShowCustomDatePicker] = useState<boolean>(false);
   const [performanceSearchQuery, setPerformanceSearchQuery] = useState<string>('');
   const [hoveredTrendIdx, setHoveredTrendIdx] = useState<number | null>(null);
@@ -1718,8 +1722,14 @@ export default function AdminDashboardPage() {
                   <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
                     <ShoppingBag className="w-6 h-6" />
                   </div>
-                  <h3 className="text-base font-bold text-slate-800">No Orders Match Criteria</h3>
-                  <p className="text-xs text-slate-500">Try clearing filters or search query.</p>
+                  <h3 className="text-base font-bold text-slate-800">
+                    {orders.length === 0 ? 'No Customer Orders Yet' : 'No Orders Match Criteria'}
+                  </h3>
+                  <p className="text-xs text-slate-500 max-w-md mx-auto">
+                    {orders.length === 0
+                      ? 'When a customer places a COD or Bank Transfer order on your store, it will appear here instantly with customer details, phone, and district.'
+                      : 'Try clearing filters or search query.'}
+                  </p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
@@ -2478,68 +2488,66 @@ Total COD Amount: Rs. ${order.grandTotal}`;
         )}
 
         {/* ========================================================= */}
-        {/* TAB 3: DROPSHIP ANALYTICS & PERFORMANCE (EXECUTIVE DASHBOARD) */}
+        {/* TAB 3: DROPSHIP ANALYTICS & PERFORMANCE (LIVE PRODUCTION METRICS) */}
         {/* ========================================================= */}
         {activeTab === 'analytics' && (() => {
-          // Benchmark items matching executive blueprint
-          const blueprintItems = [
-            {
-              id: 'bench-01',
-              title: 'Pro Sound True Wireless Earbuds with ANC',
-              sku: 'GAD-001',
-              category: 'Smart Gadgets & Audio',
-              sellingPrice: 4899,
-              costPrice: 4699,
-              profitPerUnit: 200,
-              ordersCount: 43,
-              revenue: 210657,
-              profit: 8600,
-              marginPct: 4.1,
-              image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=160&auto=format&fit=crop&q=80',
-            },
-            {
-              id: 'bench-02',
-              title: 'Heavy-Duty Garden Hand Trowel Set',
-              sku: 'GAR-005',
-              category: 'Home & Garden',
-              sellingPrice: 2450,
-              costPrice: 2230,
-              profitPerUnit: 220,
-              ordersCount: 27,
-              revenue: 66150,
-              profit: 5940,
-              marginPct: 9.0,
-              image: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=160&auto=format&fit=crop&q=80',
-            },
-            {
-              id: 'bench-03',
-              title: 'LED Touch Night Lamp',
-              sku: 'HSK-012',
-              category: 'Household & Kitchen',
-              sellingPrice: 2190,
-              costPrice: 1950,
-              profitPerUnit: 240,
-              ordersCount: 19,
-              revenue: 41610,
-              profit: 4560,
-              marginPct: 10.9,
-              image: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=160&auto=format&fit=crop&q=80',
-            },
-          ];
+          // 1. Filter orders within the selected date range & strictly exclude cancelled/returned
+          const validOrders = orders.filter((o) => {
+            if (o.status === OrderStatus.CANCELLED || (o as any).status === 'CANCELLED' || (o as any).status === 'RETURNED') {
+              return false;
+            }
+            if (analyticsStartDate && analyticsEndDate) {
+              const orderDate = new Date(o.createdAt || Date.now()).toISOString().split('T')[0];
+              if (orderDate < analyticsStartDate || orderDate > analyticsEndDate) {
+                return false;
+              }
+            }
+            return true;
+          });
 
-          // Store catalog items mapped to the performance table
-          const dynamicCatalogItems = products.map((prod) => {
-            const sp = prod.sellingPrice || 3500;
-            const cp = prod.costPrice || Math.round(sp * 0.72);
-            const unitProfit = Math.max(100, sp - cp);
-            const orderHits = orders.filter((o) => {
-              if (o.status === OrderStatus.CANCELLED || (o as any).status === 'CANCELLED' || (o as any).status === 'RETURNED') return false;
-              return (o.items || []).some((it: any) => it.productId === prod.id || it.product?.id === prod.id || it.product?.title === prod.title);
-            }).length;
-            const count = Math.max(1, orderHits);
-            const rev = count * sp;
-            const prof = count * unitProfit;
-            const margin = rev > 0 ? (prof / rev) * 100 : 0;
+          // 2. Dynamic KPI metrics from valid orders
+          const totalSalesRevenue = validOrders.reduce((acc, o) => acc + (Number(o.grandTotal) || Number(o.subtotal) || 0), 0);
+          const totalOrdersCount = validOrders.length;
+
+          // Dynamic net profit: Selling Price - Wholesale Cost
+          const totalProfitCalculated = validOrders.reduce((sum, o) => {
+            const orderProfit = (o.items || []).reduce((itemSum: number, item: any) => {
+              const sp = Number(item.product?.sellingPrice || item.price || 0);
+              const cp = Number(item.product?.costPrice || (sp > 0 ? Math.round(sp * 0.72) : 0));
+              const unitProfit = Math.max(0, sp - cp);
+              const qty = Number(item.quantity) || 1;
+              return itemSum + (unitProfit * qty);
+            }, 0);
+            return sum + orderProfit;
+          }, 0);
+
+          const profitMarginPct = totalSalesRevenue > 0 ? (totalProfitCalculated / totalSalesRevenue) * 100 : 0;
+          const avgOrderValue = totalOrdersCount > 0 ? totalSalesRevenue / totalOrdersCount : 0;
+
+          // 3. Dynamic Catalog Performance Data (From merchant's real uploaded products)
+          const catalogPerformanceData = products.map((prod) => {
+            const sp = Number(prod.sellingPrice) || 0;
+            const cp = Number(prod.costPrice) || (sp > 0 ? Math.round(sp * 0.72) : 0);
+            const unitProfit = Math.max(0, sp - cp);
+
+            // Count actual units sold for this product in valid orders
+            let soldUnits = 0;
+            validOrders.forEach((o) => {
+              (o.items || []).forEach((it: any) => {
+                if (
+                  it.productId === prod.id ||
+                  it.product?.id === prod.id ||
+                  (it.product?.title && it.product.title.toLowerCase() === prod.title.toLowerCase())
+                ) {
+                  soldUnits += (Number(it.quantity) || 1);
+                }
+              });
+            });
+
+            const rev = soldUnits * sp;
+            const prof = soldUnits * unitProfit;
+            const margin = sp > 0 ? (unitProfit / sp) * 100 : 0;
+
             return {
               id: prod.id,
               title: prod.title,
@@ -2548,7 +2556,7 @@ Total COD Amount: Rs. ${order.grandTotal}`;
               sellingPrice: sp,
               costPrice: cp,
               profitPerUnit: unitProfit,
-              ordersCount: count,
+              ordersCount: soldUnits,
               revenue: rev,
               profit: prof,
               marginPct: margin,
@@ -2556,13 +2564,13 @@ Total COD Amount: Rs. ${order.grandTotal}`;
             };
           });
 
-          // Combined dataset with deduplication by title/sku
-          const combinedTableItems = [
-            ...blueprintItems,
-            ...dynamicCatalogItems.filter((d) => !blueprintItems.some((b) => b.title.toLowerCase() === d.title.toLowerCase() || b.sku === d.sku)),
-          ];
+          // Sorted by profit desc for Top Performing Products
+          const topPerformingProducts = [...catalogPerformanceData]
+            .filter((p) => p.ordersCount > 0)
+            .sort((a, b) => b.profit - a.profit)
+            .slice(0, 3);
 
-          const filteredTableData = combinedTableItems.filter((item) => {
+          const filteredTableData = catalogPerformanceData.filter((item) => {
             const q = performanceSearchQuery.toLowerCase().trim();
             if (!q) return true;
             return (
@@ -2572,12 +2580,37 @@ Total COD Amount: Rs. ${order.grandTotal}`;
             );
           });
 
-          // Interactive Trend Data Points
-          const trendMonths = [
-            { month: 'Aug 2026', x: 130, sales: 38000, profit: 5400, margin: 14.2, salesY: 152, profitY: 212 },
-            { month: 'Sep 2026', x: 380, sales: 64500, profit: 9200, margin: 14.3, salesY: 98, profitY: 204 },
-            { month: 'Oct 2026', x: 600, sales: 98400, profit: 14210, margin: 14.4, salesY: 36, profitY: 194 },
-          ];
+          // Order status breakdown (Delivered, In Fulfillment, Ready for iSales, Cancelled/Returned)
+          const deliveredCount = orders.filter((o) => o.status === OrderStatus.DELIVERED).length;
+          const inFulfillmentCount = orders.filter(
+            (o) => o.status === OrderStatus.CONFIRMED || o.status === OrderStatus.SHIPPED || o.status === OrderStatus.OUT_FOR_DELIVERY
+          ).length;
+          const readyForIsalesCount = orders.filter(
+            (o) => o.status === OrderStatus.PENDING_CONFIRMATION || o.status === OrderStatus.PENDING_COD_VERIFICATION
+          ).length;
+          const cancelledOrReturnedCount = cancelledOrReturnedOrders.length;
+          const allOrdersCount = orders.length;
+
+          const deliveredPct = allOrdersCount > 0 ? Math.round((deliveredCount / allOrdersCount) * 100) : 0;
+          const inFulfillmentPct = allOrdersCount > 0 ? Math.round((inFulfillmentCount / allOrdersCount) * 100) : 0;
+          const readyPct = allOrdersCount > 0 ? Math.round((readyForIsalesCount / allOrdersCount) * 100) : 0;
+          const cancelledPct = allOrdersCount > 0 ? Math.round((cancelledOrReturnedCount / allOrdersCount) * 100) : 0;
+
+          // Category sales calculation
+          const categorySalesMap: Record<string, { revenue: number; profit: number }> = {};
+          validOrders.forEach((o) => {
+            (o.items || []).forEach((it: any) => {
+              const cat = it.product?.category || 'General';
+              const sp = Number(it.product?.sellingPrice || it.price || 0);
+              const cp = Number(it.product?.costPrice || (sp > 0 ? Math.round(sp * 0.72) : 0));
+              const qty = Number(it.quantity) || 1;
+              if (!categorySalesMap[cat]) categorySalesMap[cat] = { revenue: 0, profit: 0 };
+              categorySalesMap[cat].revenue += sp * qty;
+              categorySalesMap[cat].profit += Math.max(0, sp - cp) * qty;
+            });
+          });
+
+          const categoryKeys = Object.keys(categorySalesMap);
 
           return (
             <div className="space-y-7">
@@ -2604,8 +2637,11 @@ Total COD Amount: Rs. ${order.grandTotal}`;
                       type="button"
                       onClick={() => {
                         setAnalyticsPeriod('3m');
-                        setAnalyticsStartDate('2026-08-01');
-                        setAnalyticsEndDate('2026-10-31');
+                        const end = new Date();
+                        const start = new Date();
+                        start.setMonth(start.getMonth() - 3);
+                        setAnalyticsStartDate(start.toISOString().split('T')[0]);
+                        setAnalyticsEndDate(end.toISOString().split('T')[0]);
                         setShowCustomDatePicker(false);
                       }}
                       className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
@@ -2620,8 +2656,11 @@ Total COD Amount: Rs. ${order.grandTotal}`;
                       type="button"
                       onClick={() => {
                         setAnalyticsPeriod('6m');
-                        setAnalyticsStartDate('2026-05-01');
-                        setAnalyticsEndDate('2026-10-31');
+                        const end = new Date();
+                        const start = new Date();
+                        start.setMonth(start.getMonth() - 6);
+                        setAnalyticsStartDate(start.toISOString().split('T')[0]);
+                        setAnalyticsEndDate(end.toISOString().split('T')[0]);
                         setShowCustomDatePicker(false);
                       }}
                       className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
@@ -2636,8 +2675,11 @@ Total COD Amount: Rs. ${order.grandTotal}`;
                       type="button"
                       onClick={() => {
                         setAnalyticsPeriod('1y');
-                        setAnalyticsStartDate('2025-11-01');
-                        setAnalyticsEndDate('2026-10-31');
+                        const end = new Date();
+                        const start = new Date();
+                        start.setFullYear(start.getFullYear() - 1);
+                        setAnalyticsStartDate(start.toISOString().split('T')[0]);
+                        setAnalyticsEndDate(end.toISOString().split('T')[0]);
                         setShowCustomDatePicker(false);
                       }}
                       className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
@@ -2675,11 +2717,11 @@ Total COD Amount: Rs. ${order.grandTotal}`;
                       <Calendar className="w-4 h-4 text-emerald-700" />
                       <span className="font-semibold text-slate-800">
                         {analyticsPeriod === '3m'
-                          ? 'Aug 01, 2026 – Oct 31, 2026'
+                          ? 'Last 3 Months'
                           : analyticsPeriod === '6m'
-                          ? 'May 01, 2026 – Oct 31, 2026'
+                          ? 'Last 6 Months'
                           : analyticsPeriod === '1y'
-                          ? 'Nov 01, 2025 – Oct 31, 2026'
+                          ? 'Last 1 Year'
                           : `${analyticsStartDate} – ${analyticsEndDate}`}
                       </span>
                       <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
@@ -2738,7 +2780,10 @@ Total COD Amount: Rs. ${order.grandTotal}`;
                 <div className="flex items-center gap-2.5 text-emerald-900 font-medium">
                   <ShieldCheck className="w-5 h-5 text-emerald-700 shrink-0" />
                   <span>
-                    <strong className="font-bold text-emerald-950">Protected Dropship P&L:</strong> All 11 cancelled or returned customer orders are strictly excluded from gross sales, profit, and margin totals to keep your A to Z Traders financial records 100% compliant and accurate.
+                    <strong className="font-bold text-emerald-950">Protected Dropship P&L:</strong>{' '}
+                    {cancelledOrReturnedCount === 0
+                      ? 'All customer orders are verified with zero loss protection. Cancelled and returned orders are automatically isolated from revenue and profit.'
+                      : `All ${cancelledOrReturnedCount} cancelled or returned customer orders are strictly excluded from gross sales, profit, and margin totals to keep your A to Z Traders financial records 100% compliant.`}
                   </span>
                 </div>
                 <span className="hidden sm:inline-block px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 font-bold text-[11px] shrink-0 border border-emerald-200/70">
@@ -2746,7 +2791,7 @@ Total COD Amount: Rs. ${order.grandTotal}`;
                 </span>
               </div>
 
-              {/* 5 KPI METRICS CARDS (Single-line formatting, no awkward line-breaks) */}
+              {/* 5 KPI METRICS CARDS (Dynamic from valid orders) */}
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4">
                 {/* 1. Total Sales (Revenue) */}
                 <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/80 shadow-2xs space-y-2">
@@ -2758,13 +2803,12 @@ Total COD Amount: Rs. ${order.grandTotal}`;
                   </div>
                   <div className="flex items-baseline gap-1 font-serif text-slate-900 font-black tracking-tight whitespace-nowrap">
                     <span className="text-xs font-bold text-slate-400">LKR</span>
-                    <span className="text-xl xl:text-2xl font-black">342,600.00</span>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-                    <span className="inline-flex items-center font-bold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 shrink-0">
-                      <ArrowUp className="w-3 h-3 mr-0.5" /> +28.4%
+                    <span className="text-xl xl:text-2xl font-black">
+                      {totalSalesRevenue.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
-                    <span className="text-slate-400 whitespace-nowrap">vs previous 3 months</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
+                    <span>{totalOrdersCount > 0 ? `${totalOrdersCount} fulfilled orders` : 'Waiting for first order'}</span>
                   </div>
                 </div>
 
@@ -2777,13 +2821,10 @@ Total COD Amount: Rs. ${order.grandTotal}`;
                     <span className="text-xs font-bold text-slate-600 truncate">Total Orders</span>
                   </div>
                   <div className="font-serif text-slate-900 font-black tracking-tight whitespace-nowrap text-xl xl:text-2xl">
-                    187
+                    {totalOrdersCount}
                   </div>
-                  <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-                    <span className="inline-flex items-center font-bold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 shrink-0">
-                      <ArrowUp className="w-3 h-3 mr-0.5" /> +32.6%
-                    </span>
-                    <span className="text-slate-400 whitespace-nowrap">vs previous 3 months</span>
+                  <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
+                    <span>{allOrdersCount} total checkouts</span>
                   </div>
                 </div>
 
@@ -2797,13 +2838,12 @@ Total COD Amount: Rs. ${order.grandTotal}`;
                   </div>
                   <div className="flex items-baseline gap-1 font-serif text-slate-900 font-black tracking-tight whitespace-nowrap">
                     <span className="text-xs font-bold text-slate-400">LKR</span>
-                    <span className="text-xl xl:text-2xl font-black text-emerald-950">46,820.00</span>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-                    <span className="inline-flex items-center font-bold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 shrink-0">
-                      <ArrowUp className="w-3 h-3 mr-0.5" /> +36.8%
+                    <span className="text-xl xl:text-2xl font-black text-emerald-950">
+                      {totalProfitCalculated.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
-                    <span className="text-slate-400 whitespace-nowrap">vs previous 3 months</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
+                    <span>Net dropship margin</span>
                   </div>
                 </div>
 
@@ -2816,13 +2856,10 @@ Total COD Amount: Rs. ${order.grandTotal}`;
                     <span className="text-xs font-bold text-slate-600 truncate">Profit Margin</span>
                   </div>
                   <div className="font-serif text-slate-900 font-black tracking-tight whitespace-nowrap text-xl xl:text-2xl text-emerald-950">
-                    13.7%
+                    {profitMarginPct.toFixed(1)}%
                   </div>
-                  <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-                    <span className="inline-flex items-center font-bold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 shrink-0">
-                      <ArrowUp className="w-3 h-3 mr-0.5" /> +1.9 pp
-                    </span>
-                    <span className="text-slate-400 whitespace-nowrap">vs previous period</span>
+                  <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
+                    <span>Clean profit share</span>
                   </div>
                 </div>
 
@@ -2836,13 +2873,12 @@ Total COD Amount: Rs. ${order.grandTotal}`;
                   </div>
                   <div className="flex items-baseline gap-1 font-serif text-slate-900 font-black tracking-tight whitespace-nowrap">
                     <span className="text-xs font-bold text-slate-400">LKR</span>
-                    <span className="text-xl xl:text-2xl font-black">1,832.62</span>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-                    <span className="inline-flex items-center font-bold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 shrink-0">
-                      <ArrowUp className="w-3 h-3 mr-0.5" /> +4.1%
+                    <span className="text-xl xl:text-2xl font-black">
+                      {avgOrderValue.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
-                    <span className="text-slate-400 whitespace-nowrap">vs previous 3 months</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
+                    <span>Per order checkout</span>
                   </div>
                 </div>
               </div>
@@ -2868,104 +2904,23 @@ Total COD Amount: Rs. ${order.grandTotal}`;
                     </div>
                   </div>
 
-                  {/* Dual Curve SVG Chart */}
-                  <div className="relative w-full overflow-hidden pt-2">
-                    <svg viewBox="0 0 650 240" className="w-full h-56 select-none">
-                      <defs>
-                        <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#064E3B" stopOpacity="0.30" />
-                          <stop offset="100%" stopColor="#064E3B" stopOpacity="0.01" />
-                        </linearGradient>
-                        <linearGradient id="profitGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#10B981" stopOpacity="0.30" />
-                          <stop offset="100%" stopColor="#10B981" stopOpacity="0.01" />
-                        </linearGradient>
-                      </defs>
-
-                      {/* Y-Axis Horizontal Guide Lines & Labels */}
-                      {[
-                        { label: 'LKR 100,000', y: 30 },
-                        { label: 'LKR 80,000', y: 68 },
-                        { label: 'LKR 60,000', y: 106 },
-                        { label: 'LKR 40,000', y: 144 },
-                        { label: 'LKR 20,000', y: 182 },
-                        { label: 'LKR 0', y: 220 },
-                      ].map((tick, i) => (
-                        <g key={i}>
-                          <text x="6" y={tick.y + 4} fill="#64748B" fontSize="10.5" fontWeight="600">
-                            {tick.label}
-                          </text>
-                          <line x1="85" y1={tick.y} x2="635" y2={tick.y} stroke="#F1F5F9" strokeDasharray="4 4" strokeWidth="1" />
-                        </g>
-                      ))}
-
-                      {/* Sales Revenue Area & Curve */}
-                      <path
-                        d="M 130 152 C 255 120, 255 98, 380 98 C 495 98, 495 36, 600 36 L 600 220 L 130 220 Z"
-                        fill="url(#salesGrad)"
-                      />
-                      <path
-                        d="M 130 152 C 255 120, 255 98, 380 98 C 495 98, 495 36, 600 36"
-                        fill="none"
-                        stroke="#064E3B"
-                        strokeWidth="3.2"
-                        strokeLinecap="round"
-                      />
-
-                      {/* Profit Area & Curve */}
-                      <path
-                        d="M 130 212 C 255 208, 255 204, 380 204 C 495 204, 495 194, 600 194 L 600 220 L 130 220 Z"
-                        fill="url(#profitGrad)"
-                      />
-                      <path
-                        d="M 130 212 C 255 208, 255 204, 380 204 C 495 204, 495 194, 600 194"
-                        fill="none"
-                        stroke="#10B981"
-                        strokeWidth="3.2"
-                        strokeLinecap="round"
-                      />
-
-                      {/* Data Point Circles and X-Axis Labels */}
-                      {trendMonths.map((m, idx) => (
-                        <g key={idx} className="cursor-pointer" onMouseEnter={() => setHoveredTrendIdx(idx)} onMouseLeave={() => setHoveredTrendIdx(null)}>
-                          {hoveredTrendIdx === idx && (
-                            <line x1={m.x} y1="30" x2={m.x} y2="220" stroke="#064E3B" strokeWidth="1.5" strokeDasharray="3 3" />
-                          )}
-                          <circle cx={m.x} cy={m.salesY} r="5.5" fill="#FFFFFF" stroke="#064E3B" strokeWidth="3" />
-                          <circle cx={m.x} cy={m.profitY} r="5.5" fill="#FFFFFF" stroke="#10B981" strokeWidth="3" />
-                          <text x={m.x} y="236" textAnchor="middle" fill="#475569" fontSize="11" fontWeight="700">
-                            {m.month}
-                          </text>
-                        </g>
-                      ))}
-                    </svg>
-
-                    {hoveredTrendIdx !== null && (
-                      <div
-                        className="absolute top-2 bg-slate-900 text-white p-3 rounded-2xl shadow-xl text-xs space-y-1 z-20 pointer-events-none border border-slate-700"
-                        style={{
-                          left: `${Math.min(75, Math.max(15, (trendMonths[hoveredTrendIdx].x / 650) * 100))}%`,
-                          transform: 'translateX(-50%)',
-                        }}
-                      >
-                        <div className="font-bold text-slate-300 border-b border-slate-800 pb-1">
-                          {trendMonths[hoveredTrendIdx].month}
-                        </div>
-                        <div className="flex items-center justify-between gap-4 pt-0.5">
-                          <span className="text-emerald-400">Sales:</span>
-                          <span className="font-bold">LKR {trendMonths[hoveredTrendIdx].sales.toLocaleString()}.00</span>
-                        </div>
-                        <div className="flex items-center justify-between gap-4">
-                          <span className="text-emerald-300">Profit:</span>
-                          <span className="font-bold text-emerald-300">LKR {trendMonths[hoveredTrendIdx].profit.toLocaleString()}.00</span>
-                        </div>
-                        <div className="flex items-center justify-between gap-4 text-[10px] text-slate-400">
-                          <span>Margin:</span>
-                          <span className="font-semibold text-white">{trendMonths[hoveredTrendIdx].margin}%</span>
-                        </div>
+                  {validOrders.length === 0 ? (
+                    <div className="h-56 flex flex-col items-center justify-center text-center p-6 space-y-2 rounded-2xl border border-dashed border-slate-200 bg-slate-50/50">
+                      <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 shadow-2xs">
+                        <TrendingUp className="w-5 h-5" />
                       </div>
-                    )}
-                  </div>
+                      <p className="text-xs font-bold text-slate-700">No Sales Trajectory Data Yet</p>
+                      <p className="text-[11px] text-slate-400 max-w-sm">
+                        As real customer COD and bank transfer orders arrive, your live monthly sales curves and profit margins will automatically chart here.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="h-56 flex items-center justify-center">
+                      <p className="text-xs text-slate-500 font-medium">
+                        Total {validOrders.length} orders recorded. Sales: LKR {totalSalesRevenue.toLocaleString()}.00 | Profit: LKR {totalProfitCalculated.toLocaleString()}.00
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Right: Sales by Category Donut Chart (lg:col-span-5) */}
@@ -2975,113 +2930,32 @@ Total COD Amount: Rs. ${order.grandTotal}`;
                     <h3 className="text-sm font-black text-slate-900 font-serif tracking-tight">Sales by Category</h3>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-6 my-auto pt-2">
-                    {/* SVG Donut with Clean Inside Text */}
-                    <div className="relative w-48 h-48 shrink-0 flex items-center justify-center">
-                      <svg viewBox="0 0 220 220" className="w-full h-full select-none">
-                        <g transform="rotate(-90 110 110)">
-                          {/* Track */}
-                          <circle cx="110" cy="110" r="72" fill="transparent" stroke="#F1F5F9" strokeWidth="24" />
-                          {/* Slice 1: Smart Gadgets & Audio 38.6% */}
-                          <circle
-                            cx="110"
-                            cy="110"
-                            r="72"
-                            fill="transparent"
-                            stroke="#064E3B"
-                            strokeWidth="24"
-                            strokeDasharray="174.6 452.4"
-                            strokeDashoffset="0"
-                          />
-                          {/* Slice 2: Household & Kitchen 24.1% */}
-                          <circle
-                            cx="110"
-                            cy="110"
-                            r="72"
-                            fill="transparent"
-                            stroke="#10B981"
-                            strokeWidth="24"
-                            strokeDasharray="109.0 452.4"
-                            strokeDashoffset="-174.6"
-                          />
-                          {/* Slice 3: Home & Garden 20.5% */}
-                          <circle
-                            cx="110"
-                            cy="110"
-                            r="72"
-                            fill="transparent"
-                            stroke="#F59E0B"
-                            strokeWidth="24"
-                            strokeDasharray="92.7 452.4"
-                            strokeDashoffset="-283.6"
-                          />
-                          {/* Slice 4: Others 16.8% */}
-                          <circle
-                            cx="110"
-                            cy="110"
-                            r="72"
-                            fill="transparent"
-                            stroke="#6EE7B7"
-                            strokeWidth="24"
-                            strokeDasharray="76.0 452.4"
-                            strokeDashoffset="-376.3"
-                          />
-                        </g>
-
-                        {/* Center Text (Directly in SVG for razor-sharp clarity) */}
-                        <text x="110" y="103" textAnchor="middle" fill="#064E3B" fontSize="15" fontWeight="900" fontFamily="serif">
-                          LKR 342,600
-                        </text>
-                        <text x="110" y="122" textAnchor="middle" fill="#64748B" fontSize="9.5" fontWeight="700" letterSpacing="0.06em">
-                          TOTAL SALES
-                        </text>
-                      </svg>
+                  {categoryKeys.length === 0 ? (
+                    <div className="h-56 flex flex-col items-center justify-center text-center p-6 space-y-2 rounded-2xl border border-dashed border-slate-200 bg-slate-50/50">
+                      <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 shadow-2xs">
+                        <Layers className="w-5 h-5" />
+                      </div>
+                      <p className="text-xs font-bold text-slate-700">No Categorized Sales Yet</p>
+                      <p className="text-[11px] text-slate-400 max-w-xs">
+                        Category breakdown will automatically generate once orders are placed.
+                      </p>
                     </div>
-
-                    {/* Category Legend List */}
-                    <div className="space-y-2.5 text-xs w-full max-w-xs">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full bg-[#064E3B] shrink-0" />
-                          <span className="font-semibold text-slate-700">Smart Gadgets & Audio</span>
-                        </div>
-                        <div className="text-right whitespace-nowrap">
-                          <span className="font-bold text-slate-900">38.6%</span>
-                          <span className="text-[10px] text-slate-400 block font-mono">LKR 132,360.00</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full bg-[#10B981] shrink-0" />
-                          <span className="font-semibold text-slate-700">Household & Kitchen</span>
-                        </div>
-                        <div className="text-right whitespace-nowrap">
-                          <span className="font-bold text-slate-900">24.1%</span>
-                          <span className="text-[10px] text-slate-400 block font-mono">LKR 82,620.00</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full bg-[#F59E0B] shrink-0" />
-                          <span className="font-semibold text-slate-700">Home & Garden</span>
-                        </div>
-                        <div className="text-right whitespace-nowrap">
-                          <span className="font-bold text-slate-900">20.5%</span>
-                          <span className="text-[10px] text-slate-400 block font-mono">LKR 70,200.00</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full bg-[#6EE7B7] shrink-0" />
-                          <span className="font-semibold text-slate-700">Others</span>
-                        </div>
-                        <div className="text-right whitespace-nowrap">
-                          <span className="font-bold text-slate-900">16.8%</span>
-                          <span className="text-[10px] text-slate-400 block font-mono">LKR 57,420.00</span>
-                        </div>
-                      </div>
+                  ) : (
+                    <div className="space-y-3 py-4">
+                      {categoryKeys.map((cat, idx) => {
+                        const catRev = categorySalesMap[cat].revenue;
+                        const pct = totalSalesRevenue > 0 ? ((catRev / totalSalesRevenue) * 100).toFixed(1) : '0';
+                        return (
+                          <div key={idx} className="flex items-center justify-between text-xs">
+                            <span className="font-semibold text-slate-700">{cat}</span>
+                            <span className="font-bold text-slate-900 font-mono">
+                              {pct}% (LKR {catRev.toLocaleString()}.00)
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
 
@@ -3094,61 +2968,46 @@ Total COD Amount: Rs. ${order.grandTotal}`;
                     <h3 className="text-sm font-black text-slate-900 font-serif tracking-tight">Order Status Overview</h3>
                   </div>
 
-                  <div className="flex items-center justify-center py-2">
-                    <div className="relative w-40 h-40">
-                      <svg viewBox="0 0 200 200" className="w-full h-full select-none">
-                        <g transform="rotate(-90 100 100)">
-                          {/* Delivered 72.2% */}
-                          <circle cx="100" cy="100" r="68" fill="transparent" stroke="#064E3B" strokeWidth="22" strokeDasharray="308.5 427.3" strokeDashoffset="0" />
-                          {/* In Fulfillment 13.4% */}
-                          <circle cx="100" cy="100" r="68" fill="transparent" stroke="#3B82F6" strokeWidth="22" strokeDasharray="57.3 427.3" strokeDashoffset="-308.5" />
-                          {/* Ready for iSales 8.6% */}
-                          <circle cx="100" cy="100" r="68" fill="transparent" stroke="#F59E0B" strokeWidth="22" strokeDasharray="36.7 427.3" strokeDashoffset="-365.8" />
-                          {/* Others (Cancelled/Returned) 5.8% */}
-                          <circle cx="100" cy="100" r="68" fill="transparent" stroke="#9CA3AF" strokeWidth="22" strokeDasharray="24.8 427.3" strokeDashoffset="-402.5" />
-                        </g>
-                        <text x="100" y="96" textAnchor="middle" fill="#064E3B" fontSize="17" fontWeight="900" fontFamily="serif">
-                          72.2%
-                        </text>
-                        <text x="100" y="114" textAnchor="middle" fill="#64748B" fontSize="9.5" fontWeight="700" letterSpacing="0.06em">
-                          DELIVERED
-                        </text>
-                      </svg>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 pt-2 border-t border-slate-100 text-xs">
-                    <div className="flex items-center justify-between">
+                  <div className="space-y-3 py-2 text-xs">
+                    <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50">
                       <div className="flex items-center gap-2">
                         <span className="w-2.5 h-2.5 rounded-full bg-[#064E3B]" />
                         <span className="text-slate-600 font-medium">Delivered</span>
                       </div>
-                      <span className="font-bold text-slate-900 font-mono">135 (72.2%)</span>
+                      <span className="font-bold text-slate-900 font-mono">
+                        {deliveredCount} ({deliveredPct}%)
+                      </span>
                     </div>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50">
                       <div className="flex items-center gap-2">
                         <span className="w-2.5 h-2.5 rounded-full bg-[#3B82F6]" />
                         <span className="text-slate-600 font-medium">In Fulfillment</span>
                       </div>
-                      <span className="font-bold text-slate-900 font-mono">25 (13.4%)</span>
+                      <span className="font-bold text-slate-900 font-mono">
+                        {inFulfillmentCount} ({inFulfillmentPct}%)
+                      </span>
                     </div>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50">
                       <div className="flex items-center gap-2">
                         <span className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]" />
                         <span className="text-slate-600 font-medium">Ready for iSales Entry</span>
                       </div>
-                      <span className="font-bold text-slate-900 font-mono">16 (8.6%)</span>
+                      <span className="font-bold text-slate-900 font-mono">
+                        {readyForIsalesCount} ({readyPct}%)
+                      </span>
                     </div>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50">
                       <div className="flex items-center gap-2">
                         <span className="w-2.5 h-2.5 rounded-full bg-[#9CA3AF]" />
-                        <span className="text-slate-600 font-medium">Others (Cancelled/Returned)</span>
+                        <span className="text-slate-600 font-medium">Cancelled / Returned</span>
                       </div>
-                      <span className="font-bold text-rose-600 font-mono">11 (5.8%)</span>
+                      <span className="font-bold text-rose-600 font-mono">
+                        {cancelledOrReturnedCount} ({cancelledPct}%)
+                      </span>
                     </div>
                   </div>
                   <p className="text-[10px] text-slate-400 pt-2 text-center italic">
-                    * 11 Cancelled/Returned orders excluded from P&L revenue
+                    * {cancelledOrReturnedCount} Cancelled/Returned orders excluded from P&L revenue
                   </p>
                 </div>
 
@@ -3157,7 +3016,7 @@ Total COD Amount: Rs. ${order.grandTotal}`;
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <Award className="w-4 h-4 text-emerald-700" />
-                      <h3 className="text-sm font-black text-slate-900 font-serif tracking-tight">Top Performing Products (by Profit)</h3>
+                      <h3 className="text-sm font-black text-slate-900 font-serif tracking-tight">Top Performing Products</h3>
                     </div>
                     <button
                       type="button"
@@ -3172,102 +3031,76 @@ Total COD Amount: Rs. ${order.grandTotal}`;
                     </button>
                   </div>
 
-                  <div className="space-y-3.5 my-auto">
-                    {blueprintItems.map((prod, idx) => (
-                      <div key={idx} className="flex items-center justify-between gap-3 p-2.5 rounded-2xl bg-slate-50/70 border border-slate-100 hover:border-emerald-200 transition-colors">
-                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <img
-                            src={prod.image}
-                            alt={prod.title}
-                            className="w-11 h-11 rounded-xl object-cover border border-slate-200 shrink-0 shadow-2xs"
-                          />
-                          <div className="min-w-0 flex-1">
-                            <h4 className="text-xs font-bold text-slate-900 leading-snug line-clamp-1" title={prod.title}>
-                              {prod.title}
-                            </h4>
-                            <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                              {prod.ordersCount} orders • Profit: <span className="font-bold text-emerald-800 font-mono">LKR {prod.profit.toLocaleString()}.00</span>
-                            </p>
-                          </div>
-                        </div>
-                        <span className="px-2.5 py-1 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-800 text-[11px] font-bold shrink-0 whitespace-nowrap">
-                          LKR {prod.profitPerUnit}.00 /pc
-                        </span>
+                  {topPerformingProducts.length === 0 ? (
+                    <div className="py-10 text-center space-y-2 rounded-2xl border border-dashed border-slate-200 bg-slate-50/50">
+                      <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 mx-auto shadow-2xs">
+                        <Award className="w-5 h-5" />
                       </div>
-                    ))}
-                  </div>
+                      <p className="text-xs font-bold text-slate-700">No Product Sales Yet</p>
+                      <p className="text-[11px] text-slate-400">Products with highest net dropship profit will rank here.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3.5 my-auto">
+                      {topPerformingProducts.map((prod, idx) => (
+                        <div key={idx} className="flex items-center justify-between gap-3 p-2.5 rounded-2xl bg-slate-50/70 border border-slate-100 hover:border-emerald-200 transition-colors">
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <img
+                              src={prod.image}
+                              alt={prod.title}
+                              className="w-11 h-11 rounded-xl object-cover border border-slate-200 shrink-0 shadow-2xs"
+                            />
+                            <div className="min-w-0 flex-1">
+                              <h4 className="text-xs font-bold text-slate-900 leading-snug line-clamp-1" title={prod.title}>
+                                {prod.title}
+                              </h4>
+                              <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                                {prod.ordersCount} orders • Profit: <span className="font-bold text-emerald-800 font-mono">LKR {prod.profit.toLocaleString()}.00</span>
+                              </p>
+                            </div>
+                          </div>
+                          <span className="px-2.5 py-1 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-800 text-[11px] font-bold shrink-0 whitespace-nowrap">
+                            LKR {prod.profitPerUnit}.00 /pc
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   <p className="text-[11px] text-slate-400 pt-3 text-center">
                     Ranked by total net dropship earnings deposited
                   </p>
                 </div>
 
-                {/* 3. Profit by Category (Pixel-Perfect SVG Bar Chart) */}
+                {/* 3. Profit by Category */}
                 <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-2xs flex flex-col justify-between">
                   <div className="flex items-center gap-2 mb-2">
                     <BarChart3 className="w-4 h-4 text-emerald-700" />
                     <h3 className="text-sm font-black text-slate-900 font-serif tracking-tight">Profit by Category</h3>
                   </div>
 
-                  {/* SVG Bar Chart with Zero Overlap */}
-                  <div className="w-full pt-1 pb-1">
-                    <svg viewBox="0 0 380 200" className="w-full h-48 select-none">
-                      {/* Horizontal Grid Lines & Y-Axis Labels */}
-                      {[
-                        { label: 'LKR 20,000', y: 25 },
-                        { label: 'LKR 15,000', y: 65 },
-                        { label: 'LKR 10,000', y: 105 },
-                        { label: 'LKR 5,000', y: 145 },
-                        { label: 'LKR 0', y: 175 },
-                      ].map((tick, i) => (
-                        <g key={i}>
-                          <text x="6" y={tick.y + 3.5} fill="#94A3B8" fontSize="9.5" fontWeight="600">
-                            {tick.label}
-                          </text>
-                          <line x1="72" y1={tick.y} x2="370" y2={tick.y} stroke="#F1F5F9" strokeDasharray="3 3" strokeWidth="1" />
-                        </g>
+                  {categoryKeys.length === 0 ? (
+                    <div className="py-10 text-center space-y-2 rounded-2xl border border-dashed border-slate-200 bg-slate-50/50">
+                      <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 mx-auto shadow-2xs">
+                        <BarChart3 className="w-5 h-5" />
+                      </div>
+                      <p className="text-xs font-bold text-slate-700">No Profit by Category Yet</p>
+                      <p className="text-[11px] text-slate-400">Profit contribution per category will graph here.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 py-4">
+                      {categoryKeys.map((cat, idx) => (
+                        <div key={idx} className="flex items-center justify-between text-xs p-2 rounded-xl bg-slate-50">
+                          <span className="font-semibold text-slate-700">{cat}</span>
+                          <span className="font-bold text-emerald-800 font-mono">
+                            LKR {categorySalesMap[cat].profit.toLocaleString()}.00
+                          </span>
+                        </div>
                       ))}
-
-                      {/* Bar 1: Smart Gadgets & Audio (LKR 17,820) */}
-                      <text x="112" y="36" textAnchor="middle" fill="#064E3B" fontSize="9.5" fontWeight="800">
-                        LKR 17,820
-                      </text>
-                      <rect x="88" y="42" width="48" height="133" rx="6" fill="#064E3B" />
-                      <text x="112" y="192" textAnchor="middle" fill="#475569" fontSize="9.5" fontWeight="700">
-                        Smart Gadgets
-                      </text>
-
-                      {/* Bar 2: Household & Kitchen (LKR 11,260) */}
-                      <text x="186" y="88" textAnchor="middle" fill="#10B981" fontSize="9.5" fontWeight="800">
-                        LKR 11,260
-                      </text>
-                      <rect x="162" y="94" width="48" height="81" rx="6" fill="#10B981" />
-                      <text x="186" y="192" textAnchor="middle" fill="#475569" fontSize="9.5" fontWeight="700">
-                        Household
-                      </text>
-
-                      {/* Bar 3: Home & Garden (LKR 9,860) */}
-                      <text x="260" y="98" textAnchor="middle" fill="#059669" fontSize="9.5" fontWeight="800">
-                        LKR 9,860
-                      </text>
-                      <rect x="236" y="104" width="48" height="71" rx="6" fill="#34D399" />
-                      <text x="260" y="192" textAnchor="middle" fill="#475569" fontSize="9.5" fontWeight="700">
-                        Garden
-                      </text>
-
-                      {/* Bar 4: Others (LKR 7,880) */}
-                      <text x="334" y="112" textAnchor="middle" fill="#047857" fontSize="9.5" fontWeight="800">
-                        LKR 7,880
-                      </text>
-                      <rect x="310" y="118" width="48" height="57" rx="6" fill="#A7F3D0" />
-                      <text x="334" y="192" textAnchor="middle" fill="#475569" fontSize="9.5" fontWeight="700">
-                        Others
-                      </text>
-                    </svg>
-                  </div>
+                    </div>
+                  )}
 
                   <p className="text-[10px] text-slate-400 pt-1 text-center">
-                    Top grossing dropship product vertical: Smart Gadgets & Audio
+                    Net dropship earnings categorized by product category
                   </p>
                 </div>
               </div>
@@ -3333,57 +3166,71 @@ Total COD Amount: Rs. ${order.grandTotal}`;
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {filteredTableData.map((item, idx) => (
-                        <tr key={idx} className="hover:bg-emerald-50/20 transition-colors">
-                          <td className="py-3.5 px-5">
-                            <div className="flex items-center gap-3">
-                              <img
-                                src={item.image}
-                                alt={item.title}
-                                className="w-10 h-10 rounded-xl object-cover border border-slate-200 shrink-0 shadow-2xs"
-                              />
-                              <div className="min-w-0">
-                                <div className="font-bold text-slate-900 leading-snug">{item.title}</div>
-                                <div className="text-[11px] text-slate-400 font-mono mt-0.5">SKU: {item.sku}</div>
-                              </div>
+                      {filteredTableData.length === 0 ? (
+                        <tr>
+                          <td colSpan={9} className="py-12 text-center text-slate-400 text-xs">
+                            <div className="space-y-1.5">
+                              <Package className="w-6 h-6 text-slate-300 mx-auto" />
+                              <p className="font-bold text-slate-700">No Products in Catalog</p>
+                              <p className="text-[11px] text-slate-400">
+                                Click <span className="font-bold text-emerald-800 cursor-pointer" onClick={() => setActiveTab('products')}>Product Catalog & Stock</span> above to upload your real products.
+                              </p>
                             </div>
                           </td>
-                          <td className="py-3.5 px-4 whitespace-nowrap">
-                            <span className={`px-2.5 py-1 rounded-lg font-semibold text-[11px] border ${
-                              item.category.includes('Gadgets')
-                                ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                                : item.category.includes('Garden')
-                                ? 'bg-amber-50 text-amber-800 border-amber-200'
-                                : 'bg-slate-100 text-slate-700 border-slate-200'
-                            }`}>
-                              {item.category}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4 text-right font-mono font-semibold text-slate-800 tabular-nums">
-                            {item.sellingPrice.toLocaleString()}.00
-                          </td>
-                          <td className="py-3.5 px-4 text-right font-mono text-slate-500 tabular-nums">
-                            {item.costPrice.toLocaleString()}.00
-                          </td>
-                          <td className="py-3.5 px-4 text-right">
-                            <span className="px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold text-[11px] font-mono tabular-nums inline-block">
-                              {item.profitPerUnit.toLocaleString()}.00
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4 text-center font-bold text-slate-900">
-                            {item.ordersCount}
-                          </td>
-                          <td className="py-3.5 px-4 text-right font-mono font-semibold text-slate-800 tabular-nums">
-                            {item.revenue.toLocaleString()}.00
-                          </td>
-                          <td className="py-3.5 px-4 text-right font-mono font-black text-emerald-800 tabular-nums">
-                            {item.profit.toLocaleString()}.00
-                          </td>
-                          <td className="py-3.5 px-5 text-right font-mono font-bold text-slate-700 tabular-nums">
-                            {item.marginPct.toFixed(1)}%
-                          </td>
                         </tr>
-                      ))}
+                      ) : (
+                        filteredTableData.map((item, idx) => (
+                          <tr key={idx} className="hover:bg-emerald-50/20 transition-colors">
+                            <td className="py-3.5 px-5">
+                              <div className="flex items-center gap-3">
+                                <img
+                                  src={item.image}
+                                  alt={item.title}
+                                  className="w-10 h-10 rounded-xl object-cover border border-slate-200 shrink-0 shadow-2xs"
+                                />
+                                <div className="min-w-0">
+                                  <div className="font-bold text-slate-900 leading-snug">{item.title}</div>
+                                  <div className="text-[11px] text-slate-400 font-mono mt-0.5">SKU: {item.sku}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-3.5 px-4 whitespace-nowrap">
+                              <span className={`px-2.5 py-1 rounded-lg font-semibold text-[11px] border ${
+                                item.category.includes('Gadgets')
+                                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                                  : item.category.includes('Garden')
+                                  ? 'bg-amber-50 text-amber-800 border-amber-200'
+                                  : 'bg-slate-100 text-slate-700 border-slate-200'
+                              }`}>
+                                {item.category}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4 text-right font-mono font-semibold text-slate-800 tabular-nums">
+                              {item.sellingPrice.toLocaleString()}.00
+                            </td>
+                            <td className="py-3.5 px-4 text-right font-mono text-slate-500 tabular-nums">
+                              {item.costPrice.toLocaleString()}.00
+                            </td>
+                            <td className="py-3.5 px-4 text-right">
+                              <span className="px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold text-[11px] font-mono tabular-nums inline-block">
+                                {item.profitPerUnit.toLocaleString()}.00
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4 text-center font-bold text-slate-900">
+                              {item.ordersCount}
+                            </td>
+                            <td className="py-3.5 px-4 text-right font-mono font-semibold text-slate-800 tabular-nums">
+                              {item.revenue.toLocaleString()}.00
+                            </td>
+                            <td className="py-3.5 px-4 text-right font-mono font-black text-emerald-800 tabular-nums">
+                              {item.profit.toLocaleString()}.00
+                            </td>
+                            <td className="py-3.5 px-5 text-right font-mono font-bold text-slate-700 tabular-nums">
+                              {item.marginPct.toFixed(1)}%
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
