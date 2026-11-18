@@ -926,7 +926,14 @@ export default function AdminDashboardPage() {
       const updated = [...prev.images];
       const [promoted] = updated.splice(index, 1);
       updated.unshift(promoted);
-      return { ...prev, images: updated };
+      // Keep single variant or standard option in sync with primary cover photo
+      const updatedVariants = prev.variants.map((v, i) => {
+        if (i === 0 && (prev.variants.length === 1 || !v.image || v.image === prev.images[0])) {
+          return { ...v, image: promoted };
+        }
+        return v;
+      });
+      return { ...prev, images: updated, variants: updatedVariants };
     });
   };
 
@@ -1038,14 +1045,17 @@ export default function AdminDashboardPage() {
       ? productForm.images
       : [getCategoryImage(productForm.category)];
 
-    // Ensure all color/model options have a label
+    // Ensure all color/model options have a label and appropriate cover image
     const safeVariants = (productForm.variants && productForm.variants.length > 0)
       ? productForm.variants.map((v, i) => ({
           ...v,
           size: v.size?.trim() || (productForm.variants.length === 1 ? 'Standard' : `Model ${i + 1}`),
           stock: Number(v.stock) || 25,
+          image: (productForm.variants.length === 1 && (!v.image || !safeImages.includes(v.image)))
+            ? safeImages[0]
+            : (v.image || safeImages[0]),
         }))
-      : [{ size: 'Standard', stock: 50, sku: `${productForm.sku}-1` }];
+      : [{ size: 'Standard', stock: 50, sku: `${productForm.sku}-1`, image: safeImages[0] }];
 
     setIsSubmittingProduct(true);
     try {

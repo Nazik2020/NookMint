@@ -69,12 +69,20 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
     price: product.sellingPrice,
   };
 
+  // Always show the primary cover photo (product.images[0]) first when opening the product page
   const [activeImage, setActiveImage] = useState<string>(
-    currentVariant?.image || product.images?.[0] || '/nookmint_images/hero.png'
+    product.images?.[0] || currentVariant?.image || '/nookmint_images/hero.png'
   );
 
-  // Whenever selected variant / color changes, immediately update the large gallery display to match that color
+  // Track initial mount so cover image always shows first on page load
+  const isInitialMount = useRef(true);
+
+  // Whenever user explicitly changes selected variant / color, update the large gallery display to match that color
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
     if (currentVariant?.image) {
       setActiveImage(currentVariant.image);
     }
