@@ -33,6 +33,8 @@ import {
   Share2,
   Copy,
   Mail,
+  PartyPopper,
+  PackageCheck,
 } from 'lucide-react';
 import { SRI_LANKA_DISTRICTS } from '@/core/constants/SriLankaDistricts';
 import { formatLKR } from '@/shared/utils/currency';
@@ -61,6 +63,15 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
   const [orderNote, setOrderNote] = useState('');
   const [isSubmittingCod, setIsSubmittingCod] = useState(false);
   const [codError, setCodError] = useState('');
+  const [orderSuccess, setOrderSuccess] = useState<{
+    orderId: string;
+    orderNumber: string;
+    customerName: string;
+    productTitle: string;
+    qty: number;
+    total: number;
+    whatsapp: string;
+  } | null>(null);
 
   const currentVariant = product.variants?.find((v) => v.size === selectedSize) || product.variants?.[0] || {
     sku: product.id,
@@ -234,7 +245,17 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
         throw new Error(data.message || data.error || 'Failed to place order. Please try again.');
       }
 
-      router.push(`/order-success/${data.order.id}`);
+      // Show beautiful success popup instead of immediate redirect
+      setOrderSuccess({
+        orderId: data.order.id,
+        orderNumber: data.order.orderNumber || data.order.id,
+        customerName: fullName.trim(),
+        productTitle: product.title,
+        qty: quantity,
+        total: itemTotal,
+        whatsapp: phone1.trim(),
+      });
+      setIsSubmittingCod(false);
     } catch (err: any) {
       setCodError(err.message || 'Something went wrong. Please try again or order via WhatsApp.');
       setIsSubmittingCod(false);
@@ -910,6 +931,75 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
           </div>
         </div>
       </div>
+
+      {/* 🎉 ORDER SUCCESS POPUP MODAL */}
+      {orderSuccess && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden">
+            {/* Green header stripe */}
+            <div className="bg-gradient-to-br from-[#064E3B] to-[#065f46] px-6 pt-8 pb-6 text-center relative overflow-hidden">
+              <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-white/5" />
+              <div className="absolute -bottom-4 -left-4 w-20 h-20 rounded-full bg-white/5" />
+              <div className="relative mx-auto w-16 h-16 rounded-full bg-emerald-400/20 border-2 border-emerald-300/40 flex items-center justify-center mb-3">
+                <div className="w-11 h-11 rounded-full bg-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-900/40">
+                  <Check className="w-6 h-6 text-white stroke-[3]" />
+                </div>
+              </div>
+              <h2 className="text-white font-black text-xl tracking-tight">Order Confirmed! 🎉</h2>
+              <p className="text-emerald-200 text-xs mt-1 font-medium">Your order is placed successfully</p>
+              <div className="mt-3 inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-full">
+                <span className="text-emerald-300 text-[10px] font-bold uppercase tracking-wider">Order</span>
+                <span className="text-white text-xs font-mono font-black">{orderSuccess.orderNumber}</span>
+              </div>
+            </div>
+
+            {/* Order details */}
+            <div className="px-5 py-4 space-y-3">
+              <div className="bg-slate-50 rounded-2xl p-3.5 space-y-2 border border-slate-100">
+                <div className="flex items-center gap-2 text-xs">
+                  <User className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                  <span className="text-slate-500">Customer:</span>
+                  <span className="font-extrabold text-slate-900">{orderSuccess.customerName}</span>
+                </div>
+                <div className="flex items-start gap-2 text-xs">
+                  <ShoppingBag className="w-3.5 h-3.5 text-emerald-700 shrink-0 mt-0.5" />
+                  <span className="text-slate-500 shrink-0">Product:</span>
+                  <span className="font-semibold text-slate-900 leading-tight">{orderSuccess.productTitle} &times; {orderSuccess.qty}</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <Banknote className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                  <span className="text-slate-500">Amount:</span>
+                  <span className="font-black text-emerald-800 text-sm">LKR {orderSuccess.total.toLocaleString()}.00</span>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2.5 p-3 rounded-xl bg-emerald-50 border border-emerald-200">
+                <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <div className="text-[11px] text-emerald-900 leading-relaxed">
+                  <strong className="font-bold">Invoice &amp; courier details</strong> will be sent to your WhatsApp <strong>({orderSuccess.whatsapp})</strong> shortly before dispatch.
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 pt-1">
+                <Link
+                  href={`/order-success/${orderSuccess.orderId}`}
+                  className="w-full py-3 rounded-2xl bg-[#064E3B] hover:bg-[#04382A] text-white font-black text-xs uppercase tracking-wider text-center flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-950/20"
+                >
+                  <Truck className="w-4 h-4" />
+                  Track My Order
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setOrderSuccess(null)}
+                  className="w-full py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs text-center transition-all"
+                >
+                  Continue Shopping
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 🛒 Real-time Mobile "Added to Cart" Toast Alert */}
       {showCartToast && (
