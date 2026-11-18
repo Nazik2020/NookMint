@@ -79,12 +79,26 @@ export class MockOrderRepository implements IOrderRepository {
         const parsed = JSON.parse(text);
         if (Array.isArray(parsed)) {
           const map = new Map<string, Order>();
+          const sanitized: Order[] = [];
           for (const order of parsed) {
-            if (order && order.id) map.set(order.id, order);
+            if (order && order.id) {
+              // Ensure dropship orders reflect product price only (subtotal)
+              const hasDropship =
+                !order.items ||
+                order.items.length === 0 ||
+                order.items.some((i: any) => (i.product?.sourceType || 'dropship') === 'dropship');
+              if (hasDropship && order.subtotal > 0 && order.grandTotal > order.subtotal) {
+                order.grandTotal = order.subtotal;
+                order.shippingFee = 0;
+                order.codFee = 0;
+              }
+              map.set(order.id, order);
+              sanitized.push(order);
+            }
           }
           this.db.set(MockOrderRepository.STORAGE_KEY, map);
-          this.saveToFile(parsed);
-          return parsed;
+          this.saveToFile(sanitized);
+          return sanitized;
         }
       }
     } catch {

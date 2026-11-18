@@ -94,6 +94,11 @@ export class OrderBuilder {
       this.shippingAddress.district
     );
 
+    const hasDropship = this.items.some((item) => (item.product?.sourceType || 'dropship') === 'dropship');
+    const finalShippingFee = hasDropship ? 0 : summary.shippingFee;
+    const finalCodFee = hasDropship ? 0 : summary.codFee;
+    const finalGrandTotal = hasDropship ? summary.subtotal : summary.grandTotal;
+
     // Calculate delivery date (2 to 4 business days)
     const delivery = new Date();
     delivery.setDate(delivery.getDate() + 3);
@@ -108,9 +113,9 @@ export class OrderBuilder {
       status: this.status,
       subtotal: summary.subtotal,
       discount: summary.discount,
-      shippingFee: summary.shippingFee,
-      codFee: summary.codFee,
-      grandTotal: summary.grandTotal,
+      shippingFee: finalShippingFee,
+      codFee: finalCodFee,
+      grandTotal: finalGrandTotal,
       isCodVerified: this.isCodVerified,
       bankReference: this.bankReference,
       slipUrl: this.slipUrl,

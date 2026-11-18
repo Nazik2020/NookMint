@@ -39,6 +39,76 @@ import {
 import { SRI_LANKA_DISTRICTS } from '@/core/constants/SriLankaDistricts';
 import { formatLKR } from '@/shared/utils/currency';
 
+function parseInlineFormatting(str: string) {
+  if (!str) return null;
+  const parts = str.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+      return (
+        <strong key={i} className="font-bold text-slate-900">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    const cleaned = part.replace(/(?:^\s*#+\s*)|(?:\s*#+\s*$)/g, '').replace(/\*/g, '');
+    return <span key={i}>{cleaned}</span>;
+  });
+}
+
+function FormattedProductDescription({ text }: { text: string }) {
+  if (!text) return null;
+  const lines = text.split(/\r?\n/);
+
+  return (
+    <div className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-2 pt-0.5">
+      {lines.map((line, idx) => {
+        const trimmed = line.trim();
+        if (!trimmed) {
+          return <div key={idx} className="h-1" />;
+        }
+
+        // Markdown headings (#, ##, ###)
+        const headingMatch = trimmed.match(/^#{1,4}\s+(.+)$/);
+        if (headingMatch) {
+          const headingText = headingMatch[1].replace(/\*\*/g, '').trim();
+          return (
+            <h3 key={idx} className="font-black text-slate-900 text-sm sm:text-base mt-3 mb-1 tracking-tight">
+              {headingText}
+            </h3>
+          );
+        }
+
+        // Bullet point lines (- or * or •)
+        const bulletMatch = trimmed.match(/^[-*•]\s+(.+)$/);
+        if (bulletMatch) {
+          return (
+            <div key={idx} className="flex items-start gap-2 pl-1 my-0.5">
+              <span className="text-emerald-600 font-bold mt-1 text-[9px] shrink-0">●</span>
+              <span className="flex-1 leading-relaxed">{parseInlineFormatting(bulletMatch[1])}</span>
+            </div>
+          );
+        }
+
+        // Full line bold **Heading / Callout**
+        const fullBoldMatch = trimmed.match(/^\*\*([^*]+)\*\*$/);
+        if (fullBoldMatch) {
+          return (
+            <p key={idx} className="font-black text-slate-900 text-xs sm:text-sm my-1">
+              {fullBoldMatch[1]}
+            </p>
+          );
+        }
+
+        return (
+          <p key={idx} className="leading-relaxed">
+            {parseInlineFormatting(trimmed)}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 export const ProductDetailClient: React.FC<{ product: Product }> = ({ product }) => {
   const router = useRouter();
   const { addToCart } = useCart();
@@ -368,9 +438,7 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
             {product.title}
           </h1>
 
-          <div className="text-xs sm:text-sm text-slate-700 leading-relaxed font-normal whitespace-pre-line space-y-2.5 pt-0.5">
-            {product.description}
-          </div>
+          <FormattedProductDescription text={product.description} />
 
           <div className="flex items-center gap-4 text-xs text-slate-500 font-medium pt-1">
             <span>Category: <strong className="text-slate-900">{categoryName}</strong></span>

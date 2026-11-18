@@ -147,7 +147,7 @@ export class EmailNotificationService {
               <tr>
                 <td style="padding: 4px 0; color: #64748b;">Courier Delivery Fee:</td>
                 <td style="padding: 4px 0; color: #d97706; text-align: right; font-weight: 700;">
-                  ${order.shippingFee > 0 ? `LKR ${order.shippingFee.toLocaleString()}.00 (Invoiced via WhatsApp)` : 'Invoiced via WhatsApp'}
+                  Invoiced via WhatsApp
                 </td>
               </tr>
               <tr>

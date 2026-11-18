@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { MockProductRepository } from '@/infrastructure/repositories/MockProductRepository';
 import { Product } from '@/core/entities/Product';
 import { isAuthorizedAdmin } from '@/shared/utils/adminAuth';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 /**
  * Seller Admin Product Management Route Handler
@@ -130,6 +134,15 @@ export async function POST(req: NextRequest) {
 
     const created = await productRepo.createProduct(newProduct);
 
+    try {
+      revalidatePath('/', 'layout');
+      revalidatePath('/products/[id]', 'page');
+      revalidatePath(`/products/${newProduct.id}`);
+      revalidatePath('/admin');
+    } catch (e) {
+      console.warn('Revalidate warning:', e);
+    }
+
     return NextResponse.json({
       success: true,
       product: created,
@@ -191,8 +204,9 @@ export async function PATCH(req: NextRequest) {
     if (updates.brand) cleanUpdates.brand = updates.brand;
     if (updates.unit) cleanUpdates.unit = updates.unit;
     if (updates.title) cleanUpdates.title = updates.title;
-    if (updates.fabric) cleanUpdates.fabric = updates.fabric;
-    if (updates.description) cleanUpdates.description = updates.description;
+    if (updates.fabric !== undefined) cleanUpdates.fabric = updates.fabric;
+    if (updates.description !== undefined) cleanUpdates.description = updates.description;
+    if (updates.videoUrl !== undefined) cleanUpdates.videoUrl = updates.videoUrl;
     if (updates.category) cleanUpdates.category = updates.category;
     if (updates.gender) cleanUpdates.gender = updates.gender;
     if (updates.ageGroup) cleanUpdates.ageGroup = updates.ageGroup;
@@ -213,6 +227,15 @@ export async function PATCH(req: NextRequest) {
 
     if (!updated) {
       return NextResponse.json({ success: false, message: 'Product not found' }, { status: 404 });
+    }
+
+    try {
+      revalidatePath('/', 'layout');
+      revalidatePath('/products/[id]', 'page');
+      revalidatePath(`/products/${productId}`);
+      revalidatePath('/admin');
+    } catch (e) {
+      console.warn('Revalidate warning:', e);
     }
 
     return NextResponse.json({ success: true, product: updated, message: 'Product updated successfully' });
@@ -242,6 +265,15 @@ export async function DELETE(req: NextRequest) {
 
     if (!deleted) {
       return NextResponse.json({ success: false, message: 'Product not found' }, { status: 404 });
+    }
+
+    try {
+      revalidatePath('/', 'layout');
+      revalidatePath('/products/[id]', 'page');
+      revalidatePath(`/products/${productId}`);
+      revalidatePath('/admin');
+    } catch (e) {
+      console.warn('Revalidate warning:', e);
     }
 
     return NextResponse.json({ success: true, message: 'Product deleted successfully' });

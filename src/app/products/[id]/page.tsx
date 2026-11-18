@@ -4,6 +4,9 @@ import { MockProductRepository } from '@/infrastructure/repositories/MockProduct
 import { ProductDetailClient } from './ProductDetailClient';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 interface ProductDetailPageProps {
   params: Promise<{
     id: string;

@@ -71,14 +71,19 @@ export class CalculateOrderSummaryUseCase {
       return sum + item.product.sellingPrice * item.quantity;
     }, 0);
 
+    // Dropship & WhatsApp Courier Fee Rule:
+    // When items are dropship products, courier delivery fee is invoiced separately on WhatsApp.
+    // Therefore, only product price (subtotal) is charged on the website, and no courier/COD surcharges are added.
+    const hasDropship = items.length > 0 && items.some((item) => (item.product?.sourceType || 'dropship') === 'dropship');
+
     // Free shipping above threshold or all items marked free delivery
     const isEligibleForFreeShipping = subtotal >= freeShippingThreshold || allProductsFreeShipping || items.length === 0;
-    const shippingFee = items.length === 0 ? 0 : isEligibleForFreeShipping ? 0 : standardShippingFee;
+    const shippingFee = items.length === 0 || hasDropship ? 0 : isEligibleForFreeShipping ? 0 : standardShippingFee;
     const freeShippingGap = Math.max(0, freeShippingThreshold - subtotal);
 
     // COD Fee logic (SADP Business Rule)
     let codFee = 0;
-    if (paymentMethod === PaymentMethod.COD && items.length > 0) {
+    if (!hasDropship && paymentMethod === PaymentMethod.COD && items.length > 0) {
       // Free COD if subtotal >= FREE_COD_THRESHOLD
       codFee = subtotal >= COD_RULES.FREE_COD_THRESHOLD ? 0 : COD_RULES.COD_HANDLING_FEE;
     }
@@ -88,7 +93,7 @@ export class CalculateOrderSummaryUseCase {
       return sum + mrpDiff * item.quantity;
     }, 0);
 
-    const grandTotal = subtotal + shippingFee + codFee;
+    const grandTotal = hasDropship ? subtotal : (subtotal + shippingFee + codFee);
 
     return {
       itemsCount,
