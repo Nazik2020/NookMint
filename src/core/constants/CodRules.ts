@@ -4,10 +4,10 @@
  */
 
 export const COD_RULES = {
-  MIN_ORDER_AMOUNT: 1500,       // Below Rs. 1,500, COD is disabled to protect delivery unit economics
-  MAX_ORDER_AMOUNT: 35000,      // Above Rs. 35,000, COD is restricted to prevent High Return-to-Origin (RTO) loss
-  COD_HANDLING_FEE: 350,        // Islandwide courier partner cash collection & handling charge
-  FREE_COD_THRESHOLD: 6500,     // Free COD & Delivery on carts above Rs. 6,500
-  OTP_VERIFICATION_REQUIRED: true, // Mandatory phone verification for COD orders in Sri Lanka
-  BLOCKED_PINCODES: ['00000', '99999'] as readonly string[], // Restricted logistic zones
+  MIN_ORDER_AMOUNT: 0,          // Allow all product orders (e.g. Rs. 200 - 680+) to use Cash on Delivery
+  MAX_ORDER_AMOUNT: 100000,     // Generous cap for retail household orders
+  COD_HANDLING_FEE: 0,          // No hidden handling surcharge
+  FREE_COD_THRESHOLD: 0,        // 100% COD available across all order amounts
+  OTP_VERIFICATION_REQUIRED: false, // 1-click fast checkout without blocking SMS verification
+  BLOCKED_PINCODES: [] as readonly string[], // 100% Islandwide coverage across all 25 districts
 };

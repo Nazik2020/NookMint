@@ -22,17 +22,16 @@ export class PincodeServiceAdapter {
    * Simulates an external carrier lookup call (e.g. Shiprocket/Delhivery Pincode API)
    */
   public static async checkServiceability(pincode: string): Promise<ServiceabilityResult> {
-    const cleanPin = pincode.trim();
+    const cleanPin = pincode ? pincode.trim() : '00300';
 
-    // Sri Lankan postal codes (5 digits, e.g. 00100 - 99999) with Islandwide delivery across all 25 districts
-    const isSriLankanPostalCode = cleanPin.length === 5 || cleanPin.length === 6 || cleanPin === '00300';
+    // 100% Islandwide courier serviceability across all 25 districts in Sri Lanka
     const isBlocked = COD_RULES.BLOCKED_PINCODES.includes(cleanPin);
 
     const externalResponse: ExternalLogisticsApiResponse = {
-      pin: cleanPin,
-      district_name: 'Western Province / Islandwide',
+      pin: cleanPin || '00300',
+      district_name: 'Islandwide (25 Districts)',
       state_code: 'LK',
-      delivery_available: isSriLankanPostalCode,
+      delivery_available: !isBlocked,
       cash_on_delivery_supported: !isBlocked,
       tat_days: 2 + (parseInt(cleanPin[cleanPin.length - 1] || '0', 10) % 2),
     };
@@ -45,9 +44,7 @@ export class PincodeServiceAdapter {
       isServiceable: externalResponse.delivery_available,
       isCodAvailable: externalResponse.delivery_available && externalResponse.cash_on_delivery_supported,
       estimatedDeliveryDays: externalResponse.tat_days,
-      codMessage: externalResponse.cash_on_delivery_supported
-        ? 'Cash on Delivery is available for this address.'
-        : 'Only prepaid payment is currently accepted at this pincode.',
+      codMessage: 'Cash on Delivery is available for this address.',
     };
   }
 }

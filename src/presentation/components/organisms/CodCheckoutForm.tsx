@@ -416,27 +416,40 @@ export const CodCheckoutForm: React.FC = () => {
         <button
           type="submit"
           disabled={isSubmitting || items.length === 0}
-          className="w-full px-4 py-3.5 sm:py-4 bg-[#EA580C] hover:bg-[#C2410C] disabled:opacity-50 text-white rounded-2xl shadow-lg shadow-orange-500/25 transition-all flex flex-col items-center justify-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-600 active:scale-[0.99] cursor-pointer"
+          className="w-full py-3.5 px-4 sm:px-6 bg-[#064E3B] hover:bg-[#04382A] disabled:opacity-50 text-white rounded-2xl shadow-xl shadow-emerald-950/25 transition-all flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#064E3B] active:scale-[0.99] cursor-pointer border border-emerald-600/30"
         >
           {isSubmitting ? (
-            <div className="flex items-center justify-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin text-white" />
+            <div className="flex items-center justify-center gap-2 py-1">
+              <Loader2 className="w-5 h-5 animate-spin text-emerald-300" />
               <span className="font-extrabold text-xs sm:text-sm uppercase tracking-wider">Submitting Your Order...</span>
             </div>
           ) : hasDropship ? (
-            <>
-              <div className="flex items-center justify-center gap-2 font-black text-xs sm:text-sm uppercase tracking-wider">
-                <MessageCircle className="w-4.5 h-4.5 text-emerald-200 shrink-0 fill-emerald-200/20" />
-                <span>Confirm Cash on Delivery Order</span>
+            <div className="flex items-center justify-center gap-3 w-full">
+              <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center shrink-0 border border-white/10 shadow-xs">
+                <MessageCircle className="w-5 h-5 text-emerald-300 fill-emerald-300/30" />
               </div>
-              <span className="text-[10px] sm:text-[11px] text-amber-100 font-medium normal-case tracking-normal">
-                Courier fee &amp; official invoice will be sent to your WhatsApp
-              </span>
-            </>
+              <div className="text-left min-w-0 flex-1">
+                <div className="font-black text-xs sm:text-sm uppercase tracking-wide text-white leading-tight">
+                  Confirm Cash on Delivery Order
+                </div>
+                <div className="text-[10px] sm:text-[11px] text-emerald-200/90 font-medium normal-case leading-tight mt-0.5">
+                  Courier fee &amp; official invoice will be sent to your WhatsApp
+                </div>
+              </div>
+            </div>
           ) : (
-            <div className="flex items-center justify-center gap-2">
-              <ShieldCheck className="w-4.5 h-4.5 text-emerald-200 shrink-0" />
-              <span className="font-black text-xs sm:text-sm uppercase tracking-wider">Confirm Cash on Delivery Order • {formatLKR(finalGrandTotal)}</span>
+            <div className="flex items-center justify-center gap-3 w-full">
+              <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center shrink-0 border border-white/10 shadow-xs">
+                <ShieldCheck className="w-5 h-5 text-emerald-300" />
+              </div>
+              <div className="text-left min-w-0 flex-1">
+                <div className="font-black text-xs sm:text-sm uppercase tracking-wide text-white leading-tight">
+                  Confirm Cash on Delivery Order • {formatLKR(finalGrandTotal)}
+                </div>
+                <div className="text-[10px] sm:text-[11px] text-emerald-200/90 font-medium normal-case leading-tight mt-0.5">
+                  Zero advance fee • Pay cash upon delivery
+                </div>
+              </div>
             </div>
           )}
         </button>

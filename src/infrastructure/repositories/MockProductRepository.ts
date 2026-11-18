@@ -293,7 +293,7 @@ export class MockProductRepository implements IProductRepository {
   public async deductStock(
     items: { product: { id: string; title: string }; selectedVariant?: { size: string }; quantity: number }[]
   ): Promise<{ success: boolean; message?: string }> {
-    const products = this.getStore();
+    const products = await this.syncWithCloud();
 
     for (const item of items) {
       const prod = products.find((p) => p.id === item.product.id);
@@ -339,6 +339,7 @@ export class MockProductRepository implements IProductRepository {
 
     this.db.set(MockProductRepository.STORAGE_KEY, products);
     this.saveToFile(products);
+    await this.saveToCloud(products);
     return { success: true };
   }
 
@@ -348,7 +349,7 @@ export class MockProductRepository implements IProductRepository {
   public async restoreStock(
     items: { product: { id: string }; selectedVariant?: { size: string }; quantity: number }[]
   ): Promise<void> {
-    const products = this.getStore();
+    const products = await this.syncWithCloud();
     for (const item of items) {
       const prod = products.find((p) => p.id === item.product.id);
       if (prod) {
@@ -365,5 +366,6 @@ export class MockProductRepository implements IProductRepository {
     }
     this.db.set(MockProductRepository.STORAGE_KEY, products);
     this.saveToFile(products);
+    await this.saveToCloud(products);
   }
 }

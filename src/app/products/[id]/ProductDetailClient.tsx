@@ -201,7 +201,7 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
         city: city.trim(),
         district: selectedDistrict,
         state: currentDistrictObj?.province || 'Western Province',
-        pincode: '00000',
+        pincode: '00300',
       };
 
       // Save locally for future orders
@@ -231,7 +231,7 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to place order. Please try again.');
+        throw new Error(data.message || data.error || 'Failed to place order. Please try again.');
       }
 
       router.push(`/order-success/${data.order.id}`);
@@ -811,23 +811,27 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
                   <button
                     type="submit"
                     disabled={isSubmittingCod}
-                    className="w-full px-4 py-3.5 sm:py-4 rounded-2xl bg-[#064E3B] hover:bg-[#04382A] active:scale-[0.99] text-white shadow-lg shadow-emerald-950/20 transition-all flex flex-col items-center justify-center gap-1 cursor-pointer disabled:opacity-50"
+                    className="w-full py-3.5 px-4 sm:px-6 rounded-2xl bg-[#064E3B] hover:bg-[#04382A] active:scale-[0.99] text-white shadow-xl shadow-emerald-950/25 transition-all flex items-center justify-center cursor-pointer disabled:opacity-50 border border-emerald-600/30"
                   >
                     {isSubmittingCod ? (
-                      <div className="flex items-center justify-center gap-2">
-                        <Loader2 className="w-4 h-4 animate-spin text-white" />
+                      <div className="flex items-center justify-center gap-2 py-1">
+                        <Loader2 className="w-5 h-5 animate-spin text-emerald-300" />
                         <span className="font-extrabold text-xs sm:text-sm uppercase tracking-wider">Submitting Order...</span>
                       </div>
                     ) : (
-                      <>
-                        <div className="flex items-center justify-center gap-2 font-black text-xs sm:text-sm uppercase tracking-wider text-center">
-                          <MessageCircle className="w-4.5 h-4.5 text-emerald-200 shrink-0 fill-emerald-200/20" />
-                          <span>Confirm Cash on Delivery Order</span>
+                      <div className="flex items-center justify-center gap-3 w-full">
+                        <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center shrink-0 border border-white/10 shadow-xs">
+                          <MessageCircle className="w-5 h-5 text-emerald-300 fill-emerald-300/30" />
                         </div>
-                        <span className="text-[10px] sm:text-[11px] text-emerald-100 font-medium normal-case tracking-normal text-center">
-                          Courier fee &amp; official invoice will be sent to your WhatsApp
-                        </span>
-                      </>
+                        <div className="text-left min-w-0 flex-1">
+                          <div className="font-black text-xs sm:text-sm uppercase tracking-wide text-white leading-tight">
+                            Confirm Cash on Delivery Order
+                          </div>
+                          <div className="text-[10px] sm:text-[11px] text-emerald-200/90 font-medium normal-case leading-tight mt-0.5">
+                            Courier fee &amp; official invoice will be sent to your WhatsApp
+                          </div>
+                        </div>
+                      </div>
                     )}
                   </button>
 
