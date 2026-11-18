@@ -122,29 +122,32 @@ export class MockOrderRepository implements IOrderRepository {
   }
 
   private getStore(): Map<string, Order> {
-    const fileOrders = this.loadFromFile();
-    if (fileOrders !== null && Array.isArray(fileOrders)) {
-      const store = new Map<string, Order>();
-      for (const order of fileOrders) {
-        if (order && order.id) {
-          store.set(order.id, order);
-        }
-      }
-      this.db.set(MockOrderRepository.STORAGE_KEY, store);
-      return store;
-    }
     let store = this.db.get<Map<string, Order>>(MockOrderRepository.STORAGE_KEY);
     if (!store) {
       store = new Map<string, Order>();
+      const fileOrders = this.loadFromFile();
+      if (fileOrders && Array.isArray(fileOrders)) {
+        for (const order of fileOrders) {
+          if (order && order.id) {
+            store.set(order.id, order);
+          }
+        }
+      }
       this.db.set(MockOrderRepository.STORAGE_KEY, store);
     }
     return store;
   }
 
   public async save(order: Order): Promise<Order> {
-    await this.syncWithCloud();
+    const cloudOrders = await this.syncWithCloud();
     const store = this.getStore();
+    if (Array.isArray(cloudOrders)) {
+      for (const o of cloudOrders) {
+        if (o && o.id) store.set(o.id, o);
+      }
+    }
     store.set(order.id, order);
+    this.db.set(MockOrderRepository.STORAGE_KEY, store);
     const all = Array.from(store.values());
     this.saveToFile(all);
     await this.saveToCloud(all);
@@ -155,6 +158,7 @@ export class MockOrderRepository implements IOrderRepository {
     await this.syncWithCloud();
     const store = this.getStore();
     store.set(order.id, order);
+    this.db.set(MockOrderRepository.STORAGE_KEY, store);
     const all = Array.from(store.values());
     this.saveToFile(all);
     await this.saveToCloud(all);
@@ -162,15 +166,25 @@ export class MockOrderRepository implements IOrderRepository {
   }
 
   public async findById(orderId: string): Promise<Order | null> {
-    await this.syncWithCloud();
+    const cloudOrders = await this.syncWithCloud();
+    if (Array.isArray(cloudOrders) && cloudOrders.length > 0) {
+      const match = cloudOrders.find((o) => o.id === orderId);
+      if (match) return match;
+    }
     const store = this.getStore();
     return store.get(orderId) || null;
   }
 
   public async findByOrderNumber(orderNumber: string): Promise<Order | null> {
-    await this.syncWithCloud();
-    const store = this.getStore();
+    const cloudOrders = await this.syncWithCloud();
     const cleanQuery = orderNumber.trim().toUpperCase().replace('#', '');
+    if (Array.isArray(cloudOrders) && cloudOrders.length > 0) {
+      const match = cloudOrders.find(
+        (o) => o.orderNumber.toUpperCase() === cleanQuery || o.id.toUpperCase() === cleanQuery
+      );
+      if (match) return match;
+    }
+    const store = this.getStore();
     for (const order of store.values()) {
       if (order.orderNumber.toUpperCase() === cleanQuery || order.id.toUpperCase() === cleanQuery) {
         return order;
@@ -180,11 +194,13 @@ export class MockOrderRepository implements IOrderRepository {
   }
 
   public async findByPhone(phone: string): Promise<Order[]> {
-    await this.syncWithCloud();
-    const store = this.getStore();
+    const cloudOrders = await this.syncWithCloud();
     const cleanPhone = phone.replace(/[^0-9]/g, '');
+    const pool = Array.isArray(cloudOrders) && cloudOrders.length > 0
+      ? cloudOrders
+      : Array.from(this.getStore().values());
     const results: Order[] = [];
-    for (const order of store.values()) {
+    for (const order of pool) {
       const orderPhone = order.shippingAddress.phone.replace(/[^0-9]/g, '');
       if (orderPhone.endsWith(cleanPhone) || cleanPhone.endsWith(orderPhone)) {
         results.push(order);
@@ -194,7 +210,12 @@ export class MockOrderRepository implements IOrderRepository {
   }
 
   public async findAll(): Promise<Order[]> {
-    await this.syncWithCloud();
+    const cloudOrders = await this.syncWithCloud();
+    if (Array.isArray(cloudOrders) && cloudOrders.length > 0) {
+      return cloudOrders.sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    }
     const store = this.getStore();
     return Array.from(store.values()).sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -206,6 +227,7 @@ export class MockOrderRepository implements IOrderRepository {
     const store = this.getStore();
     const existed = store.delete(orderId);
     if (existed) {
+      this.db.set(MockOrderRepository.STORAGE_KEY, store);
       const all = Array.from(store.values());
       this.saveToFile(all);
       await this.saveToCloud(all);

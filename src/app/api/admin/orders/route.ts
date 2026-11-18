@@ -5,6 +5,15 @@ import { MockProductRepository } from '@/infrastructure/repositories/MockProduct
 import { OrderStatus, PaymentStatus } from '@/shared/types/common';
 import { isAuthorizedAdmin } from '@/shared/utils/adminAuth';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+  'Pragma': 'no-cache',
+  'Expires': '0',
+};
+
 /**
  * Seller Admin Order Management Route Handler
  * Allows seller to list orders, verify manual bank deposits, and update courier fulfilment statuses.
@@ -17,11 +26,11 @@ export async function GET(req: NextRequest) {
   try {
     const facade = new CheckoutFacade();
     const orders = await facade.getAllOrders();
-    return NextResponse.json({ success: true, orders }, { status: 200 });
+    return NextResponse.json({ success: true, orders }, { status: 200, headers: NO_CACHE_HEADERS });
   } catch (error: any) {
     return NextResponse.json(
       { success: false, message: error.message || 'Failed to fetch orders' },
-      { status: 500 }
+      { status: 500, headers: NO_CACHE_HEADERS }
     );
   }
 }
