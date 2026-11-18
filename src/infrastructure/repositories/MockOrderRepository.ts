@@ -3,7 +3,6 @@ import path from 'path';
 import { IOrderRepository } from './IOrderRepository';
 import { Order } from '@/core/entities/Order';
 import { DatabaseClient } from '../database/DatabaseClient';
-import { getServiceSupabase } from '../database/supabaseClient';
 
 /**
  * Order Repository (SADP Repository Pattern)
@@ -63,38 +62,62 @@ export class MockOrderRepository implements IOrderRepository {
    * Enables persistent shared orders across all Vercel lambdas & local servers
    */
   public async syncWithCloud(): Promise<Order[]> {
-    try {
-      const supabase = getServiceSupabase();
-      const { data, error } = await supabase.storage.from('products').download('store/orders.json');
-      if (data && !error) {
-        const text = await data.text();
-        const parsed = JSON.parse(text);
-        if (Array.isArray(parsed)) {
-          const map = new Map<string, Order>();
-          for (const order of parsed) {
-            if (order && order.id) {
-              map.set(order.id, order);
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ntpcewaxbcqeneiibbam.supabase.co';
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+    if (key && !key.startsWith('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30')) {
+      try {
+        const fetchUrl = `${url}/storage/v1/object/products/store/orders.json`;
+        const res = await fetch(fetchUrl, {
+          headers: { Authorization: `Bearer ${key}`, apikey: key },
+          cache: 'no-store',
+        });
+        if (res.ok) {
+          const text = await res.text();
+          const parsed = JSON.parse(text);
+          if (Array.isArray(parsed)) {
+            const map = new Map<string, Order>();
+            for (const order of parsed) {
+              if (order && order.id) map.set(order.id, order);
             }
+            this.db.set(MockOrderRepository.STORAGE_KEY, map);
+            this.saveToFile(parsed);
+            return parsed;
           }
-          this.db.set(MockOrderRepository.STORAGE_KEY, map);
-          this.saveToFile(parsed);
-          return parsed;
         }
+      } catch {
+        // Fallback to local store
       }
-    } catch {
-      // Fallback to local store
     }
     return Array.from(this.getStore().values());
   }
 
   private async saveToCloud(orders: Order[]): Promise<void> {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ntpcewaxbcqeneiibbam.supabase.co';
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+    if (!key || key.startsWith('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30')) {
+      console.warn('[MockOrderRepository] No valid Supabase key — skipping cloud save.');
+      return;
+    }
     try {
-      const supabase = getServiceSupabase();
-      const buffer = Buffer.from(JSON.stringify(orders, null, 2), 'utf-8');
-      await supabase.storage.from('products').upload('store/orders.json', buffer, {
-        upsert: true,
-        contentType: 'application/json',
+      const body = JSON.stringify(orders, null, 2);
+      // Use Supabase Storage REST API directly (no SDK dependency issues)
+      const uploadUrl = `${url}/storage/v1/object/products/store/orders.json`;
+      const res = await fetch(uploadUrl, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${key}`,
+          apikey: key,
+          'Content-Type': 'application/json',
+          'x-upsert': 'true',
+        },
+        body,
       });
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        console.warn('[MockOrderRepository] Cloud save HTTP error:', res.status, text);
+      } else {
+        console.log('[MockOrderRepository] ✅ Orders saved to cloud. Count:', orders.length);
+      }
     } catch (err) {
       console.warn('[MockOrderRepository] Cloud save warning:', err);
     }

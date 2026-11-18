@@ -981,17 +981,13 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
               </div>
 
               <div className="flex flex-col gap-2 pt-1">
-                <Link
-                  href={`/order-success/${orderSuccess.orderId}`}
-                  className="w-full py-3 rounded-2xl bg-[#064E3B] hover:bg-[#04382A] text-white font-black text-xs uppercase tracking-wider text-center flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-950/20"
-                >
-                  <Truck className="w-4 h-4" />
-                  Track My Order
-                </Link>
+                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900 text-center leading-relaxed">
+                  🚚 <strong>Delivery in 3–4 business days.</strong> Invoice &amp; tracking info sent via WhatsApp after dispatch.
+                </div>
                 <button
                   type="button"
                   onClick={() => setOrderSuccess(null)}
-                  className="w-full py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs text-center transition-all"
+                  className="w-full py-3 rounded-2xl bg-[#064E3B] hover:bg-[#04382A] text-white font-black text-xs uppercase tracking-wider text-center transition-all shadow-lg shadow-emerald-950/20"
                 >
                   Continue Shopping
                 </button>
