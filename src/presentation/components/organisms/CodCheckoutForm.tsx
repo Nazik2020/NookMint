@@ -146,9 +146,9 @@ export const CodCheckoutForm: React.FC = () => {
   const actualGrandTotal = summary.subtotal + actualShippingFee + actualCodFee;
   const finalGrandTotal = hasDropship ? summary.subtotal : actualGrandTotal;
 
-  const codMin = storeSettings?.delivery?.codMinOrder ?? COD_RULES.MIN_ORDER_AMOUNT;
+  const codMin = storeSettings?.delivery?.codMinOrder ?? 0;
   const codMax = storeSettings?.delivery?.codMaxOrder ?? COD_RULES.MAX_ORDER_AMOUNT;
-  const isCodBlocked = summary.subtotal < codMin || summary.subtotal > codMax;
+  const isCodBlocked = (codMin > 0 && summary.subtotal < codMin) || summary.subtotal > codMax;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -54,7 +54,7 @@ export class SettingsRepository {
         westernProvinceFee: 400,
         outstationFee: 500,
         freeShippingThreshold: 5000,
-        codMinOrder: 1000,
+        codMinOrder: 0,
         codMaxOrder: 50000,
         districtRates: [...DEFAULT_DISTRICT_RATES],
       },

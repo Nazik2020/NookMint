@@ -46,8 +46,8 @@ export class ValidateCodEligibilityUseCase {
       };
     }
 
-    // 3. Check Minimum Order Amount
-    if (subtotal < minOrder) {
+    // 3. Check Minimum Order Amount (if any minimum is configured above 0)
+    if (minOrder > 0 && subtotal < minOrder) {
       return {
         isEligible: false,
         reason: `Cash on Delivery is available for orders above Rs. ${minOrder.toLocaleString()}. Please add Rs. ${(minOrder - subtotal).toLocaleString()} more to qualify.`,

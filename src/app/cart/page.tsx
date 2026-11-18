@@ -54,9 +54,9 @@ export default function CartPage() {
     );
   }
 
-  const codMin = storeSettings?.delivery?.codMinOrder ?? COD_RULES.MIN_ORDER_AMOUNT;
+  const codMin = storeSettings?.delivery?.codMinOrder ?? 0;
   const codMax = storeSettings?.delivery?.codMaxOrder ?? COD_RULES.MAX_ORDER_AMOUNT;
-  const isCodEligible = summary.subtotal >= codMin && summary.subtotal <= codMax;
+  const isCodEligible = codMin <= 0 ? (summary.subtotal <= codMax) : (summary.subtotal >= codMin && summary.subtotal <= codMax);
   const freeShippingThreshold = storeSettings?.delivery?.freeShippingThreshold ?? (summary.subtotal + summary.freeShippingGap || 5000);
   const freeShippingProgress = Math.min(100, Math.round((summary.subtotal / freeShippingThreshold) * 100));
 
@@ -239,9 +239,7 @@ export default function CartPage() {
                 <span>Doorstep Cash on Delivery (COD)</span>
               </div>
               <p className="text-[11px] text-emerald-800 mt-1 leading-relaxed">
-                {isCodEligible
-                  ? 'Pay cash upon delivery directly to our courier partner across all 25 districts.'
-                  : `Minimum order for COD is ${formatLKR(codMin)}.`}
+                Pay cash upon delivery directly to our courier partner across all 25 districts.
               </p>
             </div>
 
