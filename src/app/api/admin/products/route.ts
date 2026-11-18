@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
       sellingPrice,
       description,
       images,
+      descriptionImages,
       ageGroup,
       gender,
       stock,
@@ -117,6 +118,7 @@ export async function POST(req: NextRequest) {
       deliveryFeeType: deliveryFeeType || 'default',
       customDeliveryFee: typeof customDeliveryFee === 'number' ? customDeliveryFee : undefined,
       images: images && images.length > 0 ? images : ['https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=900&auto=format&fit=crop&q=80'],
+      descriptionImages: Array.isArray(descriptionImages) ? descriptionImages : [],
       videoUrl: body.videoUrl || undefined,
       variants: productVariants,
       rating: 5.0,
@@ -195,6 +197,9 @@ export async function PATCH(req: NextRequest) {
     if (updates.gender) cleanUpdates.gender = updates.gender;
     if (updates.ageGroup) cleanUpdates.ageGroup = updates.ageGroup;
     if (updates.images && Array.isArray(updates.images)) cleanUpdates.images = updates.images;
+    if (updates.descriptionImages && Array.isArray(updates.descriptionImages)) {
+      cleanUpdates.descriptionImages = updates.descriptionImages;
+    }
     if (updates.variants && Array.isArray(updates.variants)) {
       cleanUpdates.variants = updates.variants;
     }

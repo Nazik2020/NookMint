@@ -932,6 +932,45 @@ export const ProductDetailClient: React.FC<{ product: Product }> = ({ product })
         </div>
       </div>
 
+      {/* ======================================================== */}
+      {/* Scroll-Down Visual Storyboard / Rich Product Details     */}
+      {/* (Daraz & Alibaba style visual guide & usage tutorials)   */}
+      {/* ======================================================== */}
+      {product.descriptionImages && product.descriptionImages.length > 0 && (
+        <div className="col-span-1 lg:col-span-12 mt-6 sm:mt-10 pt-6 sm:pt-10 border-t border-slate-200/80">
+          <div className="max-w-3xl mx-auto space-y-5 sm:space-y-6">
+            <div className="text-center space-y-1.5">
+              <span className="text-[11px] font-extrabold tracking-widest uppercase text-emerald-800 bg-emerald-50 px-3.5 py-1 rounded-full border border-emerald-200/80 inline-flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Product Overview &amp; Visual Guide</span>
+              </span>
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                Visual Walkthrough &amp; Features
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
+                Step-by-step application instructions, dimensions, and specifications.
+              </p>
+            </div>
+
+            <div className="space-y-3 sm:space-y-5">
+              {product.descriptionImages.map((imgUrl, idx) => (
+                <div
+                  key={idx}
+                  className="w-full rounded-2xl sm:rounded-3xl overflow-hidden bg-white border border-slate-200/80 shadow-2xs transition-shadow hover:shadow-md"
+                >
+                  <img
+                    src={imgUrl}
+                    alt={`${product.title} - Visual Guide ${idx + 1}`}
+                    loading="lazy"
+                    className="w-full h-auto object-contain block"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 🎉 ORDER SUCCESS POPUP MODAL */}
       {orderSuccess && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">

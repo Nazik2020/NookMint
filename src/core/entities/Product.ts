@@ -37,6 +37,7 @@ export interface Product {
   mrp: number; // Maximum Retail Price / Previous Price in LKR
   sellingPrice: number; // Selling Price in LKR
   images: string[];
+  descriptionImages?: string[]; // Storyboard / scroll-down infographic photos (Daraz/Alibaba style)
   videoUrl?: string; // Optional direct MP4 or video URL
   variants: ProductVariant[];
   colors?: ProductColor[];

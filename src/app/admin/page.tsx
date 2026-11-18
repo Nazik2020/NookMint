@@ -185,6 +185,7 @@ export default function AdminDashboardPage() {
     offerPercentage: number;
     description: string;
     images: string[];
+    descriptionImages?: string[];
     videoUrl?: string;
     variants: Array<{ size: string; stock: number; sku?: string; image?: string; colorHex?: string }>;
     deliveryFeeType: 'default' | 'free' | 'custom';
@@ -204,6 +205,7 @@ export default function AdminDashboardPage() {
     offerPercentage: 20,
     description: '',
     images: [],
+    descriptionImages: [],
     videoUrl: '',
     variants: [
       { size: 'Standard', stock: 25, sku: 'PROD-01' },
@@ -212,6 +214,8 @@ export default function AdminDashboardPage() {
     customDeliveryFee: 350,
   });
   const [newProductImageUrl, setNewProductImageUrl] = useState<string>('');
+  const [newDescImageUrl, setNewDescImageUrl] = useState<string>('');
+  const [isUploadingDescImage, setIsUploadingDescImage] = useState<boolean>(false);
   const [productFeedback, setProductFeedback] = useState<string>('');
   const [isUploadingImage, setIsUploadingImage] = useState<boolean>(false);
   const [isUploadingVideo, setIsUploadingVideo] = useState<boolean>(false);
@@ -240,6 +244,7 @@ export default function AdminDashboardPage() {
       deliveryFeeType: 'default',
       customDeliveryFee: 350,
       images: [],
+      descriptionImages: [],
       videoUrl: '',
     });
     setIsAddingProduct(true);
@@ -944,6 +949,73 @@ export default function AdminDashboardPage() {
     });
   };
 
+  // Storyboard & Scroll-Down Infographics (Daraz / Alibaba visual style)
+  const uploadAndAddDescFiles = async (files: File[]) => {
+    if (files.length === 0) return;
+    setIsUploadingDescImage(true);
+    setProductFeedback(`⚡ Optimizing & uploading ${files.length} storyboard image(s)...`);
+    try {
+      const uploadPromises = files.map(async (originalFile) => {
+        const optimizedFile = await compressImageForWeb(originalFile);
+        const formData = new FormData();
+        formData.append('file', optimizedFile);
+        formData.append('bucket', 'products');
+
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await res.json();
+        if (data.success && data.url) {
+          return data.url;
+        }
+        return null;
+      });
+
+      const uploadedUrls = (await Promise.all(uploadPromises)).filter(Boolean) as string[];
+      if (uploadedUrls.length > 0) {
+        setProductForm((prev) => ({
+          ...prev,
+          descriptionImages: [...(prev.descriptionImages || []), ...uploadedUrls],
+        }));
+        setProductFeedback(`✓ ${uploadedUrls.length} storyboard image(s) added successfully!`);
+        setTimeout(() => setProductFeedback(''), 3000);
+      }
+    } catch (err) {
+      console.error('Upload error:', err);
+      setProductFeedback('Failed to upload storyboard images. Please try again.');
+    } finally {
+      setIsUploadingDescImage(false);
+    }
+  };
+
+  const handleAddDescImageUrl = (urlToAdd?: string) => {
+    const url = (urlToAdd || newDescImageUrl).trim();
+    if (!url) return;
+    setProductForm((prev) => ({
+      ...prev,
+      descriptionImages: [...(prev.descriptionImages || []), url],
+    }));
+    setNewDescImageUrl('');
+  };
+
+  const handleRemoveDescImage = (index: number) => {
+    setProductForm((prev) => ({
+      ...prev,
+      descriptionImages: (prev.descriptionImages || []).filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleMoveDescImage = (fromIndex: number, toIndex: number) => {
+    setProductForm((prev) => {
+      const list = [...(prev.descriptionImages || [])];
+      if (toIndex < 0 || toIndex >= list.length) return prev;
+      const [moved] = list.splice(fromIndex, 1);
+      list.splice(toIndex, 0, moved);
+      return { ...prev, descriptionImages: list };
+    });
+  };
+
   const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -1080,6 +1152,7 @@ export default function AdminDashboardPage() {
             offerPercentage: Number(productForm.offerPercentage),
             description: productForm.description,
             images: safeImages,
+            descriptionImages: productForm.descriptionImages || [],
             videoUrl: productForm.videoUrl || undefined,
             variants: safeVariants,
             deliveryFeeType: productForm.deliveryFeeType,
@@ -2484,6 +2557,7 @@ Total COD Amount: Rs. ${order.grandTotal}`;
                                   deliveryFeeType: product.deliveryFeeType || 'default',
                                   customDeliveryFee: product.customDeliveryFee || 350,
                                   images: product.images && product.images.length > 0 ? [...product.images] : [],
+                                  descriptionImages: product.descriptionImages && product.descriptionImages.length > 0 ? [...product.descriptionImages] : [],
                                   videoUrl: product.videoUrl || '',
                                 });
                                 setIsAddingProduct(true);
@@ -5841,6 +5915,121 @@ Facebook Page: NookMint`;
                   placeholder="Describe product highlights, technical specs, material quality, and usage instructions..."
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-normal leading-relaxed focus:ring-2 focus:ring-[#064E3B]"
                 />
+              </div>
+
+              {/* 8. Scroll-Down Visual Storyboard & Infographics (Daraz / Alibaba Style) */}
+              <div className="space-y-3 pt-4 border-t border-slate-100">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Scroll-Down Visual Details (Daraz / Alibaba Style)</span>
+                    </label>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Upload step-by-step usage guides, infographics, or feature banners that display when customers scroll down.
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 shrink-0">
+                    {(productForm.descriptionImages || []).length} Visuals
+                  </span>
+                </div>
+
+                {/* Upload & Add Bar */}
+                <div className="flex flex-col sm:flex-row gap-2.5">
+                  <label className={`cursor-pointer h-10 px-4 ${isUploadingDescImage ? 'bg-emerald-700' : 'bg-[#064E3B] hover:bg-[#04382A]'} text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-xs shrink-0`}>
+                    <UploadCloud className={`w-4 h-4 ${isUploadingDescImage ? 'animate-bounce' : ''}`} />
+                    <span>{isUploadingDescImage ? 'Uploading Visuals...' : '+ Upload Storyboard Photo'}</span>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      disabled={isUploadingDescImage}
+                      onChange={async (e) => {
+                        if (e.target.files && e.target.files.length > 0) {
+                          await uploadAndAddDescFiles(Array.from(e.target.files));
+                          e.target.value = '';
+                        }
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+
+                  <div className="flex-1 flex gap-2">
+                    <input
+                      type="text"
+                      value={newDescImageUrl}
+                      onChange={(e) => setNewDescImageUrl(e.target.value)}
+                      placeholder="Or paste visual photo URL (https://... or /nookmint_images/...)"
+                      className="flex-1 h-10 px-3.5 bg-white rounded-xl border border-slate-200 text-xs text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-[#064E3B]"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddDescImageUrl();
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleAddDescImageUrl()}
+                      className="h-10 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer shrink-0"
+                    >
+                      Add URL
+                    </button>
+                  </div>
+                </div>
+
+                {/* Thumbnails preview strip with reorder controls */}
+                {productForm.descriptionImages && productForm.descriptionImages.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 pt-1">
+                    {productForm.descriptionImages.map((url, idx) => (
+                      <div
+                        key={idx}
+                        className="relative rounded-xl border border-slate-200 bg-white overflow-hidden shadow-2xs group"
+                      >
+                        <div className="relative aspect-[4/3] bg-slate-50 overflow-hidden">
+                          <img
+                            src={url}
+                            alt={`Visual Step ${idx + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                          <span className="absolute top-1.5 left-1.5 bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-mono font-bold px-1.5 py-0.5 rounded shadow-xs">
+                            Step #{idx + 1}
+                          </span>
+                        </div>
+                        <div className="p-2 flex items-center justify-between bg-slate-50/80 border-t border-slate-100 text-xs">
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => handleMoveDescImage(idx, idx - 1)}
+                              className="px-1.5 py-0.5 rounded bg-white border border-slate-200 text-slate-600 hover:text-slate-900 disabled:opacity-30 cursor-pointer font-bold text-xs"
+                              title="Move left/up"
+                            >
+                              ←
+                            </button>
+                            <button
+                              type="button"
+                              disabled={idx === (productForm.descriptionImages?.length || 0) - 1}
+                              onClick={() => handleMoveDescImage(idx, idx + 1)}
+                              className="px-1.5 py-0.5 rounded bg-white border border-slate-200 text-slate-600 hover:text-slate-900 disabled:opacity-30 cursor-pointer font-bold text-xs"
+                              title="Move right/down"
+                            >
+                              →
+                            </button>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveDescImage(idx)}
+                            className="p-1 rounded text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors cursor-pointer"
+                            title="Remove visual"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </form>
 
