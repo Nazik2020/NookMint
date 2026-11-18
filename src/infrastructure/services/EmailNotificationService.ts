@@ -34,130 +34,153 @@ export class EmailNotificationService {
     const cleanPhone = (customer.phone || '').replace(/[^0-9]/g, '').replace(/^0/, '94');
     const waLink = cleanPhone ? `https://wa.me/${cleanPhone}` : '';
 
-    const itemsRowsHtml = order.items
+    const itemsCardsHtml = order.items
       .map(
         (item) => `
-        <tr style="border-bottom: 1px solid #e2e8f0;">
-          <td style="padding: 10px 8px; font-size: 13px; color: #1e293b;">
-            <strong style="display: block; font-weight: 700;">${item.product.title}</strong>
-            <span style="font-size: 11px; color: #059669; font-weight: 600;">Variant/Color: ${item.selectedSize}</span>
-          </td>
-          <td style="padding: 10px 8px; font-size: 13px; text-align: center; color: #475569;">${item.quantity}</td>
-          <td style="padding: 10px 8px; font-size: 13px; text-align: right; color: #475569;">LKR ${item.product.sellingPrice.toLocaleString()}</td>
-          <td style="padding: 10px 8px; font-size: 13px; text-align: right; font-weight: 700; color: #064e3b;">LKR ${(item.product.sellingPrice * item.quantity).toLocaleString()}</td>
-        </tr>
+        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; margin-bottom: 10px;">
+          <div style="font-size: 13px; font-weight: 700; color: #0f172a; line-height: 1.4; margin-bottom: 4px;">
+            ${item.product.title}
+          </div>
+          <div style="font-size: 11px; color: #059669; font-weight: 700; margin-bottom: 8px;">
+            Option / Color: ${item.selectedSize}
+          </div>
+          <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+            <tr>
+              <td style="color: #64748b; padding: 0;">
+                Qty: <strong style="color: #0f172a;">${item.quantity}</strong> &times; LKR ${item.product.sellingPrice.toLocaleString()}
+              </td>
+              <td style="text-align: right; font-weight: 800; color: #064E3B; font-size: 13px; padding: 0;">
+                LKR ${(item.product.sellingPrice * item.quantity).toLocaleString()}.00
+              </td>
+            </tr>
+          </table>
+        </div>
       `
       )
       .join('');
 
     const htmlContent = `
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
     <head>
       <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>New Order Alert - NookMint</title>
     </head>
-    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 24px; color: #1e293b;">
-      <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 12px; color: #1e293b; -webkit-text-size-adjust: 100%;">
+      <div style="max-width: 520px; width: 100%; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);">
         
         <!-- Header -->
-        <div style="background: linear-gradient(135deg, #064E3B 0%, #047857 100%); padding: 24px; color: #ffffff; text-align: left;">
+        <div style="background: linear-gradient(135deg, #064E3B 0%, #047857 100%); padding: 20px; color: #ffffff; text-align: left;">
           <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.9; margin-bottom: 4px;">NookMint Order Alert</div>
-          <h1 style="margin: 0; font-size: 22px; font-weight: 800;">🔔 New Customer Order #${order.orderNumber}</h1>
-          <div style="margin-top: 6px; font-size: 13px; opacity: 0.85;">Placed on: ${new Date(order.createdAt).toLocaleString()}</div>
+          <h1 style="margin: 0; font-size: 20px; font-weight: 800; line-height: 1.3;">🔔 New Customer Order #${order.orderNumber}</h1>
+          <div style="margin-top: 6px; font-size: 12px; opacity: 0.85;">Placed on: ${new Date(order.createdAt).toLocaleString()}</div>
         </div>
 
-        <div style="padding: 24px;">
+        <div style="padding: 16px 20px;">
 
-          <!-- Customer Details Box -->
-          <div style="background-color: #f1f5f9; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px;">
-            <h3 style="margin: 0 0 12px 0; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; color: #064E3B; font-weight: 800;">👤 Customer Details</h3>
+          <!-- Customer Details Box (Mobile-Responsive Stacked Layout) -->
+          <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; margin-bottom: 18px;">
+            <h3 style="margin: 0 0 10px 0; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: #064E3B; font-weight: 800;">👤 Customer Details</h3>
+            
+            <div style="padding: 6px 0; border-bottom: 1px solid #e2e8f0;">
+              <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Customer Name</div>
+              <div style="font-size: 14px; font-weight: 700; color: #0f172a; margin-top: 2px;">${customer.fullName}</div>
+            </div>
+
+            <div style="padding: 6px 0; border-bottom: 1px solid #e2e8f0;">
+              <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">WhatsApp Mobile</div>
+              <div style="font-size: 14px; font-weight: 700; color: #0f172a; margin-top: 2px;">
+                ${customer.phone}
+                ${waLink ? `
+                  <div style="margin-top: 6px;">
+                    <a href="${waLink}" style="display: inline-block; background-color: #25D366; color: #ffffff; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 6px; text-decoration: none;">💬 Chat on WhatsApp</a>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+
+            ${customer.alternatePhone ? `
+            <div style="padding: 6px 0; border-bottom: 1px solid #e2e8f0;">
+              <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Backup Mobile</div>
+              <div style="font-size: 13px; font-weight: 600; color: #0f172a; margin-top: 2px;">${customer.alternatePhone}</div>
+            </div>
+            ` : ''}
+
+            ${customer.email ? `
+            <div style="padding: 6px 0; border-bottom: 1px solid #e2e8f0;">
+              <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Email / Gmail</div>
+              <div style="font-size: 13px; font-weight: 600; color: #0f172a; margin-top: 2px; word-break: break-all;">
+                <a href="mailto:${customer.email}" style="color: #0284c7; text-decoration: none;">${customer.email}</a>
+              </div>
+            </div>
+            ` : ''}
+
+            <div style="padding: 6px 0; border-bottom: 1px solid #e2e8f0;">
+              <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Delivery Address</div>
+              <div style="font-size: 13px; font-weight: 600; color: #0f172a; margin-top: 2px; line-height: 1.4;">${customer.addressLine1}</div>
+            </div>
+
+            <div style="padding: 6px 0; border-bottom: 1px solid #e2e8f0;">
+              <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">District &amp; City</div>
+              <div style="font-size: 13px; font-weight: 700; color: #0f172a; margin-top: 2px;">${customer.district || 'Colombo'} (${customer.city})</div>
+            </div>
+
+            <div style="padding: 6px 0 2px 0;">
+              <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Payment Mode</div>
+              <div style="font-size: 13px; font-weight: 800; color: #064E3B; margin-top: 2px;">100% Cash on Delivery (COD)</div>
+            </div>
+
+          </div>
+
+          <!-- Order Items -->
+          <h3 style="margin: 0 0 10px 0; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: #064E3B; font-weight: 800;">📦 Ordered Items</h3>
+          ${itemsCardsHtml}
+
+          <!-- Financial Summary Table -->
+          <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 16px; margin-top: 14px;">
             <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
               <tr>
-                <td style="padding: 4px 0; color: #64748b; width: 140px;"><strong>Customer Name:</strong></td>
-                <td style="padding: 4px 0; color: #0f172a; font-weight: 600;">${customer.fullName}</td>
+                <td style="padding: 4px 0; color: #64748b;">Product(s) Total:</td>
+                <td style="padding: 4px 0; color: #0f172a; text-align: right; font-weight: 700;">LKR ${order.subtotal.toLocaleString()}.00</td>
               </tr>
               <tr>
-                <td style="padding: 4px 0; color: #64748b;"><strong>WhatsApp Mobile:</strong></td>
-                <td style="padding: 4px 0; color: #0f172a; font-weight: 700;">
-                  ${customer.phone}
-                  ${waLink ? `&nbsp;(<a href="${waLink}" style="color: #059669; text-decoration: underline;">Chat on WhatsApp</a>)` : ''}
+                <td style="padding: 4px 0; color: #64748b;">Courier Delivery Fee:</td>
+                <td style="padding: 4px 0; color: #d97706; text-align: right; font-weight: 700;">
+                  ${order.shippingFee > 0 ? `LKR ${order.shippingFee.toLocaleString()}.00 (Invoiced via WhatsApp)` : 'Invoiced via WhatsApp'}
                 </td>
               </tr>
-              ${
-                customer.alternatePhone
-                  ? `<tr>
-                <td style="padding: 4px 0; color: #64748b;"><strong>Backup Mobile:</strong></td>
-                <td style="padding: 4px 0; color: #0f172a;">${customer.alternatePhone}</td>
-              </tr>`
-                  : ''
-              }
-              ${
-                customer.email
-                  ? `<tr>
-                <td style="padding: 4px 0; color: #64748b;"><strong>Email / Gmail:</strong></td>
-                <td style="padding: 4px 0; color: #0f172a;">${customer.email}</td>
-              </tr>`
-                  : ''
-              }
               <tr>
-                <td style="padding: 4px 0; color: #64748b;"><strong>Delivery Address:</strong></td>
-                <td style="padding: 4px 0; color: #0f172a;">${customer.addressLine1}</td>
+                <td colspan="2" style="padding-top: 6px;"><div style="border-top: 1px dashed #cbd5e1;"></div></td>
               </tr>
               <tr>
-                <td style="padding: 4px 0; color: #64748b;"><strong>District & City:</strong></td>
-                <td style="padding: 4px 0; color: #0f172a; font-weight: 700;">${customer.district || 'Colombo'} (${customer.city})</td>
-              </tr>
-              <tr>
-                <td style="padding: 4px 0; color: #64748b;"><strong>Payment Mode:</strong></td>
-                <td style="padding: 4px 0; color: #064e3b; font-weight: 800;">100% Cash on Delivery (COD)</td>
+                <td style="padding: 8px 0 2px 0; font-size: 14px; font-weight: 800; color: #064E3B;">Total Order Value:</td>
+                <td style="padding: 8px 0 2px 0; font-size: 16px; font-weight: 900; color: #064E3B; text-align: right;">LKR ${order.grandTotal.toLocaleString()}.00</td>
               </tr>
             </table>
           </div>
 
-          <!-- Order Items Table -->
-          <h3 style="margin: 0 0 10px 0; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; color: #064E3B; font-weight: 800;">📦 Ordered Items</h3>
-          <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-            <thead>
-              <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; text-align: left;">
-                <th style="padding: 8px; font-size: 11px; text-transform: uppercase; color: #64748b;">Product & Variant</th>
-                <th style="padding: 8px; font-size: 11px; text-transform: uppercase; color: #64748b; text-align: center;">Qty</th>
-                <th style="padding: 8px; font-size: 11px; text-transform: uppercase; color: #64748b; text-align: right;">Unit Price</th>
-                <th style="padding: 8px; font-size: 11px; text-transform: uppercase; color: #64748b; text-align: right;">Subtotal</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${itemsRowsHtml}
-            </tbody>
+          <!-- Quick Action Buttons (Full-Width Responsive Stack) -->
+          <table style="width: 100%; border-collapse: collapse; margin-top: 18px;">
+            ${waLink ? `
+            <tr>
+              <td style="padding-bottom: 8px;">
+                <a href="${waLink}" style="display: block; width: 100%; box-sizing: border-box; background: #25D366; color: #ffffff; text-align: center; text-decoration: none; font-weight: 800; font-size: 13px; padding: 12px 16px; border-radius: 10px;">📲 Message Customer on WhatsApp</a>
+              </td>
+            </tr>
+            ` : ''}
+            <tr>
+              <td>
+                <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://nook-mint.vercel.app'}/admin" style="display: block; width: 100%; box-sizing: border-box; background: #064E3B; color: #ffffff; text-align: center; text-decoration: none; font-weight: 800; font-size: 13px; padding: 12px 16px; border-radius: 10px;">📊 Open Admin Orders</a>
+              </td>
+            </tr>
           </table>
-
-          <!-- Financial Summary -->
-          <div style="border-top: 2px dashed #cbd5e1; padding-top: 14px; margin-bottom: 24px;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; color: #64748b;">
-              <span>Courier Delivery Fee:</span>
-              <strong style="color: #d97706;">Invoiced on WhatsApp</strong>
-            </div>
-            <div style="display: flex; justify-content: space-between; font-size: 16px; font-weight: 900; color: #064E3B; padding-top: 4px;">
-              <span>Total Payable Amount:</span>
-              <span>LKR ${order.grandTotal.toLocaleString()}.00</span>
-            </div>
-          </div>
-
-          <!-- Quick Action Buttons -->
-          <div style="text-align: center; margin-top: 28px; padding-top: 20px; border-top: 1px solid #f1f5f9;">
-            ${
-              waLink
-                ? `<a href="${waLink}" style="display: inline-block; background: #25D366; color: #ffffff; text-decoration: none; font-weight: 800; font-size: 13px; padding: 12px 24px; border-radius: 12px; margin-right: 8px;">📲 Message Customer on WhatsApp</a>`
-                : ''
-            }
-            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/admin" style="display: inline-block; background: #064E3B; color: #ffffff; text-decoration: none; font-weight: 800; font-size: 13px; padding: 12px 24px; border-radius: 12px;">📊 Open Admin Orders</a>
-          </div>
 
         </div>
 
         <!-- Footer -->
-        <div style="background: #f8fafc; padding: 16px 24px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8; text-align: center;">
-          This automatic notification was dispatched by <strong>NookMint Dropship & Storefront System</strong> to <strong>${adminEmail}</strong>.
+        <div style="background: #f8fafc; padding: 14px 20px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8; text-align: center;">
+          Dispatched by <strong>NookMint Dropship &amp; Storefront System</strong> to <strong>${adminEmail}</strong>
         </div>
 
       </div>
