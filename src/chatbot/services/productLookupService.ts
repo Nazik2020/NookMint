@@ -149,9 +149,9 @@ export class ProductLookupService {
     const codText = product.isCodAvailable ? '🚚 100% Cash on Delivery across Sri Lanka' : '';
 
     return [
-      `🛍️ **${product.title}**`,
-      `🏷️ Code: **${productCode}** | Category: ${product.category}`,
-      `💰 Price: **${formattedPrice}**`,
+      `🛍️ ${product.title}`,
+      `🏷️ Code: ${productCode} | Category: ${product.category}`,
+      `💰 Price: ${formattedPrice}`,
       `📦 Stock: ${stockMessage}${variantLine}`,
       codText,
       `👉 View details & order here:\n${canonicalUrl}`,
@@ -165,7 +165,7 @@ export class ProductLookupService {
     const list = results
       .map(
         (r, i) =>
-          `${i + 1}. **${r.product.title}**\n   Code: ${r.productCode} | Price: ${r.formattedPrice}\n   👉 ${r.canonicalUrl}`
+          `${i + 1}. ${r.product.title}\n   Code: ${r.productCode} | Price: ${r.formattedPrice}\n   👉 ${r.canonicalUrl}`
       )
       .join('\n\n');
 
