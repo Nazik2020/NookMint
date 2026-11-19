@@ -16,15 +16,18 @@ export const revalidate = 0;
  * Connects Google Dialogflow ES directly to NookMint's Supabase PostgreSQL product inventory.
  */
 export async function POST(req: NextRequest) {
-  // 1. Authentication Check (enforces security in production or when secret is set)
-  const webhookSecret = process.env.DIALOGFLOW_WEBHOOK_SECRET;
-  const isProduction = process.env.NODE_ENV === 'production';
+  // 1. Authentication Check (validates secret when configured in environment)
+  const webhookSecret = process.env.DIALOGFLOW_WEBHOOK_SECRET?.trim();
 
-  if (webhookSecret || isProduction) {
-    const authHeader = req.headers.get('authorization') || req.headers.get('x-dialogflow-auth');
-    const isValid =
-      Boolean(webhookSecret) &&
-      (authHeader === webhookSecret || authHeader === `Bearer ${webhookSecret}`);
+  if (webhookSecret) {
+    const rawAuth = (
+      req.headers.get('x-dialogflow-auth') ||
+      req.headers.get('authorization') ||
+      ''
+    ).trim();
+
+    const cleanAuth = rawAuth.replace(/^bearer\s+/i, '').trim();
+    const isValid = cleanAuth === webhookSecret;
 
     if (!isValid) {
       return NextResponse.json({ error: 'Unauthorized webhook access' }, { status: 401 });
