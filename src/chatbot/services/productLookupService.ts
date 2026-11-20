@@ -25,6 +25,24 @@ export interface FormattedProductResult {
  * Automatically defaults to the live Vercel production deployment (https://nook-mint.vercel.app)
  * until custom domain DNS is pointed.
  */
+const PRODUCT_CODE_IN_QUERY = /\b(NM-P\d+|P\d+)(?:-[A-Za-z0-9]+)?\b/gi;
+
+/**
+ * Reads a customer-requested quantity from a stock/availability question.
+ * Product-code digits (e.g. P00481) are ignored so they are never treated as a quantity.
+ */
+export function extractRequestedQuantity(rawQuery: string): number | undefined {
+  if (!rawQuery) return undefined;
+  const stripped = rawQuery.replace(PRODUCT_CODE_IN_QUERY, ' ');
+  const match =
+    stripped.match(/\b(\d+)\s*(?:units?|items?|pieces?|packs?|k)\b/i) ||
+    stripped.match(/\b(?:order|need|want)\s+(\d+)\b/i);
+  if (!match) return undefined;
+  const parsed = parseInt(match[1], 10);
+  if (!isNaN(parsed) && parsed > 0 && parsed < 1000) return parsed;
+  return undefined;
+}
+
 export function getStoreBaseUrl(): string {
   const envUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
   if (envUrl && envUrl !== 'https://nookmint.com' && envUrl !== 'http://nookmint.com') {
@@ -213,6 +231,7 @@ export class ProductLookupService {
 
   /**
    * Formats a targeted stock response for follow-up questions ("Is it in stock?")
+   * Kept for product.availability.followup — do not change this wording.
    */
   public formatStockFollowupResponse(result: FormattedProductResult, requestedQty?: number): string {
     const { product, stockInfo, canonicalUrl } = result;
@@ -229,6 +248,78 @@ export class ProductLookupService {
       return `⚠️ We currently only have ${stockInfo.totalUnits} units of ${product.title} in stock.\n👉 Order here:\n${canonicalUrl}`;
     }
     return `📦 Yes! ${product.title} is in stock with ${stockInfo.totalUnits} units available for dispatch.\n👉 View & order here:\n${canonicalUrl}`;
+  }
+
+  /**
+   * Concise stock-only answer for product.availability (not the full product card).
+   * Includes product name, code, live stock, optional variant breakdown, and canonical URL.
+   */
+  public formatAvailabilityResponse(result: FormattedProductResult, requestedQty?: number): string {
+    const { product, productCode, stockInfo, canonicalUrl } = result;
+    const identity = `${product.title} (${productCode})`;
+    const urlLine = `👉 View details:\n${canonicalUrl}`;
+    const variantLine = this.formatVariantStockLine(stockInfo);
+
+    if (stockInfo.status === 'INQUIRY_ONLY') {
+      return [
+        `✨ ${identity} is a quotation-only item arranged via WhatsApp.`,
+        'We cannot confirm a unit count for this product here.',
+        urlLine,
+      ].join('\n');
+    }
+
+    if (stockInfo.status === 'OUT_OF_STOCK') {
+      if (requestedQty && requestedQty > 1) {
+        return [
+          `❌ ${identity} is currently out of stock, so we cannot fulfil ${requestedQty} units right now.`,
+          urlLine,
+        ].join('\n');
+      }
+      return [`❌ ${identity} is currently out of stock.`, urlLine].join('\n');
+    }
+
+    if (requestedQty && requestedQty > 1) {
+      if (requestedQty <= stockInfo.totalUnits) {
+        return [
+          `✓ Yes — ${identity} can fulfil ${requestedQty} units.`,
+          `📦 ${stockInfo.totalUnits} units currently in stock.`,
+          variantLine,
+          'This is a stock check only; no order has been placed.',
+          urlLine,
+        ]
+          .filter(Boolean)
+          .join('\n');
+      }
+      return [
+        `⚠️ ${identity} currently has ${stockInfo.totalUnits} units in stock, so we cannot fulfil ${requestedQty} units right now.`,
+        variantLine,
+        'This is a stock check only; no order has been placed.',
+        urlLine,
+      ]
+        .filter(Boolean)
+        .join('\n');
+    }
+
+    return [
+      `📦 Yes — ${identity} is in stock.`,
+      `📦 ${stockInfo.totalUnits} units currently available.`,
+      variantLine,
+      urlLine,
+    ]
+      .filter(Boolean)
+      .join('\n');
+  }
+
+  /**
+   * Lists actual variant stock only. Out-of-stock options are labelled, never promised.
+   */
+  private formatVariantStockLine(stockInfo: ProductStockInfo): string {
+    if (stockInfo.variantBreakdown.length <= 1) return '';
+    const parts = stockInfo.variantBreakdown.map((v) => {
+      if (v.stock > 0) return `${v.name} (${v.stock} available)`;
+      return `${v.name} (out of stock)`;
+    });
+    return `🎨 Options: ${parts.join(', ')}`;
   }
 
   /**

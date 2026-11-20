@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ProductLookupService, FormattedProductResult, getStoreBaseUrl } from '../../../chatbot/services/productLookupService';
+import { ProductLookupService, FormattedProductResult, getStoreBaseUrl, extractRequestedQuantity } from '../../../chatbot/services/productLookupService';
 import {
   DialogflowWebhookRequest,
   DialogflowWebhookResponse,
@@ -72,8 +72,7 @@ export async function POST(req: NextRequest) {
   // 3. Route by Intent
   switch (intentName) {
     case 'product.search':
-    case 'product.details':
-    case 'product.availability': {
+    case 'product.details': {
       // Determine search term: check extracted parameters or raw text
       const searchTerm =
         params.product ||
@@ -160,6 +159,80 @@ export async function POST(req: NextRequest) {
       }
 
       return NextResponse.json(responsePayload, { status: 200 });
+    }
+
+    case 'product.availability': {
+      /**
+       * Concise stock-specific answer for "Is P00481 in stock?" style queries.
+       * Uses formatAvailabilityResponse() — NOT the full product card formatter.
+       */
+      const searchTerm =
+        params.product ||
+        params.any ||
+        params.product_code ||
+        params.keyword ||
+        rawQuery;
+
+      const codeMatch = String(searchTerm).match(/\b(NM-P\d+|P\d+)\b/i);
+
+      let result: FormattedProductResult | null = null;
+      let multiResults: FormattedProductResult[] = [];
+
+      if (codeMatch) {
+        result = await lookupService.findByProductCode(codeMatch[1]);
+      }
+      if (!result) {
+        const searchResults = await lookupService.searchProducts(String(searchTerm), 3);
+        if (searchResults.length === 1) {
+          result = searchResults[0];
+        } else if (searchResults.length > 1) {
+          multiResults = searchResults;
+        }
+      }
+
+      const availOutputContexts: DialogflowContext[] = [];
+      let availResponseText = '';
+
+      if (result) {
+        const requestedQty = extractRequestedQuantity(rawQuery);
+        availResponseText = lookupService.formatAvailabilityResponse(result, requestedQty);
+
+        // Set product_selected context so follow-up questions still work
+        if (session) {
+          availOutputContexts.push({
+            name: `${session}/contexts/product_selected`,
+            lifespanCount: 5,
+            parameters: {
+              productId: result.product.id,
+              productCode: result.productCode,
+              productTitle: result.product.title,
+              productPrice: result.product.sellingPrice,
+              canonicalUrl: result.canonicalUrl,
+            },
+          });
+          if (result.product.category) {
+            availOutputContexts.push({
+              name: `${session}/contexts/category_selected`,
+              lifespanCount: 5,
+              parameters: { product_category: result.product.category },
+            });
+          }
+        }
+      } else if (multiResults.length > 0) {
+        availResponseText = lookupService.formatMultiProductResponse(multiResults);
+      } else {
+        availResponseText = `🛍️ I couldn't find any products matching "${searchTerm}".\n\nYou can search by product code (e.g. P00481) or explore our store categories on NookMint!`;
+      }
+
+      return NextResponse.json(
+        {
+          fulfillmentText: availResponseText,
+          fulfillmentMessages: [{ text: { text: [availResponseText] } }],
+          outputContexts: availOutputContexts,
+          source: 'nookmint-ecommerce-webhook',
+        },
+        { status: 200 }
+      );
     }
 
     case 'product.details.followup':
