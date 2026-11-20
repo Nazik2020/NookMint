@@ -107,10 +107,37 @@ export class ProductLookupService {
     }
 
     // 2. Query products using MockProductRepository filter
-    const products = await this.repository.filterProducts({
+    let products = await this.repository.filterProducts({
       searchQuery: cleanQuery,
       includeHidden: false,
     });
+
+    // 3. If no direct substring match, match significant keywords (smart fuzzy relevance)
+    if (products.length === 0) {
+      const stopWords = new Set(['the', 'for', 'with', 'and', 'show', 'item', 'items', 'pennanna', 'ganna', 'look', 'want']);
+      const words = cleanQuery
+        .split(/\s+/)
+        .map((w) => w.toLowerCase().replace(/[^a-z0-9]/g, ''))
+        .filter((w) => w.length >= 3 && !stopWords.has(w));
+
+      if (words.length > 0) {
+        const allProducts = await this.repository.getAllProducts(false);
+        const scored = allProducts
+          .map((p) => {
+            const titleLower = p.title.toLowerCase();
+            const descLower = (p.description || '').toLowerCase();
+            // Higher weight for matching words in the title
+            const titleMatches = words.filter((w) => titleLower.includes(w)).length;
+            const descMatches = words.filter((w) => descLower.includes(w)).length;
+            const score = titleMatches * 3 + descMatches;
+            return { product: p, score };
+          })
+          .filter((item) => item.score >= 2); // Require at least 2 word matches or 1 title match
+
+        scored.sort((a, b) => b.score - a.score);
+        products = scored.map((item) => item.product);
+      }
+    }
 
     return products.slice(0, maxResults).map((p) => this.buildResult(p));
   }

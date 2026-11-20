@@ -277,6 +277,102 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    case 'product.category': {
+      // 1. Defend against entity collision: check if the customer actually named a specific product!
+      // (e.g. "Adjustable Baby Shower Cap" matched product.category because of the word "Baby")
+      const searchResults = await lookupService.searchProducts(String(rawQuery), 3);
+      if (searchResults.length > 0) {
+        let responseText = '';
+        const outputContexts: DialogflowContext[] = [];
+
+        if (searchResults.length === 1) {
+          const result = searchResults[0];
+          responseText = lookupService.formatSingleProductResponse(result);
+          if (session) {
+            outputContexts.push({
+              name: `${session}/contexts/product_selected`,
+              lifespanCount: 5,
+              parameters: {
+                productId: result.product.id,
+                productCode: result.productCode,
+                productTitle: result.product.title,
+                productPrice: result.product.sellingPrice,
+                canonicalUrl: result.canonicalUrl,
+              },
+            });
+            if (result.product.category) {
+              outputContexts.push({
+                name: `${session}/contexts/category_selected`,
+                lifespanCount: 5,
+                parameters: { product_category: result.product.category },
+              });
+            }
+          }
+        } else {
+          responseText = lookupService.formatMultiProductResponse(searchResults);
+        }
+
+        return NextResponse.json(
+          {
+            fulfillmentText: responseText,
+            fulfillmentMessages: [{ text: { text: [responseText] } }],
+            outputContexts,
+            source: 'nookmint-ecommerce-webhook',
+          },
+          { status: 200 }
+        );
+      }
+
+      // 2. Genuine category inquiry (e.g. "Show me baby items" or "Kitchen products")
+      const categoryName = params.product_category || rawQuery;
+      const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nookmint.com';
+      const categoryUrl = `${siteUrl}/products?category=${encodeURIComponent(categoryName)}`;
+      const responseText = `🛍️ Looking for ${categoryName}? 💚 You can explore all available items in this category here:\n👉 ${categoryUrl}`;
+
+      const outputContexts: DialogflowContext[] = [];
+      if (session) {
+        outputContexts.push({
+          name: `${session}/contexts/category_selected`,
+          lifespanCount: 5,
+          parameters: { product_category: categoryName },
+        });
+      }
+
+      return NextResponse.json(
+        {
+          fulfillmentText: responseText,
+          fulfillmentMessages: [{ text: { text: [responseText] } }],
+          outputContexts,
+          source: 'nookmint-ecommerce-webhook',
+        },
+        { status: 200 }
+      );
+    }
+
+    case 'product.categories.list': {
+      const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nookmint.com';
+      const categoriesText = [
+        '🛍️ Here are our 7 shopping categories on NookMint:',
+        '1. 🍳 Kitchen & Dining',
+        '2. 📱 Smart Gadgets & Audio',
+        '3. 👶 Kids, Baby & Toys',
+        '4. 🛋️ Home & Living',
+        '5. 🌿 Home & Garden',
+        '6. 🚗 Car & Vehicle Accessories',
+        '7. 💄 Beauty & Personal Care',
+        `👉 Explore all categories here:\n${siteUrl}/products`,
+      ].join('\n');
+
+      return NextResponse.json(
+        {
+          fulfillmentText: categoriesText,
+          fulfillmentMessages: [{ text: { text: [categoriesText] } }],
+          source: 'nookmint-ecommerce-webhook',
+        },
+        { status: 200 }
+      );
+    }
+
     default: {
       // For any intent not explicitly dynamic, allow Dialogflow to use its default responses
       return NextResponse.json(

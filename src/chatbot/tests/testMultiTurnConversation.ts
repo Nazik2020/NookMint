@@ -156,6 +156,36 @@ async function runMultiTurnConversationTests() {
   }
   console.log('✅ Turn 4 Passed: Gracefully asked for clarification when context was missing!\n');
 
+  // -------------------------------------------------------------
+  // Turn 5: Entity Collision Defense Test (product.category with actual product name)
+  // -------------------------------------------------------------
+  console.log('--- Turn 5: Collision Test: Intent is product.category but query has product name "Boom Wash" ---');
+  const req5 = new NextRequest('http://localhost:3000/api/dialogflow', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      session,
+      queryResult: {
+        queryText: 'Adjustable Boom Wash Cleaning Powder',
+        intent: { displayName: 'product.category' },
+        parameters: { product_category: 'Kitchen & Dining' },
+        outputContexts: [],
+      },
+    }),
+  });
+
+  const res5 = await POST(req5);
+  const data5 = await res5.json();
+
+  console.log('Response Status:', res5.status);
+  console.log('Nooki Response:\n', data5.fulfillmentText);
+
+  if (!data5.fulfillmentText.includes('Boom Wash') || !data5.fulfillmentText.includes('LKR 680')) {
+    console.error('❌ Turn 5 Failed: Expected product card defense override');
+    process.exit(1);
+  }
+  console.log('✅ Turn 5 Passed: Successfully defended against entity collision and returned the product card!\n');
+
   console.log('🎉 ALL MULTI-TURN CONVERSATION TESTS PASSED 100%!');
 }
 
