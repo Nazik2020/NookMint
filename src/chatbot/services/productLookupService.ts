@@ -96,7 +96,8 @@ export class ProductLookupService {
    */
   public async searchProducts(query: string, maxResults: number = 3): Promise<FormattedProductResult[]> {
     if (!query || !query.trim()) return [];
-    const cleanQuery = query.trim();
+    // Sanitize query by stripping trailing punctuation (?, !, ., etc.)
+    const cleanQuery = query.replace(/[?!.,;:]+$/g, '').trim();
 
     // 1. Check if the query looks like a product code
     const codeMatch = cleanQuery.match(/\b(NM-P\d+|P\d+)\b/i);
@@ -156,6 +157,63 @@ export class ProductLookupService {
       codText,
       `👉 View details & order here:\n${canonicalUrl}`,
     ].filter(Boolean).join('\n');
+  }
+
+  /**
+   * Formats a targeted price response for follow-up questions ("How much is this?")
+   */
+  public formatPriceResponse(result: FormattedProductResult): string {
+    const { product, formattedPrice, canonicalUrl } = result;
+    const codNote = product.isCodAvailable ? ' Cash on Delivery is available across Sri Lanka.' : '';
+    return `💰 ${product.title} is currently ${formattedPrice}.${codNote}\n👉 View & order here:\n${canonicalUrl}`;
+  }
+
+  /**
+   * Formats a targeted stock response for follow-up questions ("Is it in stock?")
+   */
+  public formatStockFollowupResponse(result: FormattedProductResult, requestedQty?: number): string {
+    const { product, stockInfo, canonicalUrl } = result;
+    if (stockInfo.status === 'INQUIRY_ONLY') {
+      return `✨ ${product.title} is a high-value item coordinated directly via WhatsApp quotation.\n👉 View details:\n${canonicalUrl}`;
+    }
+    if (stockInfo.status === 'OUT_OF_STOCK') {
+      return `❌ ${product.title} is currently out of stock.\n👉 Check live updates:\n${canonicalUrl}`;
+    }
+    if (requestedQty && requestedQty > 1) {
+      if (requestedQty <= stockInfo.totalUnits) {
+        return `✓ Yes! We have ${requestedQty} units of ${product.title} available in stock (total ${stockInfo.totalUnits} units ready for dispatch).\n👉 Order here:\n${canonicalUrl}`;
+      }
+      return `⚠️ We currently only have ${stockInfo.totalUnits} units of ${product.title} in stock.\n👉 Order here:\n${canonicalUrl}`;
+    }
+    return `📦 Yes! ${product.title} is in stock with ${stockInfo.totalUnits} units available for dispatch.\n👉 View & order here:\n${canonicalUrl}`;
+  }
+
+  /**
+   * Formats a color/option response for follow-up questions ("What colors do you have?")
+   */
+  public formatColorsResponse(result: FormattedProductResult): string {
+    const { product, canonicalUrl } = result;
+    if (product.colors && product.colors.length > 0) {
+      const colorList = product.colors.map((c) => c.name).join(', ');
+      return `🎨 Available colors for ${product.title}: ${colorList}.\n👉 View color options:\n${canonicalUrl}`;
+    }
+    if (product.variants && product.variants.length > 1) {
+      const variantList = product.variants
+        .map((v) => `${v.size}${v.stock > 0 ? '' : ' (out of stock)'}`)
+        .join(', ');
+      return `🎨 Available options for ${product.title}: ${variantList}.\n👉 View options:\n${canonicalUrl}`;
+    }
+    return `ℹ️ ${product.title} is available in its standard option.\n👉 View details:\n${canonicalUrl}`;
+  }
+
+  /**
+   * Formats a general product details response
+   */
+  public formatGeneralDetailsResponse(result: FormattedProductResult): string {
+    const { product, formattedPrice, stockInfo, canonicalUrl } = result;
+    const shortDesc = product.description ? product.description.split('\n')[0] : '';
+    const stockText = stockInfo.totalUnits > 0 ? `${stockInfo.totalUnits} units in stock` : 'Out of stock';
+    return `🛍️ ${product.title}\n💰 Price: ${formattedPrice}\n📦 Stock: ${stockText}\nℹ️ ${shortDesc}\n👉 Full details & order here:\n${canonicalUrl}`;
   }
 
   /**
