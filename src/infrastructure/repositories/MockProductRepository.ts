@@ -150,12 +150,12 @@ export class MockProductRepository implements IProductRepository {
 
   public async getProductById(id: string): Promise<Product | null> {
     const products = await this.syncWithCloud();
-    return products.find((p) => p.id === id) || null;
+    return products.find((p) => p.id === id || p.slug === id) || null;
   }
 
   public async getProductBySlug(slug: string): Promise<Product | null> {
     const products = await this.syncWithCloud();
-    return products.find((p) => p.slug === slug) || null;
+    return products.find((p) => p.slug === slug || p.id === slug) || null;
   }
 
   public async filterProducts(options: ProductFilterOptions): Promise<Product[]> {

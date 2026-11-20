@@ -16,7 +16,7 @@ interface ProductDetailPageProps {
 export async function generateMetadata({ params }: ProductDetailPageProps): Promise<Metadata> {
   const { id } = await params;
   const repository = new MockProductRepository();
-  const product = await repository.getProductById(id);
+  const product = (await repository.getProductById(id)) || (await repository.getProductBySlug(id));
 
   if (!product) {
     return {
@@ -24,7 +24,9 @@ export async function generateMetadata({ params }: ProductDetailPageProps): Prom
     };
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nookmint.com';
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL && process.env.NEXT_PUBLIC_APP_URL !== 'https://nookmint.com'
+    ? process.env.NEXT_PUBLIC_APP_URL
+    : 'https://nook-mint.vercel.app';
   const productImage = product.images?.[0] || '/nookmint_images/hero.png';
   const priceFormatted = `LKR ${product.sellingPrice.toLocaleString()}`;
 
@@ -57,14 +59,16 @@ export async function generateMetadata({ params }: ProductDetailPageProps): Prom
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
   const { id } = await params;
   const repository = new MockProductRepository();
-  const product = await repository.getProductById(id);
+  const product = (await repository.getProductById(id)) || (await repository.getProductBySlug(id));
 
   if (!product || product.isHidden || product.status === 'inactive') {
     notFound();
   }
 
   const categoryName = typeof product.category === 'string' ? product.category : 'Catalogue';
-  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nookmint.com';
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL && process.env.NEXT_PUBLIC_APP_URL !== 'https://nookmint.com'
+    ? process.env.NEXT_PUBLIC_APP_URL
+    : 'https://nook-mint.vercel.app';
 
   // Schema.org Product structured data for Google Search rich snippets
   const jsonLd = {

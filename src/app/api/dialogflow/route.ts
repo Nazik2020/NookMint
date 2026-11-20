@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ProductLookupService, FormattedProductResult } from '../../../chatbot/services/productLookupService';
+import { ProductLookupService, FormattedProductResult, getStoreBaseUrl } from '../../../chatbot/services/productLookupService';
 import {
   DialogflowWebhookRequest,
   DialogflowWebhookResponse,
@@ -325,7 +325,7 @@ export async function POST(req: NextRequest) {
 
       // 2. Genuine category inquiry (e.g. "Show me baby items" or "Kitchen products")
       const categoryName = params.product_category || rawQuery;
-      const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nookmint.com';
+      const siteUrl = getStoreBaseUrl();
       const categoryUrl = `${siteUrl}/products?category=${encodeURIComponent(categoryName)}`;
       const responseText = `🛍️ Looking for ${categoryName}? 💚 You can explore all available items in this category here:\n👉 ${categoryUrl}`;
 
@@ -350,7 +350,7 @@ export async function POST(req: NextRequest) {
     }
 
     case 'product.categories.list': {
-      const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nookmint.com';
+      const siteUrl = getStoreBaseUrl();
       const categoriesText = [
         '🛍️ Here are our 7 shopping categories on NookMint:',
         '1. 🍳 Kitchen & Dining',

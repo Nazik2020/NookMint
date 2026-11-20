@@ -21,6 +21,22 @@ export interface FormattedProductResult {
 }
 
 /**
+ * Resolves the active store base URL.
+ * Automatically defaults to the live Vercel production deployment (https://nook-mint.vercel.app)
+ * until custom domain DNS is pointed.
+ */
+export function getStoreBaseUrl(): string {
+  const envUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (envUrl && envUrl !== 'https://nookmint.com' && envUrl !== 'http://nookmint.com') {
+    return envUrl.replace(/\/+$/, '');
+  }
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  }
+  return 'https://nook-mint.vercel.app';
+}
+
+/**
  * Service to query live products, verify stock, and format customer responses
  * Reuses NookMint's existing MockProductRepository (backed by Supabase PostgreSQL).
  */
@@ -30,7 +46,7 @@ export class ProductLookupService {
 
   constructor() {
     this.repository = new MockProductRepository();
-    this.siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nookmint.com';
+    this.siteUrl = getStoreBaseUrl();
   }
 
   /**

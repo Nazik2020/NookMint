@@ -19,7 +19,9 @@ const playfairDisplay = Playfair_Display({
   weight: ['600', '700'],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nookmint.com';
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL && process.env.NEXT_PUBLIC_APP_URL !== 'https://nookmint.com'
+  ? process.env.NEXT_PUBLIC_APP_URL
+  : 'https://nook-mint.vercel.app';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
