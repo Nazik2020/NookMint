@@ -383,31 +383,52 @@ export const NookiChatWidget: React.FC = () => {
         </div>
       )}
 
-      {/* ---------------- FLOATING LAUNCHER BUTTON (Visible ONLY when minimized) ---------------- */}
+      {/* ---------------- FLOATING LAUNCHER BUTTON (World-Class Emil Polish) ---------------- */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
           aria-expanded={false}
-          aria-label="Ask Nooki shopping assistant"
-          className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50 group flex items-center gap-2.5 pl-2 pr-4 py-1.5 bg-[#004D40] hover:bg-[#00382E] text-white font-extrabold text-xs rounded-full shadow-xl shadow-emerald-950/30 transition-all hover:scale-105 active:scale-95 border-2 border-emerald-400/60 ring-2 ring-emerald-500/20 select-none animate-in fade-in zoom-in-95 duration-150"
+          aria-label="Open Nooki shopping assistant chat"
+          className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50 group relative flex items-center gap-3 pl-1.5 pr-4.5 py-1.5 bg-gradient-to-r from-[#00382E] via-[#004D40] to-[#015C4D] hover:from-[#004438] hover:via-[#005749] hover:to-[#016B59] text-white font-extrabold text-[13px] rounded-full shadow-[inset_0_1px_1.5px_rgba(255,255,255,0.35),0_12px_30px_-5px_rgba(0,77,64,0.5),0_6px_12px_-4px_rgba(0,77,64,0.3)] hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.45),0_16px_36px_-6px_rgba(0,77,64,0.6),0_8px_16px_-4px_rgba(0,77,64,0.35)] border border-emerald-400/40 hover:border-emerald-300/70 transition-all duration-200 ease-out hover:scale-[1.03] active:scale-[0.96] select-none cursor-pointer"
         >
-          {/* Mascot Avatar in White Disc */}
-          <div className="relative w-8 h-8 rounded-full bg-white flex items-center justify-center p-0.5 shrink-0 shadow-2xs border border-emerald-300/40">
+          {/* 3D Mascot Avatar Badge with Overlap */}
+          <div className="relative w-10 h-10 sm:w-10.5 sm:h-10.5 rounded-full bg-gradient-to-b from-white via-white to-emerald-50/90 flex items-center justify-center p-1 shrink-0 shadow-md border-2 border-white/95 group-hover:scale-105 group-hover:-rotate-3 transition-transform duration-300 ease-out">
             <Image
               src="/nookmint_images/moskot.png"
-              alt="Nooki Avatar"
-              width={32}
-              height={32}
-              className="w-full h-full object-contain"
+              alt="Nooki Mascot"
+              width={40}
+              height={40}
+              priority
+              className="w-full h-full object-contain filter drop-shadow-[0_2px_4px_rgba(0,77,64,0.15)]"
             />
-            {/* Live Indicator Dot */}
-            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 border-2 border-[#004D40] rounded-full" />
+
+            {/* Pulsing Live Online Beacon */}
+            <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3" aria-hidden="true">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-80" />
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400 border-2 border-[#00382E] shadow-2xs" />
+            </span>
           </div>
 
-          <span className="tracking-wide text-xs font-bold text-white">Ask Nooki</span>
+          {/* Button Text */}
+          <div className="flex flex-col items-start leading-tight pr-0.5">
+            <span className="tracking-wide font-extrabold text-white text-[13px] drop-shadow-xs flex items-center gap-1.5">
+              <span>Ask Nooki</span>
+              <span className="text-emerald-300 text-xs group-hover:rotate-12 transition-transform duration-300">
+                🌿
+              </span>
+            </span>
+            <span className="text-[10px] text-emerald-200/90 font-medium tracking-normal -mt-0.5">
+              Online Assistant
+            </span>
+          </div>
 
-          {/* Sprout / Chat Accent */}
-          <span className="text-emerald-300 text-xs group-hover:rotate-12 transition-transform">🌿</span>
+          {/* Shimmer sweep effect */}
+          <span
+            className="absolute inset-0 rounded-full overflow-hidden pointer-events-none"
+            aria-hidden="true"
+          >
+            <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 ease-in-out" />
+          </span>
         </button>
       )}
     </aside>
