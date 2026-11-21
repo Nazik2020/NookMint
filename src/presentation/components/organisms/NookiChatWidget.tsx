@@ -173,13 +173,16 @@ export const NookiChatWidget: React.FC = () => {
   };
 
   return (
-    <aside aria-label="Nooki Store Chat Assistant">
+    <div
+      aria-label="Nooki Store Chat Assistant"
+      className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-[9999] pointer-events-none select-none"
+    >
       {/* ---------------- CHAT WINDOW ---------------- */}
       {isOpen && (
         <div
           role="dialog"
           aria-label="Nooki Shopping Assistant"
-          className="fixed inset-x-3 bottom-3 top-16 sm:inset-auto sm:bottom-6 sm:right-6 sm:w-[410px] sm:h-[580px] sm:max-h-[85vh] bg-white rounded-[26px] shadow-2xl border border-emerald-950/15 flex flex-col overflow-hidden z-50 animate-in fade-in zoom-in-95 origin-bottom-right duration-200"
+          className="pointer-events-auto fixed inset-x-3 bottom-3 top-16 sm:static sm:w-[410px] sm:h-[580px] sm:max-h-[85vh] bg-white rounded-[26px] shadow-2xl border border-emerald-950/15 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 origin-bottom-right duration-200"
         >
           {/* Header */}
           <div className="bg-[#004D40] text-white px-4 py-3 flex items-center justify-between shadow-xs shrink-0 select-none">
@@ -211,7 +214,7 @@ export const NookiChatWidget: React.FC = () => {
               {messages.length > 0 && (
                 <button
                   onClick={handleResetConversation}
-                  className="w-8 h-8 rounded-full flex items-center justify-center hover:text-white hover:bg-emerald-800/60 active:scale-95 transition-all"
+                  className="w-8 h-8 rounded-full flex items-center justify-center hover:text-white hover:bg-emerald-800/60 active:scale-95 transition-all cursor-pointer"
                   title="Reset conversation"
                   aria-label="Reset conversation"
                 >
@@ -220,7 +223,7 @@ export const NookiChatWidget: React.FC = () => {
               )}
               <button
                 onClick={() => setIsOpen(false)}
-                className="w-8 h-8 rounded-full flex items-center justify-center hover:text-white hover:bg-emerald-800/60 active:scale-95 transition-all"
+                className="w-8 h-8 rounded-full flex items-center justify-center hover:text-white hover:bg-emerald-800/60 active:scale-95 transition-all cursor-pointer"
                 title="Minimize chat"
                 aria-label="Minimize chat window"
               >
@@ -228,7 +231,7 @@ export const NookiChatWidget: React.FC = () => {
               </button>
               <button
                 onClick={() => setIsOpen(false)}
-                className="w-8 h-8 rounded-full flex items-center justify-center hover:text-white hover:bg-emerald-800/60 active:scale-95 transition-all"
+                className="w-8 h-8 rounded-full flex items-center justify-center hover:text-white hover:bg-emerald-800/60 active:scale-95 transition-all cursor-pointer"
                 title="Close chat"
                 aria-label="Close chat window"
               >
@@ -273,7 +276,7 @@ export const NookiChatWidget: React.FC = () => {
                       <button
                         key={idx}
                         onClick={() => handleSendMessage(item.query)}
-                        className="bg-white hover:bg-emerald-50/80 text-slate-800 hover:text-emerald-900 border border-emerald-200/90 rounded-xl py-2 px-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-2xs hover:scale-101 active:scale-[0.96]"
+                        className="bg-white hover:bg-emerald-50/80 text-slate-800 hover:text-emerald-900 border border-emerald-200/90 rounded-xl py-2 px-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-2xs hover:scale-101 active:scale-[0.96] cursor-pointer"
                       >
                         <IconComponent className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
                         <span className="truncate">{item.label}</span>
@@ -363,7 +366,7 @@ export const NookiChatWidget: React.FC = () => {
               <button
                 onClick={() => handleSendMessage()}
                 disabled={!input.trim() || isLoading}
-                className="p-2 bg-[#004D40] hover:bg-[#00382E] text-white rounded-full disabled:opacity-30 disabled:hover:bg-[#004D40] transition-all shadow-2xs shrink-0 active:scale-90"
+                className="p-2 bg-[#004D40] hover:bg-[#00382E] text-white rounded-full disabled:opacity-30 disabled:hover:bg-[#004D40] transition-all shadow-2xs shrink-0 active:scale-90 cursor-pointer"
                 aria-label="Send message"
               >
                 <Send className="w-3.5 h-3.5" />
@@ -383,22 +386,21 @@ export const NookiChatWidget: React.FC = () => {
         </div>
       )}
 
-      {/* ---------------- FLOATING LAUNCHER BUTTON (World-Class Emil Polish) ---------------- */}
+      {/* ---------------- FLOATING LAUNCHER BUTTON (Visible ONLY when minimized) ---------------- */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
           aria-expanded={false}
           aria-label="Open Nooki shopping assistant chat"
-          className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50 group relative flex items-center gap-3 pl-1.5 pr-4.5 py-1.5 bg-gradient-to-r from-[#00382E] via-[#004D40] to-[#015C4D] hover:from-[#004438] hover:via-[#005749] hover:to-[#016B59] text-white font-extrabold text-[13px] rounded-full shadow-[inset_0_1px_1.5px_rgba(255,255,255,0.35),0_12px_30px_-5px_rgba(0,77,64,0.5),0_6px_12px_-4px_rgba(0,77,64,0.3)] hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.45),0_16px_36px_-6px_rgba(0,77,64,0.6),0_8px_16px_-4px_rgba(0,77,64,0.35)] border border-emerald-400/40 hover:border-emerald-300/70 transition-all duration-200 ease-out hover:scale-[1.03] active:scale-[0.96] select-none cursor-pointer"
+          className="pointer-events-auto group relative flex items-center gap-2.5 pl-1.5 pr-4 py-1.5 bg-gradient-to-r from-[#00382E] via-[#004D40] to-[#015C4D] hover:from-[#004438] hover:via-[#005749] hover:to-[#016B59] text-white font-extrabold text-[13px] rounded-full shadow-[inset_0_1px_1.5px_rgba(255,255,255,0.35),0_12px_28px_-4px_rgba(0,77,64,0.5),0_6px_12px_-4px_rgba(0,77,64,0.3)] hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.45),0_16px_36px_-6px_rgba(0,77,64,0.6)] border border-emerald-400/50 hover:border-emerald-300/80 transition-all duration-200 ease-out hover:scale-[1.03] active:scale-[0.96] select-none cursor-pointer"
         >
           {/* 3D Mascot Avatar Badge with Overlap */}
-          <div className="relative w-10 h-10 sm:w-10.5 sm:h-10.5 rounded-full bg-gradient-to-b from-white via-white to-emerald-50/90 flex items-center justify-center p-1 shrink-0 shadow-md border-2 border-white/95 group-hover:scale-105 group-hover:-rotate-3 transition-transform duration-300 ease-out">
+          <div className="relative w-10 h-10 rounded-full bg-gradient-to-b from-white via-white to-emerald-50/90 flex items-center justify-center p-1 shrink-0 shadow-md border-2 border-white/95 group-hover:scale-105 group-hover:-rotate-3 transition-transform duration-300 ease-out">
             <Image
               src="/nookmint_images/moskot.png"
               alt="Nooki Mascot"
               width={40}
               height={40}
-              priority
               className="w-full h-full object-contain filter drop-shadow-[0_2px_4px_rgba(0,77,64,0.15)]"
             />
 
@@ -431,6 +433,6 @@ export const NookiChatWidget: React.FC = () => {
           </span>
         </button>
       )}
-    </aside>
+    </div>
   );
 };
