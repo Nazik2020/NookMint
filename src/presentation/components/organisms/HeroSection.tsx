@@ -38,7 +38,7 @@ export const HeroSection: React.FC = () => {
           {/* Quality & Islandwide COD Trust Pill */}
           <div className="inline-flex items-center gap-2 px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-white/95 backdrop-blur-xs border border-emerald-200/80 shadow-2xs text-[#004D40] text-[11px] sm:text-xs font-bold tracking-wide">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            <span>Islandwide Cash on Delivery • 2-4 Days Doorstep Delivery</span>
+            <span>Islandwide Cash on Delivery • 3-5 Days Doorstep Delivery</span>
           </div>
 
           {/* Clean 2-Line Headline for Optimal Screen Fit & Typographic Balance on Mobile & Desktop */}

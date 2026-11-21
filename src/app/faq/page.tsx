@@ -48,7 +48,7 @@ const FAQ_DATA: FAQItem[] = [
     category: 'shipping',
     question: 'What are the delivery charges and timelines?',
     answer:
-      'Colombo 01-15 delivery is Rs. 350 (Same-Day / Next-Day delivery). Western Province (Gampaha, Kalutara) is Rs. 400 (1-2 business days). All other outstation districts across Sri Lanka are Rs. 500 (2-4 business days). Orders over Rs. 5,000 enjoy 100% FREE Islandwide Delivery.',
+      'Colombo 01-15 delivery is Rs. 350 (Same-Day / Next-Day delivery). Western Province (Gampaha, Kalutara) is Rs. 400 (1-2 business days). All other outstation districts across Sri Lanka are Rs. 500 (3-5 business days). Orders over Rs. 5,000 enjoy 100% FREE Islandwide Delivery.',
   },
   {
     category: 'shipping',

@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -12,6 +13,10 @@ import {
   CreditCard,
   Truck,
   ExternalLink,
+  Leaf,
+  ShieldCheck,
+  Languages,
+  Sparkles,
 } from 'lucide-react';
 
 interface ChatMessage {
@@ -132,7 +137,7 @@ export const NookiChatWidget: React.FC = () => {
         {
           id: `bot-err-${Date.now()}`,
           sender: 'nooki',
-          text: '⚠️ Network connection issue. Please check your internet or reach us via WhatsApp (+94 71 489 7262).',
+          text: 'Network connection issue. Please check your internet or reach us via WhatsApp (+94 71 489 7262).',
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);
@@ -259,8 +264,10 @@ export const NookiChatWidget: React.FC = () => {
 
                 {/* Speech Bubble Card */}
                 <div className="bg-white/95 rounded-2xl p-4 shadow-xs border border-emerald-100/90 w-full mb-3 text-center">
-                  <h4 className="font-extrabold text-[15px] text-slate-900 flex items-center justify-center gap-1.5">
-                    <span>👋</span>
+                  <h4 className="font-extrabold text-[15px] text-slate-900 flex items-center justify-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-emerald-100/90 flex items-center justify-center text-emerald-700 shrink-0">
+                      <Sparkles className="w-3 h-3 text-emerald-700" />
+                    </span>
                     <span>Hi there! I&apos;m Nooki!</span>
                   </h4>
                   <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
@@ -372,13 +379,13 @@ export const NookiChatWidget: React.FC = () => {
                 <Send className="w-3.5 h-3.5" />
               </button>
             </div>
-            <div className="flex items-center justify-between mt-2 px-2 text-[10px] text-slate-500 font-medium">
-              <span className="flex items-center gap-1">
-                <span>💬</span>
+            <div className="flex items-center justify-between mt-2 px-2 text-[10.5px] text-slate-600 font-medium select-none">
+              <span className="flex items-center gap-1.5">
+                <Languages className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                 <span>Supports Singlish &amp; Sinhala queries</span>
               </span>
-              <span className="flex items-center gap-1 text-emerald-800">
-                <span>🛡️</span>
+              <span className="flex items-center gap-1.5 text-emerald-800 font-semibold">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                 <span>100% Cash on Delivery</span>
               </span>
             </div>
@@ -404,10 +411,10 @@ export const NookiChatWidget: React.FC = () => {
               className="w-full h-full object-contain filter drop-shadow-[0_2px_4px_rgba(0,77,64,0.15)]"
             />
 
-            {/* Pulsing Live Online Beacon */}
+            {/* Pulsing Live Online Beacon at Top-Right */}
             <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3" aria-hidden="true">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-80" />
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400 border-2 border-[#00382E] shadow-2xs" />
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400 border-2 border-white shadow-2xs" />
             </span>
           </div>
 
@@ -415,9 +422,7 @@ export const NookiChatWidget: React.FC = () => {
           <div className="flex flex-col items-start leading-tight pr-0.5">
             <span className="tracking-wide font-extrabold text-white text-[13px] drop-shadow-xs flex items-center gap-1.5">
               <span>Ask Nooki</span>
-              <span className="text-emerald-300 text-xs group-hover:rotate-12 transition-transform duration-300">
-                🌿
-              </span>
+              <Leaf className="w-3.5 h-3.5 text-emerald-300 group-hover:rotate-12 transition-transform duration-300 shrink-0" />
             </span>
             <span className="text-[10px] text-emerald-200/90 font-medium tracking-normal -mt-0.5">
               Online Assistant
