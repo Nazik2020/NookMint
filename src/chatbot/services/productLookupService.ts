@@ -36,7 +36,8 @@ export function extractRequestedQuantity(rawQuery: string): number | undefined {
   const stripped = rawQuery.replace(PRODUCT_CODE_IN_QUERY, ' ');
   const match =
     stripped.match(/\b(\d+)\s*(?:units?|items?|pieces?|packs?|k)\b/i) ||
-    stripped.match(/\b(?:order|need|want)\s+(\d+)\b/i);
+    stripped.match(/\b(?:order|need|want|ganna|ona|one)\s+(\d+)\b/i) ||
+    stripped.match(/\b(\d+)\s*(?:ganna|ona|one)\b/i);
   if (!match) return undefined;
   const parsed = parseInt(match[1], 10);
   if (!isNaN(parsed) && parsed > 0 && parsed < 1000) return parsed;
@@ -199,7 +200,7 @@ export class ProductLookupService {
   public isAvailabilityInquiry(text: string): boolean {
     if (!text) return false;
     const lower = text.toLowerCase().trim();
-    return /\b(available|stock|in stock|thiyenawada|thiyeda|thiyenawa|thynwda|badu thiyeda|is it available|is this available)\b/i.test(lower);
+    return /\b(available|stock|in stock|thiyenawada|thiyeda|thiyenawa|thynwda|badu thiyeda|is it available|is this available|ganna puluwanda|ganna puluwan da|ganna puluwan|ganna ona|ganna one|order karanna puluwanda|order puluwanda|order karanna|can i order|can i get|how many|units? available)\b/i.test(lower);
   }
 
   /**
@@ -218,6 +219,80 @@ export class ProductLookupService {
     if (!text) return false;
     const lower = text.toLowerCase().trim();
     return /^(hi|hello|hey|good\s*(morning|afternoon|evening)|suba\s*udasanak|suba\s*sandhawak|ayubowan|help|who\s*are\s*you|howdy)[\s!.,?]*$/i.test(lower);
+  }
+
+  /**
+   * Identifies delivery / shipping fee inquiries
+   */
+  public isDeliveryInquiry(text: string): boolean {
+    if (!text) return false;
+    const lower = text.toLowerCase().trim();
+    return /\b(delivery|deliver|shipping|courier|enna kochchara|kochchara dawas|dawas kiyak|bedaharina|delivery fee|delivery charge|delivery cost|delivery charges)\b/i.test(lower);
+  }
+
+  /**
+   * Identifies Cash on Delivery (COD) inquiries
+   */
+  public isCodInquiry(text: string): boolean {
+    if (!text) return false;
+    const lower = text.toLowerCase().trim();
+    return /\b(cod|cash on delivery|badu labunama|parcel eka labunata|athata gewanna|gewanna puluwanda)\b/i.test(lower);
+  }
+
+  /**
+   * Identifies order instructions / "how to order" inquiries
+   */
+  public isOrderHowToInquiry(text: string): boolean {
+    if (!text) return false;
+    const lower = text.toLowerCase().trim();
+    return /\b(how to order|order karanne kohomada|order karanna|place an order|order danne kohomada|order ekak danne|buy karanne kohomada|checkout)\b/i.test(lower);
+  }
+
+  /**
+   * Concise delivery FAQ response for the chatbot interface
+   */
+  public getDeliveryFaqResponse(): string {
+    return [
+      '🚚 Islandwide delivery across Sri Lanka (estimated 3–5 days)! 🇱🇰',
+      '📦 Delivery fee is usually around LKR 400–500 (actual fee confirmed in your WhatsApp invoice).',
+      '💵 Cash on Delivery (COD) is available on all eligible orders.',
+    ].join('\n');
+  }
+
+  /**
+   * Concise Cash on Delivery (COD) response for the chatbot interface
+   */
+  public getCodFaqResponse(): string {
+    return [
+      '💵 Yes! Cash on Delivery (COD) is available across Sri Lanka.',
+      '🚚 Delivery takes 3–5 days islandwide, usually LKR 400–500 (actual fee confirmed in your WhatsApp invoice).',
+      '🛍️ Pay cash when your parcel is delivered to your doorstep!',
+    ].join('\n');
+  }
+
+  /**
+   * Detailed two-path ordering instructions for customers who ask how to order
+   */
+  public getOrderHowToResponse(): string {
+    return [
+      '🛍️ Ordering from NookMint is simple! 💚',
+      '',
+      'You can place an order in two ways:',
+      '',
+      '⚡ Option 1 – Order Now (Fast Single Item)',
+      '1. Open the product page.',
+      '2. Click "Order Now".',
+      '3. Enter your contact & delivery details.',
+      '4. Click "Confirm Order".',
+      '',
+      '🛒 Option 2 – Add to Cart (Multiple Items)',
+      '1. Click "Add to Cart" for each product you want.',
+      '2. Open your Cart and click "Proceed to Checkout".',
+      '3. Enter your contact & delivery details.',
+      '4. Click "Confirm Order".',
+      '',
+      '📲 Once submitted, our team will send your invoice via WhatsApp confirming product price, delivery fee (usually LKR 400–500), and final total. Delivery takes 3–5 days islandwide with Cash on Delivery!',
+    ].join('\n');
   }
 
   /**
@@ -427,24 +502,41 @@ export class ProductLookupService {
   }
 
   /**
-   * Formats a targeted stock response for follow-up questions ("Is it in stock?")
-   * Kept for product.availability.followup — do not change this wording.
+   * Formats a targeted stock response for follow-up questions ("Is it in stock?", "Meken 3k ganna puluwanda?")
+   * Distinguishes requested quantity from total available stock while keeping product name and code.
    */
   public formatStockFollowupResponse(result: FormattedProductResult, requestedQty?: number): string {
-    const { product, stockInfo, canonicalUrl } = result;
+    const { product, productCode, stockInfo, canonicalUrl } = result;
+    const codeLabel = productCode ? ` (${productCode})` : '';
+
     if (stockInfo.status === 'INQUIRY_ONLY') {
-      return `✨ ${product.title} is a high-value item coordinated directly via WhatsApp quotation.\n👉 View details:\n${canonicalUrl}`;
+      return `✨ ${product.title}${codeLabel} is a high-value item coordinated directly via WhatsApp quotation.\n👉 View details:\n${canonicalUrl}`;
     }
     if (stockInfo.status === 'OUT_OF_STOCK') {
-      return `❌ ${product.title} is currently out of stock.\n👉 Check live updates:\n${canonicalUrl}`;
-    }
-    if (requestedQty && requestedQty > 1) {
-      if (requestedQty <= stockInfo.totalUnits) {
-        return `✓ Yes! We have ${requestedQty} units of ${product.title} available in stock (total ${stockInfo.totalUnits} units ready for dispatch).\n👉 Order here:\n${canonicalUrl}`;
+      if (requestedQty && requestedQty > 0) {
+        return `❌ ${product.title}${codeLabel} is currently out of stock, so we cannot fulfil ${requestedQty} units right now. This is only a stock check; no order has been placed.\n👉 Check live updates:\n${canonicalUrl}`;
       }
-      return `⚠️ We currently only have ${stockInfo.totalUnits} units of ${product.title} in stock.\n👉 Order here:\n${canonicalUrl}`;
+      return `❌ ${product.title}${codeLabel} is currently out of stock.\n👉 Check live updates:\n${canonicalUrl}`;
     }
-    return `📦 Yes! ${product.title} is in stock with ${stockInfo.totalUnits} units available for dispatch.\n👉 View & order here:\n${canonicalUrl}`;
+
+    if (requestedQty && requestedQty > 0) {
+      if (requestedQty <= stockInfo.totalUnits) {
+        return [
+          `Yes! You can order ${requestedQty} units of ${product.title}${codeLabel}. Current available stock: ${stockInfo.totalUnits} units. This is only a stock check; no order has been placed.`,
+          `👉 View details & order here:\n${canonicalUrl}`,
+        ].join('\n');
+      }
+      return [
+        `⚠️ We cannot fulfil ${requestedQty} units of ${product.title}${codeLabel} right now. Current available stock: ${stockInfo.totalUnits} units. This is only a stock check; no order has been placed.`,
+        `👉 View details & order here:\n${canonicalUrl}`,
+      ].join('\n');
+    }
+
+    return [
+      `📦 Yes! ${product.title}${codeLabel} is in stock.`,
+      `Current available stock: ${stockInfo.totalUnits} units ready for dispatch.`,
+      `👉 View details & order here:\n${canonicalUrl}`,
+    ].join('\n');
   }
 
   /**
@@ -466,31 +558,28 @@ export class ProductLookupService {
     }
 
     if (stockInfo.status === 'OUT_OF_STOCK') {
-      if (requestedQty && requestedQty > 1) {
+      if (requestedQty && requestedQty > 0) {
         return [
-          `❌ ${identity} is currently out of stock, so we cannot fulfil ${requestedQty} units right now.`,
+          `❌ ${identity} is currently out of stock, so we cannot fulfil ${requestedQty} units right now. This is only a stock check; no order has been placed.`,
           urlLine,
         ].join('\n');
       }
       return [`❌ ${identity} is currently out of stock.`, urlLine].join('\n');
     }
 
-    if (requestedQty && requestedQty > 1) {
+    if (requestedQty && requestedQty > 0) {
       if (requestedQty <= stockInfo.totalUnits) {
         return [
-          `✓ Yes — ${identity} can fulfil ${requestedQty} units.`,
-          `📦 ${stockInfo.totalUnits} units currently in stock.`,
+          `Yes! You can order ${requestedQty} units of ${identity}. Current available stock: ${stockInfo.totalUnits} units. This is only a stock check; no order has been placed.`,
           variantLine,
-          'This is a stock check only; no order has been placed.',
           urlLine,
         ]
           .filter(Boolean)
           .join('\n');
       }
       return [
-        `⚠️ ${identity} currently has ${stockInfo.totalUnits} units in stock, so we cannot fulfil ${requestedQty} units right now.`,
+        `⚠️ We cannot fulfil ${requestedQty} units of ${identity} right now. Current available stock: ${stockInfo.totalUnits} units. This is only a stock check; no order has been placed.`,
         variantLine,
-        'This is a stock check only; no order has been placed.',
         urlLine,
       ]
         .filter(Boolean)

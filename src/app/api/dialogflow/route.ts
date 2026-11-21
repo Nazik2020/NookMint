@@ -446,6 +446,44 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    case 'delivery.fee':
+    case 'delivery.inquiry':
+    case 'delivery inquiry': {
+      const deliveryText = lookupService.getDeliveryFaqResponse();
+      return NextResponse.json(
+        {
+          fulfillmentText: deliveryText,
+          fulfillmentMessages: [{ text: { text: [deliveryText] } }],
+          source: 'nookmint-ecommerce-webhook',
+        },
+        { status: 200 }
+      );
+    }
+
+    case 'payment.cod': {
+      const codText = lookupService.getCodFaqResponse();
+      return NextResponse.json(
+        {
+          fulfillmentText: codText,
+          fulfillmentMessages: [{ text: { text: [codText] } }],
+          source: 'nookmint-ecommerce-webhook',
+        },
+        { status: 200 }
+      );
+    }
+
+    case 'order.how_to': {
+      const orderText = lookupService.getOrderHowToResponse();
+      return NextResponse.json(
+        {
+          fulfillmentText: orderText,
+          fulfillmentMessages: [{ text: { text: [orderText] } }],
+          source: 'nookmint-ecommerce-webhook',
+        },
+        { status: 200 }
+      );
+    }
+
     default: {
       // For any intent not explicitly dynamic, allow Dialogflow to use its default responses
       return NextResponse.json(

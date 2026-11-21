@@ -104,6 +104,27 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // 5B. Standardize & Shorten FAQ responses for chatbot interface (Delivery, COD, Order Instructions)
+    if (intent === 'delivery.fee' || intent === 'delivery.inquiry' || intent === 'delivery inquiry') {
+      reply = lookupService.getDeliveryFaqResponse();
+    } else if (intent === 'payment.cod') {
+      reply = lookupService.getCodFaqResponse();
+    } else if (intent === 'order.how_to') {
+      reply = lookupService.getOrderHowToResponse();
+    } else if (intent === 'product.availability.followup') {
+      const selectedCtx = getContext(outputContexts, 'product_selected') || getContext(activeContexts, 'product_selected');
+      const selectedCodeOrId = selectedCtx?.parameters?.productCode || selectedCtx?.parameters?.productId;
+      if (selectedCodeOrId) {
+        const productResult =
+          (await lookupService.findByProductCode(String(selectedCodeOrId))) ||
+          (await lookupService.findById(String(selectedCodeOrId)));
+        if (productResult) {
+          const requestedQty = extractRequestedQuantity(textToSend);
+          reply = lookupService.formatStockFollowupResponse(productResult, requestedQty);
+        }
+      }
+    }
+
     // 6. Intelligent Fallback Routing:
     // If Dialogflow returned Fallback, unconfigured, or was unreachable,
     // inspect the message for product follow-ups, greetings, and catalogue search.
@@ -172,10 +193,19 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      // 6B. Conversational Greeting Check
+      // 6B. FAQ & Conversational Greeting Checks
       if (lookupService.isGeneralGreeting(textToSend)) {
         reply = "👋 Hi there! I'm Nooki, your shopping buddy at NookMint. Ask me about products, prices, stock availability, or Cash on Delivery across Sri Lanka!";
         intent = 'Default Welcome Intent';
+      } else if (lookupService.isDeliveryInquiry(textToSend)) {
+        reply = lookupService.getDeliveryFaqResponse();
+        intent = 'delivery.fee';
+      } else if (lookupService.isCodInquiry(textToSend)) {
+        reply = lookupService.getCodFaqResponse();
+        intent = 'payment.cod';
+      } else if (lookupService.isOrderHowToInquiry(textToSend)) {
+        reply = lookupService.getOrderHowToResponse();
+        intent = 'order.how_to';
       } else {
         // 6C. Partial Product Name, Multiple Keywords & Category Search
         const searchResults = await lookupService.searchProducts(textToSend, 3);
