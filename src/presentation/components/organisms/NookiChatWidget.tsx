@@ -407,6 +407,7 @@ export const NookiChatWidget: React.FC = () => {
               alt="Nooki Mascot"
               width={42}
               height={42}
+              priority
               className="w-full h-full object-contain filter drop-shadow-[0_2px_4px_rgba(0,77,64,0.15)]"
             />
 

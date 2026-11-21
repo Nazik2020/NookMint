@@ -57,8 +57,15 @@ async function getGoogleOAuth2AccessToken(clientEmail: string, privateKeyRaw: st
     return cachedToken.token;
   }
 
-  // Handle both escaped \n and raw newlines from environment variables
-  const cleanPrivateKey = privateKeyRaw.replace(/\\n/g, '\n').trim();
+  // Handle both escaped \n and raw newlines from environment variables, and strip any surrounding quotes
+  let cleanPrivateKey = privateKeyRaw.trim();
+  if (
+    (cleanPrivateKey.startsWith('"') && cleanPrivateKey.endsWith('"')) ||
+    (cleanPrivateKey.startsWith("'") && cleanPrivateKey.endsWith("'"))
+  ) {
+    cleanPrivateKey = cleanPrivateKey.slice(1, -1);
+  }
+  cleanPrivateKey = cleanPrivateKey.replace(/\\n/g, '\n').trim();
 
   const header = {
     alg: 'RS256',
