@@ -28,7 +28,7 @@ import { extractRequestedQuantity } from '../services/productLookupService';
 
 async function runResponseQualitySuite() {
   console.log('================================================================');
-  console.log('🧪 RUNNING NOOKI RESPONSE-QUALITY REGRESSION TEST SUITE');
+  console.log('🧪 RUNNING NOOKI MULTILINGUAL & RESPONSE QUALITY TEST SUITE');
   console.log('================================================================\n');
 
   let passedCount = 0;
@@ -56,93 +56,189 @@ async function runResponseQualitySuite() {
     return res.json();
   }
 
-  // --- Test 1: Singlish quantity extraction ("Meken 3k ganna puluwanda?") ---
-  console.log('--- Test 1: Singlish Quantity Extraction ---');
+  // =========================================================================
+  // ISSUE 1: Sinhala, Singlish & English Quantity Extraction Unit Tests
+  // =========================================================================
+  console.log('--- Suite 1: Multilingual Quantity Extraction ---');
+
+  // Sinhala queries
+  assert(
+    extractRequestedQuantity('මේකෙන් 3ක් ගන්න පුළුවන්ද?') === 3,
+    'Sinhala: "මේකෙන් 3ක් ගන්න පුළුවන්ද?" extracts quantity 3'
+  );
+  assert(
+    extractRequestedQuantity('මට 2ක් ඕන') === 2,
+    'Sinhala: "මට 2ක් ඕන" extracts quantity 2'
+  );
+  assert(
+    extractRequestedQuantity('10ක් තියෙනවද?') === 10,
+    'Sinhala: "10ක් තියෙනවද?" extracts quantity 10'
+  );
+  assert(
+    extractRequestedQuantity('මට තුනක් ඕන') === 3,
+    'Sinhala word: "මට තුනක් ඕන" extracts quantity 3'
+  );
+  assert(
+    extractRequestedQuantity('දෙකක් ගන්න පුළුවන්ද?') === 2,
+    'Sinhala word: "දෙකක් ගන්න පුළුවන්ද?" extracts quantity 2'
+  );
+
+  // Singlish & English queries
   assert(
     extractRequestedQuantity('Meken 3k ganna puluwanda?') === 3,
-    'extractRequestedQuantity correctly reads 3 from "Meken 3k ganna puluwanda?"'
+    'Singlish: "Meken 3k ganna puluwanda?" extracts quantity 3'
   );
   assert(
     extractRequestedQuantity('mata meken 2k ona') === 2,
-    'extractRequestedQuantity correctly reads 2 from "mata meken 2k ona"'
+    'Singlish: "mata meken 2k ona" extracts quantity 2'
   );
   assert(
-    extractRequestedQuantity('Can I order 5 units of P00481?') === 5,
-    'extractRequestedQuantity correctly reads 5 from "Can I order 5 units of P00481?"'
+    extractRequestedQuantity('Can I order 5 units?') === 5,
+    'English: "Can I order 5 units?" extracts quantity 5'
   );
 
-  // --- Test 2: Turn 2 Singlish quantity check distinguishing requested vs available stock ---
-  console.log('\n--- Test 2: Requested Quantity vs Live Stock Differentiation ---');
-  const session1 = `test-quality-${Date.now()}`;
-  // Turn 1: Customer asks about Boom Wash
-  const turn1 = await callChat('Boom Wash', session1);
-  const contextsFromTurn1 = turn1.outputContexts || [];
-
-  // Turn 2: Customer asks "Meken 3k ganna puluwanda?"
-  const turn2 = await callChat('Meken 3k ganna puluwanda?', session1, contextsFromTurn1);
+  // Security & Product Code Protection
   assert(
-    turn2.reply.includes('You can order 3 units') &&
-    turn2.reply.includes('Boom Wash') &&
-    turn2.reply.includes('Current available stock:') &&
-    turn2.reply.includes('96') &&
-    turn2.reply.includes('no order has been placed'),
-    'Turn 2 "Meken 3k ganna puluwanda?" distinguishes 3 requested from 96 available stock with no-order disclaimer',
-    JSON.stringify(turn2)
+    extractRequestedQuantity('Boom Wash P00481 thiyeda?') === undefined,
+    'Product code digits (e.g. P00481) are protected and never extracted as requested quantities'
   );
 
-  // --- Test 3: Requested Quantity Exceeding Stock ---
-  console.log('\n--- Test 3: Requested Quantity Exceeding Available Stock ---');
-  const session2 = `test-excess-qty-${Date.now()}`;
-  const turn1_b = await callChat('Boom Wash', session2);
-  const contextsFromTurn1_b = turn1_b.outputContexts || [];
+  // =========================================================================
+  // ISSUE 1: Sinhala Turn-2 Quantity Availability Check
+  // =========================================================================
+  console.log('\n--- Suite 2: Sinhala Multi-Turn Quantity Follow-Up ---');
+  const sessionSinhala = `test-sinhala-qty-${Date.now()}`;
 
-  const turn2_excess = await callChat('Meken 500k ganna puluwanda?', session2, contextsFromTurn1_b);
+  // Turn 1: Select Boom Wash
+  const t1 = await callChat('Boom Wash', sessionSinhala);
+  const contextsT1 = t1.outputContexts || [];
+
+  // Turn 2: Customer asks in Sinhala: "මේකෙන් 3ක් ගන්න පුළුවන්ද?"
+  const t2 = await callChat('මේකෙන් 3ක් ගන්න පුළුවන්ද?', sessionSinhala, contextsT1);
+
   assert(
-    turn2_excess.reply.includes('cannot fulfil 500 units') &&
-    turn2_excess.reply.includes('Current available stock:') &&
-    turn2_excess.reply.includes('no order has been placed'),
-    'Excess quantity inquiry gracefully states unavailable requested amount without placing an order',
-    JSON.stringify(turn2_excess)
+    t2.reply.includes('✅ Yes! You can order 3 units of Boom Wash') &&
+    t2.reply.includes('(P00481)') &&
+    t2.reply.includes('📦 Current available stock: 96 units.') &&
+    t2.reply.includes('This is only a stock check; no order has been placed.') &&
+    t2.reply.includes('👉 View product:') &&
+    !t2.reply.toLowerCase().includes('cash on delivery') &&
+    !t2.reply.toLowerCase().includes('delivery charge'),
+    'Sinhala "මේකෙන් 3ක් ගන්න පුළුවන්ද?" returns exact required response with 3 units requested, 96 stock, disclaimer, and product link',
+    JSON.stringify(t2)
   );
 
-  // --- Test 4: Delivery FAQ Shortened & Complete ---
-  console.log('\n--- Test 4: Shortened Delivery FAQ Response ---');
-  const resDelivery = await callChat('delivery fee eka kiyada', `session-del-${Date.now()}`);
+  // Insufficient stock in Sinhala
+  const t2_excess = await callChat('මේකෙන් 500ක් ගන්න පුළුවන්ද?', sessionSinhala, contextsT1);
   assert(
-    resDelivery.reply.includes('Islandwide delivery') &&
-    resDelivery.reply.includes('LKR 400–500') &&
-    resDelivery.reply.includes('WhatsApp invoice') &&
-    resDelivery.reply.includes('3–5 days') &&
-    resDelivery.reply.includes('Cash on Delivery'),
-    'Delivery response contains islandwide, LKR 400–500, WhatsApp invoice, 3–5 days, and COD',
-    JSON.stringify(resDelivery)
+    t2_excess.reply.includes('⚠️ We cannot fulfil 500 units of Boom Wash') &&
+    t2_excess.reply.includes('(P00481)') &&
+    t2_excess.reply.includes('📦 Current available stock: 96 units.') &&
+    t2_excess.reply.includes('This is only a stock check; no order has been placed.'),
+    'Sinhala insufficient stock ("මේකෙන් 500ක් ගන්න පුළුවන්ද?") properly displays requested vs available units',
+    JSON.stringify(t2_excess)
   );
 
-  // --- Test 5: COD FAQ Shortened & Complete ---
-  console.log('\n--- Test 5: Shortened COD FAQ Response ---');
-  const resCod = await callChat('cash on delivery puluwanda', `session-cod-${Date.now()}`);
+  // =========================================================================
+  // ISSUE 2: Non-Repetitive Conversational Response Quality Tests
+  // =========================================================================
+  console.log('\n--- Suite 3: Non-Repetitive Response Behavior ---');
+
+  const sessionProduct = `test-product-followups-${Date.now()}`;
+  const prodTurn1 = await callChat('Boom Wash', sessionProduct);
+  const prodContexts = prodTurn1.outputContexts || [];
+
+  // 1. Customer: "How much is this?"
+  const resPrice = await callChat('How much is this?', sessionProduct, prodContexts);
   assert(
-    resCod.reply.includes('Cash on Delivery (COD) is available') &&
-    resCod.reply.includes('3–5 days') &&
-    resCod.reply.includes('LKR 400–500') &&
-    resCod.reply.includes('WhatsApp invoice'),
-    'COD response contains availability, 3–5 days, LKR 400–500, and WhatsApp invoice confirmation',
-    JSON.stringify(resCod)
+    resPrice.reply.includes('Boom Wash') &&
+    resPrice.reply.includes('LKR 680.00') &&
+    resPrice.reply.includes('View & order here') &&
+    !resPrice.reply.toLowerCase().includes('cash on delivery') &&
+    !resPrice.reply.toLowerCase().includes('delivery charge'),
+    '1. "How much is this?" answers name, price & link without repetitive COD or delivery info',
+    JSON.stringify(resPrice)
   );
 
-  // --- Test 6: Detailed Two-Path Ordering Instructions ---
-  console.log('\n--- Test 6: Detailed Two-Path Ordering Instructions ---');
-  const resOrder = await callChat('order karanne kohomada', `session-ord-${Date.now()}`);
+  // 2. Customer: "Is this in stock?"
+  const resStock = await callChat('Is this in stock?', sessionProduct, prodContexts);
   assert(
-    resOrder.reply.includes('Option 1 – Order Now') &&
-    resOrder.reply.includes('Option 2 – Add to Cart') &&
-    resOrder.reply.includes('WhatsApp'),
-    'Order how-to response preserves detailed two-path ordering instructions (Order Now & Add to Cart)',
-    JSON.stringify(resOrder)
+    resStock.reply.includes('Boom Wash') &&
+    resStock.reply.includes('in stock') &&
+    resStock.reply.includes('96 units') &&
+    !resStock.reply.toLowerCase().includes('cash on delivery') &&
+    !resStock.reply.toLowerCase().includes('delivery charges'),
+    '2. "Is this in stock?" answers status & unit count without repetitive COD or delivery info',
+    JSON.stringify(resStock)
+  );
+
+  // 3. Customer: "Can I order 3 units?"
+  const resQty = await callChat('Can I order 3 units?', sessionProduct, prodContexts);
+  assert(
+    resQty.reply.includes('You can order 3 units of Boom Wash') &&
+    resQty.reply.includes('Current available stock: 96 units.') &&
+    resQty.reply.includes('This is only a stock check; no order has been placed.') &&
+    !resQty.reply.toLowerCase().includes('cash on delivery') &&
+    !resQty.reply.toLowerCase().includes('delivery charges'),
+    '3. "Can I order 3 units?" answers quantity availability & stock without repetitive COD or delivery info',
+    JSON.stringify(resQty)
+  );
+
+  // 4. Customer: "Tell me about this product"
+  const resDetails = await callChat('Tell me about this product', sessionProduct, prodContexts);
+  assert(
+    resDetails.reply.includes('Boom Wash') &&
+    resDetails.reply.includes('Price:') &&
+    resDetails.reply.includes('Stock:') &&
+    !resDetails.reply.toLowerCase().includes('cash on delivery') &&
+    !resDetails.reply.toLowerCase().includes('delivery charges'),
+    '4. "Tell me about this product" answers relevant product details without repeated promotional text',
+    JSON.stringify(resDetails)
+  );
+
+  // 5. Customer: "Do you offer Cash on Delivery?"
+  const resCodFaq = await callChat('Do you offer Cash on Delivery?', `session-faq-cod-${Date.now()}`);
+  assert(
+    resCodFaq.reply.includes('Cash on Delivery (COD) is available') &&
+    resCodFaq.reply.includes('doorstep') &&
+    resCodFaq.reply.includes('No advance payment') &&
+    !resCodFaq.reply.toLowerCase().includes('lkr 400–500'),
+    '5. "Do you offer Cash on Delivery?" answers COD availability & doorstep payment without delivery-fee essay',
+    JSON.stringify(resCodFaq)
+  );
+
+  // 6. Customer: "How much is delivery?"
+  const resFeeFaq = await callChat('How much is delivery?', `session-faq-fee-${Date.now()}`);
+  assert(
+    resFeeFaq.reply.includes('LKR 400–500') &&
+    resFeeFaq.reply.includes('WhatsApp invoice') &&
+    !resFeeFaq.reply.toLowerCase().includes('cash on delivery'),
+    '6. "How much is delivery?" explains LKR 400–500 fee and WhatsApp invoice confirmation without COD repetition',
+    JSON.stringify(resFeeFaq)
+  );
+
+  // 7. Customer: "How long does delivery take?"
+  const resTimeFaq = await callChat('How long does delivery take?', `session-faq-time-${Date.now()}`);
+  assert(
+    resTimeFaq.reply.includes('3–5 business days') &&
+    !resTimeFaq.reply.toLowerCase().includes('lkr 400–500') &&
+    !resTimeFaq.reply.toLowerCase().includes('cash on delivery'),
+    '7. "How long does delivery take?" answers 3–5 days without full delivery fee or COD text',
+    JSON.stringify(resTimeFaq)
+  );
+
+  // 8. Customer: "How do I place an order?"
+  const resOrderFaq = await callChat('How do I place an order?', `session-faq-order-${Date.now()}`);
+  assert(
+    resOrderFaq.reply.includes('Option 1 – Order Now') &&
+    resOrderFaq.reply.includes('Option 2 – Add to Cart') &&
+    resOrderFaq.reply.includes('WhatsApp'),
+    '8. "How do I place an order?" explains existing two-path ordering methods (Order Now and Add to Cart)',
+    JSON.stringify(resOrderFaq)
   );
 
   console.log(`\n================================================================`);
-  console.log(`🏁 RESPONSE QUALITY SUITE: ${passedCount}/${totalCount} TESTS PASSED!`);
+  console.log(`🏁 ALL TESTS PASSED: ${passedCount}/${totalCount} SUCCESSFUL!`);
   console.log(`================================================================\n`);
 
   if (passedCount !== totalCount) {

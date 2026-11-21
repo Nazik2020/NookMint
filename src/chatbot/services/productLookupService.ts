@@ -27,20 +27,69 @@ export interface FormattedProductResult {
  */
 const PRODUCT_CODE_IN_QUERY = /\b(NM-P\d+|P\d+)(?:-[A-Za-z0-9]+)?\b/gi;
 
+const SINHALA_NUMBER_WORDS: Record<string, number> = {
+  'එකක්': 1, 'එක': 1,
+  'දෙකක්': 2, 'දෙක': 2,
+  'තුනක්': 3, 'තුන': 3,
+  'හතරක්': 4, 'හතර': 4,
+  'පහක්': 5, 'පහ': 5,
+  'හයක්': 6, 'හය': 6,
+  'හතක්': 7, 'හත': 7,
+  'අටක්': 8, 'අට': 8,
+  'නවයක්': 9, 'නමය': 9, 'නමයක්': 9,
+  'දහයක්': 10, 'දහය': 10,
+  'පහළොවක්': 15, 'විස්සක්': 20, 'පනහක්': 50, 'සීයක්': 100,
+};
+
+function normalizeSinhalaDigits(text: string): string {
+  const sinhalaDigits = ['෦', '෧', '෨', '෩', '෪', '෫', '෬', '෭', '෮', '෯'];
+  let res = text;
+  for (let i = 0; i < sinhalaDigits.length; i++) {
+    res = res.replace(new RegExp(sinhalaDigits[i], 'g'), String(i));
+  }
+  return res;
+}
+
 /**
- * Reads a customer-requested quantity from a stock/availability question.
+ * Reads a customer-requested quantity from a stock/availability question in English, Singlish, or Sinhala.
  * Product-code digits (e.g. P00481) are ignored so they are never treated as a quantity.
  */
 export function extractRequestedQuantity(rawQuery: string): number | undefined {
   if (!rawQuery) return undefined;
-  const stripped = rawQuery.replace(PRODUCT_CODE_IN_QUERY, ' ');
+  const normalized = normalizeSinhalaDigits(rawQuery);
+  const stripped = normalized.replace(PRODUCT_CODE_IN_QUERY, ' ');
+
+  // 1. Check digit with Sinhala suffix 'ක්' or 'ක' (e.g. "3ක්", "2ක්", "10ක්", "3 ක්")
+  const sinhalaDigitMatch = stripped.match(/(\d+)\s*(?:ක්|ක)/);
+  if (sinhalaDigitMatch) {
+    const p = parseInt(sinhalaDigitMatch[1], 10);
+    if (!isNaN(p) && p > 0 && p < 1000) return p;
+  }
+
+  // 2. Check Sinhala number words (e.g. "තුනක්", "දෙකක්", "පහක්")
+  for (const [word, num] of Object.entries(SINHALA_NUMBER_WORDS)) {
+    if (new RegExp('(^|[\\s,–—\\-_/()?!.,;:]+)' + word + '($|[\\s,–—\\-_/()?!.,;:]+)').test(stripped)) {
+      return num;
+    }
+  }
+
+  // 3. Check digit followed by Sinhala intent verbs (e.g. "3 ගන්න", "3 ඕන", "3 තියෙනවද")
+  const sinhalaVerbMatch = stripped.match(/(\d+)\s*(?:ගන්න|ඕන|ඕනේ|තියෙනවද|තියෙනවාද|තියෙද|ලබාගන්න|ඇණවුම්|දාන්න)/);
+  if (sinhalaVerbMatch) {
+    const p = parseInt(sinhalaVerbMatch[1], 10);
+    if (!isNaN(p) && p > 0 && p < 1000) return p;
+  }
+
+  // 4. Check Latin units / k / intent words (e.g. "3 units", "3k", "order 3", "3 ganna")
   const match =
     stripped.match(/\b(\d+)\s*(?:units?|items?|pieces?|packs?|k)\b/i) ||
     stripped.match(/\b(?:order|need|want|ganna|ona|one)\s+(\d+)\b/i) ||
     stripped.match(/\b(\d+)\s*(?:ganna|ona|one)\b/i);
-  if (!match) return undefined;
-  const parsed = parseInt(match[1], 10);
-  if (!isNaN(parsed) && parsed > 0 && parsed < 1000) return parsed;
+  if (match) {
+    const parsed = parseInt(match[1], 10);
+    if (!isNaN(parsed) && parsed > 0 && parsed < 1000) return parsed;
+  }
+
   return undefined;
 }
 
@@ -195,12 +244,13 @@ export class ProductLookupService {
   }
 
   /**
-   * Identifies customer stock/availability inquiry phrasing (English & Singlish)
+   * Identifies customer stock/availability inquiry phrasing (English, Singlish & Sinhala)
    */
   public isAvailabilityInquiry(text: string): boolean {
     if (!text) return false;
     const lower = text.toLowerCase().trim();
-    return /\b(available|stock|in stock|thiyenawada|thiyeda|thiyenawa|thynwda|badu thiyeda|is it available|is this available|ganna puluwanda|ganna puluwan da|ganna puluwan|ganna ona|ganna one|order karanna puluwanda|order puluwanda|order karanna|can i order|can i get|how many|units? available)\b/i.test(lower);
+    return /\b(available|stock|in stock|thiyenawada|thiyeda|thiyenawa|thynwda|badu thiyeda|is it available|is this available|ganna puluwanda|ganna puluwan da|ganna puluwan|ganna ona|ganna one|order karanna puluwanda|order puluwanda|order karanna|can i order|can i get|how many|units? available)\b/i.test(lower) ||
+      /(ගන්න පුළුවන්ද|ගන්න පුළුවන්|තියෙනවද|තියෙනවාද|තියෙද|ලබාගන්න|ඇණවුම්|ස්ටොක්|ඕන|ඕනේ)/i.test(lower);
   }
 
   /**
@@ -209,7 +259,8 @@ export class ProductLookupService {
   public isPriceInquiry(text: string): boolean {
     if (!text) return false;
     const lower = text.toLowerCase().trim();
-    return /\b(price|how much|cost|kiyada|keeyada|gaana|mila|keeyak|price eka|how much is this|how much is it)\b/i.test(lower);
+    return /\b(price|how much|cost|kiyada|keeyada|gaana|mila|keeyak|price eka|how much is this|how much is it)\b/i.test(lower) ||
+      /(මිල|ගණන|ගාන|කීයද|මිල කීයද)/i.test(lower);
   }
 
   /**
@@ -222,12 +273,34 @@ export class ProductLookupService {
   }
 
   /**
-   * Identifies delivery / shipping fee inquiries
+   * Identifies delivery / shipping fee inquiries specifically
+   */
+  public isDeliveryFeeInquiry(text: string): boolean {
+    if (!text) return false;
+    const lower = text.toLowerCase().trim();
+    return /\b(delivery fee|delivery charge|delivery charges|delivery cost|shipping fee|shipping charge|shipping cost|how much is delivery|delivery kiyada|delivery keeyada|fee eka|charge eka)\b/i.test(lower) ||
+      ((lower.includes('ගාස්තුව') || lower.includes('කීයද') || lower.includes('fee')) && (lower.includes('delivery') || lower.includes('ගෙනැවිත්')));
+  }
+
+  /**
+   * Identifies delivery duration / timing inquiries specifically
+   */
+  public isDeliveryTimeInquiry(text: string): boolean {
+    if (!text) return false;
+    const lower = text.toLowerCase().trim();
+    return /\b(how long|how many days|delivery time|delivery days|shipping time|enna kochchara|kochchara dawas|dawas kiyak|dawas keeyak|enna dawas|delivery duration)\b/i.test(lower) ||
+      /(දින කීයක්|කාලය|දින|කවදාද)/i.test(lower);
+  }
+
+  /**
+   * Identifies general delivery inquiries (excludes COD inquiries)
    */
   public isDeliveryInquiry(text: string): boolean {
     if (!text) return false;
+    if (this.isCodInquiry(text)) return false;
     const lower = text.toLowerCase().trim();
-    return /\b(delivery|deliver|shipping|courier|enna kochchara|kochchara dawas|dawas kiyak|bedaharina|delivery fee|delivery charge|delivery cost|delivery charges)\b/i.test(lower);
+    return /\b(delivery|deliver|shipping|courier|enna kochchara|kochchara dawas|dawas kiyak|bedaharina|delivery fee|delivery charge|delivery cost|delivery charges)\b/i.test(lower) ||
+      /(බෙදාහැරීම|ගෙනැවිත්|delivery)/i.test(lower);
   }
 
   /**
@@ -236,7 +309,8 @@ export class ProductLookupService {
   public isCodInquiry(text: string): boolean {
     if (!text) return false;
     const lower = text.toLowerCase().trim();
-    return /\b(cod|cash on delivery|badu labunama|parcel eka labunata|athata gewanna|gewanna puluwanda)\b/i.test(lower);
+    return /\b(cod|cash on delivery|badu labunama|parcel eka labunata|athata gewanna|gewanna puluwanda)\b/i.test(lower) ||
+      /(භාණ්ඩ ලැබුණු පසු|මුදල් ගෙවීම|cod)/i.test(lower);
   }
 
   /**
@@ -245,13 +319,34 @@ export class ProductLookupService {
   public isOrderHowToInquiry(text: string): boolean {
     if (!text) return false;
     const lower = text.toLowerCase().trim();
-    return /\b(how to order|order karanne kohomada|order karanna|place an order|order danne kohomada|order ekak danne|buy karanne kohomada|checkout)\b/i.test(lower);
+    return /\b(how to order|order karanne kohomada|order karanna|place an order|order danne kohomada|order ekak danne|buy karanne kohomada|checkout)\b/i.test(lower) ||
+      /(ඇණවුම් කරන්නේ කොහොමද|ඇණවුම් කරන්නේ|order කරන්නේ)/i.test(lower);
   }
 
   /**
-   * Concise delivery FAQ response for the chatbot interface
+   * Specific delivery fee response: explains fees without repeating COD or duration
    */
-  public getDeliveryFaqResponse(): string {
+  public getDeliveryFeeResponse(): string {
+    return [
+      '🚚 Delivery charges across Sri Lanka are usually around LKR 400–500.',
+      '📲 The exact delivery fee is confirmed in your official WhatsApp invoice after submitting your order.',
+    ].join('\n');
+  }
+
+  /**
+   * Specific delivery time response: explains 3–5 days without repeating fee or COD
+   */
+  public getDeliveryTimeResponse(): string {
+    return [
+      '📦 Estimated delivery time is 3–5 business days across Sri Lanka.',
+      '🚚 Orders are dispatched promptly with tracking updates sent to your WhatsApp.',
+    ].join('\n');
+  }
+
+  /**
+   * Concise general delivery FAQ response
+   */
+  public getGeneralDeliveryResponse(): string {
     return [
       '🚚 Islandwide delivery across Sri Lanka (estimated 3–5 days)! 🇱🇰',
       '📦 Delivery fee is usually around LKR 400–500 (actual fee confirmed in your WhatsApp invoice).',
@@ -260,13 +355,13 @@ export class ProductLookupService {
   }
 
   /**
-   * Concise Cash on Delivery (COD) response for the chatbot interface
+   * Concise Cash on Delivery (COD) response: explains COD and doorstep payment process
    */
   public getCodFaqResponse(): string {
     return [
       '💵 Yes! Cash on Delivery (COD) is available across Sri Lanka.',
-      '🚚 Delivery takes 3–5 days islandwide, usually LKR 400–500 (actual fee confirmed in your WhatsApp invoice).',
-      '🛍️ Pay cash when your parcel is delivered to your doorstep!',
+      '📦 You can inspect your sealed package and pay cash directly to the courier representative when delivered to your doorstep.',
+      '🚚 No advance payment or bank deposit is required.',
     ].join('\n');
   }
 
@@ -494,16 +589,17 @@ export class ProductLookupService {
 
   /**
    * Formats a targeted price response for follow-up questions ("How much is this?")
+   * Directly answers with product name, price, and product link (no repetitive COD/delivery info).
    */
   public formatPriceResponse(result: FormattedProductResult): string {
     const { product, formattedPrice, canonicalUrl } = result;
-    const codNote = product.isCodAvailable ? ' Cash on Delivery is available across Sri Lanka.' : '';
-    return `💰 ${product.title} is currently ${formattedPrice}.${codNote}\n👉 View & order here:\n${canonicalUrl}`;
+    return `💰 ${product.title} is currently ${formattedPrice}.\n👉 View & order here:\n${canonicalUrl}`;
   }
 
   /**
-   * Formats a targeted stock response for follow-up questions ("Is it in stock?", "Meken 3k ganna puluwanda?")
+   * Formats a targeted stock response for follow-up questions ("Is it in stock?", "Meken 3k ganna puluwanda?", "මේකෙන් 3ක් ගන්න පුළුවන්ද?")
    * Distinguishes requested quantity from total available stock while keeping product name and code.
+   * Does not repeat unrelated COD or delivery information.
    */
   public formatStockFollowupResponse(result: FormattedProductResult, requestedQty?: number): string {
     const { product, productCode, stockInfo, canonicalUrl } = result;
@@ -514,7 +610,13 @@ export class ProductLookupService {
     }
     if (stockInfo.status === 'OUT_OF_STOCK') {
       if (requestedQty && requestedQty > 0) {
-        return `❌ ${product.title}${codeLabel} is currently out of stock, so we cannot fulfil ${requestedQty} units right now. This is only a stock check; no order has been placed.\n👉 Check live updates:\n${canonicalUrl}`;
+        return [
+          `❌ ${product.title}${codeLabel} is currently out of stock, so we cannot fulfil ${requestedQty} units right now.`,
+          '',
+          'This is only a stock check; no order has been placed.',
+          '',
+          `👉 View product:\n${canonicalUrl}`,
+        ].join('\n');
       }
       return `❌ ${product.title}${codeLabel} is currently out of stock.\n👉 Check live updates:\n${canonicalUrl}`;
     }
@@ -522,13 +624,23 @@ export class ProductLookupService {
     if (requestedQty && requestedQty > 0) {
       if (requestedQty <= stockInfo.totalUnits) {
         return [
-          `Yes! You can order ${requestedQty} units of ${product.title}${codeLabel}. Current available stock: ${stockInfo.totalUnits} units. This is only a stock check; no order has been placed.`,
-          `👉 View details & order here:\n${canonicalUrl}`,
+          `✅ Yes! You can order ${requestedQty} units of ${product.title}${codeLabel}.`,
+          '',
+          `📦 Current available stock: ${stockInfo.totalUnits} units.`,
+          '',
+          'This is only a stock check; no order has been placed.',
+          '',
+          `👉 View product:\n${canonicalUrl}`,
         ].join('\n');
       }
       return [
-        `⚠️ We cannot fulfil ${requestedQty} units of ${product.title}${codeLabel} right now. Current available stock: ${stockInfo.totalUnits} units. This is only a stock check; no order has been placed.`,
-        `👉 View details & order here:\n${canonicalUrl}`,
+        `⚠️ We cannot fulfil ${requestedQty} units of ${product.title}${codeLabel} right now.`,
+        '',
+        `📦 Current available stock: ${stockInfo.totalUnits} units.`,
+        '',
+        'This is only a stock check; no order has been placed.',
+        '',
+        `👉 View product:\n${canonicalUrl}`,
       ].join('\n');
     }
 
@@ -570,7 +682,7 @@ export class ProductLookupService {
     if (requestedQty && requestedQty > 0) {
       if (requestedQty <= stockInfo.totalUnits) {
         return [
-          `Yes! You can order ${requestedQty} units of ${identity}. Current available stock: ${stockInfo.totalUnits} units. This is only a stock check; no order has been placed.`,
+          `✅ Yes! You can order ${requestedQty} units of ${identity}. Current available stock: ${stockInfo.totalUnits} units. This is only a stock check; no order has been placed.`,
           variantLine,
           urlLine,
         ]
@@ -627,13 +739,29 @@ export class ProductLookupService {
   }
 
   /**
-   * Formats a general product details response
+   * Formats a general product details response (features, specifications, variations)
+   * Answers without unnecessary repeated promotional text.
    */
   public formatGeneralDetailsResponse(result: FormattedProductResult): string {
-    const { product, formattedPrice, stockInfo, canonicalUrl } = result;
+    const { product, productCode, formattedPrice, stockInfo, canonicalUrl } = result;
     const shortDesc = product.description ? product.description.split('\n')[0] : '';
     const stockText = stockInfo.totalUnits > 0 ? `${stockInfo.totalUnits} units in stock` : 'Out of stock';
-    return `🛍️ ${product.title}\n💰 Price: ${formattedPrice}\n📦 Stock: ${stockText}\nℹ️ ${shortDesc}\n👉 Full details & order here:\n${canonicalUrl}`;
+
+    let variantLine = '';
+    if (stockInfo.variantBreakdown.length > 1) {
+      const parts = stockInfo.variantBreakdown.map((v) => `${v.name}${v.stock > 0 ? '' : ' (out of stock)'}`);
+      variantLine = `\n🎨 Options: ${parts.join(', ')}`;
+    }
+
+    return [
+      `🛍️ ${product.title} (${productCode})`,
+      `💰 Price: ${formattedPrice}`,
+      `📦 Stock: ${stockText}${variantLine}`,
+      shortDesc ? `ℹ️ ${shortDesc}` : '',
+      `👉 View full details & order here:\n${canonicalUrl}`,
+    ]
+      .filter(Boolean)
+      .join('\n');
   }
 
   /**

@@ -283,15 +283,7 @@ export async function POST(req: NextRequest) {
       const queryLower = rawQuery.toLowerCase();
 
       if (intentName === 'product.availability.followup') {
-        // Check if customer asked for a specific quantity (e.g. "do you have 3?", "item eken 5k")
-        let requestedQty: number | undefined;
-        const qtyMatch = queryLower.match(/\b(\d+)\s*(?:units?|items?|pieces?|k|packs?)?\b/i);
-        if (qtyMatch) {
-          const parsed = parseInt(qtyMatch[1], 10);
-          if (!isNaN(parsed) && parsed > 0 && parsed < 1000) {
-            requestedQty = parsed;
-          }
-        }
+        const requestedQty = extractRequestedQuantity(rawQuery);
         responseText = lookupService.formatStockFollowupResponse(result, requestedQty);
       } else {
         // product.details.followup
@@ -446,10 +438,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    case 'delivery.fee':
+    case 'delivery.fee': {
+      const deliveryText = lookupService.getDeliveryFeeResponse();
+      return NextResponse.json(
+        {
+          fulfillmentText: deliveryText,
+          fulfillmentMessages: [{ text: { text: [deliveryText] } }],
+          source: 'nookmint-ecommerce-webhook',
+        },
+        { status: 200 }
+      );
+    }
+
     case 'delivery.inquiry':
     case 'delivery inquiry': {
-      const deliveryText = lookupService.getDeliveryFaqResponse();
+      let deliveryText = '';
+      if (lookupService.isDeliveryTimeInquiry(rawQuery)) {
+        deliveryText = lookupService.getDeliveryTimeResponse();
+      } else if (lookupService.isDeliveryFeeInquiry(rawQuery)) {
+        deliveryText = lookupService.getDeliveryFeeResponse();
+      } else {
+        deliveryText = lookupService.getGeneralDeliveryResponse();
+      }
       return NextResponse.json(
         {
           fulfillmentText: deliveryText,

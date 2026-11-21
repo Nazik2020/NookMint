@@ -105,12 +105,37 @@ export async function POST(req: NextRequest) {
     }
 
     // 5B. Standardize & Shorten FAQ responses for chatbot interface (Delivery, COD, Order Instructions)
-    if (intent === 'delivery.fee' || intent === 'delivery.inquiry' || intent === 'delivery inquiry') {
-      reply = lookupService.getDeliveryFaqResponse();
+    if (intent === 'delivery.fee') {
+      reply = lookupService.getDeliveryFeeResponse();
+    } else if (intent === 'delivery.inquiry' || intent === 'delivery inquiry') {
+      if (lookupService.isDeliveryTimeInquiry(textToSend)) {
+        reply = lookupService.getDeliveryTimeResponse();
+      } else if (lookupService.isDeliveryFeeInquiry(textToSend)) {
+        reply = lookupService.getDeliveryFeeResponse();
+      } else {
+        reply = lookupService.getGeneralDeliveryResponse();
+      }
     } else if (intent === 'payment.cod') {
       reply = lookupService.getCodFaqResponse();
     } else if (intent === 'order.how_to') {
       reply = lookupService.getOrderHowToResponse();
+    } else if (intent === 'product.details.followup') {
+      const selectedCtx = getContext(outputContexts, 'product_selected') || getContext(activeContexts, 'product_selected');
+      const selectedCodeOrId = selectedCtx?.parameters?.productCode || selectedCtx?.parameters?.productId;
+      if (selectedCodeOrId) {
+        const productResult =
+          (await lookupService.findByProductCode(String(selectedCodeOrId))) ||
+          (await lookupService.findById(String(selectedCodeOrId)));
+        if (productResult) {
+          if (lookupService.isPriceInquiry(textToSend)) {
+            reply = lookupService.formatPriceResponse(productResult);
+          } else if (/\b(features?|spec|specs|specifications?|about|description|details)\b/i.test(textToSend.toLowerCase()) || textToSend.includes('විස්තර')) {
+            reply = lookupService.formatGeneralDetailsResponse(productResult);
+          } else {
+            reply = lookupService.formatPriceResponse(productResult);
+          }
+        }
+      }
     } else if (intent === 'product.availability.followup') {
       const selectedCtx = getContext(outputContexts, 'product_selected') || getContext(activeContexts, 'product_selected');
       const selectedCodeOrId = selectedCtx?.parameters?.productCode || selectedCtx?.parameters?.productId;
@@ -132,7 +157,7 @@ export async function POST(req: NextRequest) {
       const selectedCtx = getContext(activeContexts, 'product_selected');
       const selectedCodeOrId = selectedCtx?.parameters?.productCode || selectedCtx?.parameters?.productId;
 
-      // 6A. Selected-Product Follow-Up Check (Stock Availability or Price Inquiries)
+      // 6A. Selected-Product Follow-Up Check (Stock Availability, Price, or Feature Inquiries)
       if (selectedCodeOrId) {
         const productResult =
           (await lookupService.findByProductCode(String(selectedCodeOrId))) ||
@@ -190,6 +215,31 @@ export async function POST(req: NextRequest) {
               { status: 200 }
             );
           }
+
+          if (/\b(features?|spec|specs|specifications?|about|description|details)\b/i.test(textToSend.toLowerCase()) || textToSend.includes('විස්තර')) {
+            reply = lookupService.formatGeneralDetailsResponse(productResult);
+            intent = 'product.details.followup';
+            outputContexts = [
+              {
+                name: `${sessionBase}/contexts/product_selected`,
+                lifespanCount: 5,
+                parameters: selectedCtx.parameters,
+              },
+            ];
+            serverSessionMemory.set(sessionId, { contexts: outputContexts, lastUpdated: Date.now() });
+
+            return NextResponse.json(
+              {
+                reply,
+                intent,
+                sessionId,
+                outputContexts,
+                preprocessedText: textToSend,
+                detectedCodes: preprocessed.detectedProductCodes,
+              },
+              { status: 200 }
+            );
+          }
         }
       }
 
@@ -197,12 +247,18 @@ export async function POST(req: NextRequest) {
       if (lookupService.isGeneralGreeting(textToSend)) {
         reply = "👋 Hi there! I'm Nooki, your shopping buddy at NookMint. Ask me about products, prices, stock availability, or Cash on Delivery across Sri Lanka!";
         intent = 'Default Welcome Intent';
-      } else if (lookupService.isDeliveryInquiry(textToSend)) {
-        reply = lookupService.getDeliveryFaqResponse();
-        intent = 'delivery.fee';
       } else if (lookupService.isCodInquiry(textToSend)) {
         reply = lookupService.getCodFaqResponse();
         intent = 'payment.cod';
+      } else if (lookupService.isDeliveryFeeInquiry(textToSend)) {
+        reply = lookupService.getDeliveryFeeResponse();
+        intent = 'delivery.fee';
+      } else if (lookupService.isDeliveryTimeInquiry(textToSend)) {
+        reply = lookupService.getDeliveryTimeResponse();
+        intent = 'delivery.inquiry';
+      } else if (lookupService.isDeliveryInquiry(textToSend)) {
+        reply = lookupService.getGeneralDeliveryResponse();
+        intent = 'delivery.inquiry';
       } else if (lookupService.isOrderHowToInquiry(textToSend)) {
         reply = lookupService.getOrderHowToResponse();
         intent = 'order.how_to';
