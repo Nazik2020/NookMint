@@ -52,6 +52,7 @@ const QUICK_ACTIONS = [
 export const NookiChatWidget: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [activeContexts, setActiveContexts] = useState<any[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string>('');
@@ -90,6 +91,7 @@ export const NookiChatWidget: React.FC = () => {
       sessionStorage.setItem('nooki_session_id', newSession);
     }
     setSessionId(newSession);
+    setActiveContexts([]);
     setMessages([]);
   };
 
@@ -115,10 +117,14 @@ export const NookiChatWidget: React.FC = () => {
         body: JSON.stringify({
           message: query,
           sessionId,
+          contexts: activeContexts,
         }),
       });
 
       const data = await res.json();
+      if (data.outputContexts && Array.isArray(data.outputContexts)) {
+        setActiveContexts(data.outputContexts);
+      }
 
       const botReply: ChatMessage = {
         id: `bot-${Date.now()}`,

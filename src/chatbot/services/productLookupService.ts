@@ -55,6 +55,63 @@ export function getStoreBaseUrl(): string {
 }
 
 /**
+ * Fast Levenshtein distance for fuzzy spelling differences
+ */
+function levenshteinDistance(a: string, b: string): number {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+
+  const row = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    let prev = i;
+    for (let j = 1; j <= b.length; j++) {
+      const val = a[i - 1] === b[j - 1] ? row[j - 1] : Math.min(row[j - 1], row[j], prev) + 1;
+      row[j - 1] = prev;
+      prev = val;
+    }
+    row[b.length] = prev;
+  }
+  return row[b.length];
+}
+
+const CONVERSATIONAL_STOP_WORDS = new Set([
+  'the', 'a', 'an', 'for', 'with', 'and', 'or', 'in', 'on', 'at', 'to', 'from',
+  'is', 'it', 'its', 'this', 'that', 'these', 'those', 'are', 'was', 'were',
+  'show', 'item', 'items', 'products', 'product', 'look', 'want', 'need', 'give',
+  'tell', 'about', 'can', 'you', 'i', 'please', 'any', 'find', 'check', 'have',
+  'do', 'get', 'see', 'buy', 'order',
+  // Common Singlish fillers
+  'eka', 'meka', 'oyalage', 'mata', 'thiyenawada', 'thiyenawa', 'thiyeda',
+  'thynwda', 'tiyenawada', 'nadda', 'pennanna', 'ganna', 'ona', 'one',
+  'puluwanda', 'kohomada', 'kiyada', 'keeyada', 'price', 'mila', 'gaana',
+  'cost', 'fee', 'stock', 'available', 'karanne', 'karanna', 'karaganna',
+  'badu', 'parcel'
+]);
+
+const CATEGORY_MAP: Record<string, string> = {
+  'kitchen': 'Kitchen & Dining',
+  'kitchenware': 'Kitchen & Dining',
+  'dining': 'Kitchen & Dining',
+  'cooking': 'Kitchen & Dining',
+  'home': 'Home & Living',
+  'living': 'Home & Living',
+  'decor': 'Home & Living',
+  'gadget': 'Smart Gadgets & Audio',
+  'gadgets': 'Smart Gadgets & Audio',
+  'audio': 'Smart Gadgets & Audio',
+  'tech': 'Smart Gadgets & Audio',
+  'earbuds': 'Smart Gadgets & Audio',
+  'baby': 'Kids, Baby & Toys',
+  'kids': 'Kids, Baby & Toys',
+  'toys': 'Kids, Baby & Toys',
+  'children': 'Kids, Baby & Toys',
+  'beauty': 'Beauty & Personal Care',
+  'makeup': 'Beauty & Personal Care',
+  'cosmetics': 'Beauty & Personal Care',
+};
+
+/**
  * Service to query live products, verify stock, and format customer responses
  * Reuses NookMint's existing MockProductRepository (backed by Supabase PostgreSQL).
  */
@@ -126,54 +183,194 @@ export class ProductLookupService {
   }
 
   /**
-   * Dynamic search by code, title, or keywords
+   * Finds a product by its unique internal ID or slug
+   */
+  public async findById(id: string): Promise<FormattedProductResult | null> {
+    if (!id) return null;
+    const cleanId = id.trim().toLowerCase();
+    const product = await this.repository.getProductById(cleanId) || await this.repository.getProductBySlug(cleanId);
+    if (!product) return null;
+    return this.buildResult(product);
+  }
+
+  /**
+   * Identifies customer stock/availability inquiry phrasing (English & Singlish)
+   */
+  public isAvailabilityInquiry(text: string): boolean {
+    if (!text) return false;
+    const lower = text.toLowerCase().trim();
+    return /\b(available|stock|in stock|thiyenawada|thiyeda|thiyenawa|thynwda|badu thiyeda|is it available|is this available)\b/i.test(lower);
+  }
+
+  /**
+   * Identifies customer price inquiry phrasing (English & Singlish)
+   */
+  public isPriceInquiry(text: string): boolean {
+    if (!text) return false;
+    const lower = text.toLowerCase().trim();
+    return /\b(price|how much|cost|kiyada|keeyada|gaana|mila|keeyak|price eka|how much is this|how much is it)\b/i.test(lower);
+  }
+
+  /**
+   * Identifies general conversational greetings or small talk
+   */
+  public isGeneralGreeting(text: string): boolean {
+    if (!text) return false;
+    const lower = text.toLowerCase().trim();
+    return /^(hi|hello|hey|good\s*(morning|afternoon|evening)|suba\s*udasanak|suba\s*sandhawak|ayubowan|help|who\s*are\s*you|howdy)[\s!.,?]*$/i.test(lower);
+  }
+
+  /**
+   * Dynamic search supporting:
+   * 1. Exact product code (e.g. "P00481", "P00109")
+   * 2. Category intent search (e.g. "show kitchen items")
+   * 3. Exact and partial title matching (e.g. "30 led solar", "solar wall light", "Boom Wash")
+   * 4. Multi-token order independence (e.g. "solar 30 led")
+   * 5. Fuzzy spelling tolerance (e.g. "solar lite", "soler light")
+   * 6. Singlish search expressions (e.g. "30 led solar eka thiyenawada")
    */
   public async searchProducts(query: string, maxResults: number = 3): Promise<FormattedProductResult[]> {
     if (!query || !query.trim()) return [];
     // Sanitize query by stripping trailing punctuation (?, !, ., etc.)
-    const cleanQuery = query.replace(/[?!.,;:]+$/g, '').trim();
+    const cleanQuery = query.replace(/[?!.,;:]+$/g, '').trim().toLowerCase();
 
-    // 1. Check if the query looks like a product code
+    // 1. Check if the query contains a product code
     const codeMatch = cleanQuery.match(/\b(NM-P\d+|P\d+)\b/i);
     if (codeMatch) {
       const byCode = await this.findByProductCode(codeMatch[1]);
       if (byCode) return [byCode];
     }
 
-    // 2. Query products using MockProductRepository filter
-    let products = await this.repository.filterProducts({
-      searchQuery: cleanQuery,
-      includeHidden: false,
-    });
+    // 2. Tokenize the query
+    const rawTokens = cleanQuery
+      .split(/[\s,–—\-_/()]+/)
+      .map((w) => w.replace(/[^a-z0-9]/g, '').trim())
+      .filter((w) => w.length > 0);
 
-    // 3. If no direct substring match, match significant keywords (smart fuzzy relevance)
-    if (products.length === 0) {
-      const stopWords = new Set(['the', 'for', 'with', 'and', 'show', 'item', 'items', 'pennanna', 'ganna', 'look', 'want']);
-      const words = cleanQuery
-        .split(/\s+/)
-        .map((w) => w.toLowerCase().replace(/[^a-z0-9]/g, ''))
-        .filter((w) => w.length >= 3 && !stopWords.has(w));
+    // Filter out conversational stop words
+    let searchTokens = rawTokens.filter((w) => !CONVERSATIONAL_STOP_WORDS.has(w));
+    if (searchTokens.length === 0) {
+      searchTokens = rawTokens; // preserve tokens if all were stop words (e.g. very short query)
+    }
 
-      if (words.length > 0) {
-        const allProducts = await this.repository.getAllProducts(false);
-        const scored = allProducts
-          .map((p) => {
-            const titleLower = p.title.toLowerCase();
-            const descLower = (p.description || '').toLowerCase();
-            // Higher weight for matching words in the title
-            const titleMatches = words.filter((w) => titleLower.includes(w)).length;
-            const descMatches = words.filter((w) => descLower.includes(w)).length;
-            const score = titleMatches * 3 + descMatches;
-            return { product: p, score };
-          })
-          .filter((item) => item.score >= 2); // Require at least 2 word matches or 1 title match
-
-        scored.sort((a, b) => b.score - a.score);
-        products = scored.map((item) => item.product);
+    // 3. Category search check (e.g. "show kitchen items", "kitchen products", "show gadgets")
+    for (const token of searchTokens) {
+      const matchedCat = CATEGORY_MAP[token];
+      if (matchedCat) {
+        const catProducts = await this.repository.filterProducts({
+          category: matchedCat,
+          includeHidden: false,
+        });
+        if (catProducts.length > 0) {
+          // If the query was purely a category inquiry (e.g. "show kitchen items" or "kitchen"), return category products
+          const otherTokens = searchTokens.filter((t) => t !== token && !CONVERSATIONAL_STOP_WORDS.has(t));
+          if (otherTokens.length === 0) {
+            return catProducts.slice(0, maxResults).map((p) => this.buildResult(p));
+          }
+        }
       }
     }
 
-    return products.slice(0, maxResults).map((p) => this.buildResult(p));
+    // 4. Score all active products with weighted token, order-independent & fuzzy matching
+    const allProducts = await this.repository.getAllProducts(false);
+    const scoredProducts: Array<{ product: Product; score: number; matchedTitleCount: number }> = [];
+    const minScoreThreshold = 35;
+
+    for (const product of allProducts) {
+      const titleLower = product.title.toLowerCase();
+      const descLower = (product.description || '').toLowerCase();
+      const catLower = (product.category || '').toLowerCase();
+      const titleTokens = titleLower
+        .split(/[\s,–—\-_/()]+/)
+        .map((w) => w.replace(/[^a-z0-9]/g, ''))
+        .filter(Boolean);
+
+      let score = 0;
+      let matchedTitleCount = 0;
+
+      // Exact title match
+      if (titleLower === cleanQuery) {
+        score += 500;
+      } else if (titleLower.includes(cleanQuery)) {
+        // Direct phrase match in title (e.g. "30 led solar" in "30 led solar wall light...")
+        score += 250;
+      }
+
+      // Check each search token
+      for (const token of searchTokens) {
+        let tokenMatchedInTitle = false;
+        const isNumber = /^\d+$/.test(token);
+
+        for (const tToken of titleTokens) {
+          if (tToken === token) {
+            score += isNumber ? 45 : 35;
+            tokenMatchedInTitle = true;
+            break;
+          }
+          // Prefix matching for words with len >= 4
+          if (!isNumber && token.length >= 4 && tToken.length >= 4) {
+            if (tToken.startsWith(token) || token.startsWith(tToken)) {
+              score += 25;
+              tokenMatchedInTitle = true;
+              break;
+            }
+          }
+          // Fuzzy spelling differences (Levenshtein)
+          if (!isNumber && token.length >= 4 && tToken.length >= 4) {
+            const maxDistance = token.length <= 5 ? 1 : 2;
+            if (levenshteinDistance(token, tToken) <= maxDistance) {
+              score += 20;
+              tokenMatchedInTitle = true;
+              break;
+            }
+          }
+        }
+
+        if (tokenMatchedInTitle) {
+          matchedTitleCount++;
+        } else {
+          // If not in title, check category or description
+          if (catLower.includes(token)) {
+            score += 15;
+          } else if (descLower.includes(token)) {
+            score += 5;
+          }
+        }
+      }
+
+      // Bonus if all search tokens matched title
+      if (searchTokens.length > 0 && matchedTitleCount === searchTokens.length) {
+        score += 100;
+      } else if (matchedTitleCount >= 2) {
+        score += 30;
+      }
+
+      // Safe threshold: require minimum score and at least one title match or strong category match
+      const minScoreThreshold = 35;
+      if (score >= minScoreThreshold && (matchedTitleCount > 0 || score >= 50)) {
+        scoredProducts.push({ product, score, matchedTitleCount });
+      }
+    }
+
+    // Sort by score descending
+    scoredProducts.sort((a, b) => b.score - a.score);
+
+    if (scoredProducts.length === 0) return [];
+
+    const topScore = scoredProducts[0].score;
+    // If top match is dominant (e.g. matched all tokens, score is >= 150 and more than double the runner up)
+    if (
+      scoredProducts.length > 1 &&
+      topScore >= 150 &&
+      (scoredProducts[0].matchedTitleCount > scoredProducts[1].matchedTitleCount ||
+        topScore >= scoredProducts[1].score * 2)
+    ) {
+      return [this.buildResult(scoredProducts[0].product)];
+    }
+
+    // Otherwise keep only plausible matches that have at least 50% of top score
+    const plausible = scoredProducts.filter((p) => p.score >= Math.max(minScoreThreshold, topScore * 0.5));
+    return plausible.slice(0, maxResults).map((item) => this.buildResult(item.product));
   }
 
   /**

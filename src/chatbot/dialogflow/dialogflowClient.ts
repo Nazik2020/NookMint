@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { DialogflowContext } from './dialogflowTypes';
 
 /**
  * Dialogflow ES REST Client for Nooki (NookMint Chatbot)
@@ -18,6 +19,13 @@ export interface DialogflowDetectIntentRequest {
       text: string;
       languageCode: string;
     };
+  };
+  queryParams?: {
+    contexts?: Array<{
+      name: string;
+      lifespanCount: number;
+      parameters?: Record<string, unknown>;
+    }>;
   };
 }
 
@@ -131,7 +139,8 @@ async function getGoogleOAuth2AccessToken(clientEmail: string, privateKeyRaw: st
 export async function detectIntent(
   sessionId: string,
   text: string,
-  languageCode: string = 'en'
+  languageCode: string = 'en',
+  contexts?: DialogflowContext[]
 ): Promise<DialogflowDetectIntentResponse> {
   const projectId = process.env.DIALOGFLOW_PROJECT_ID?.trim();
   const clientEmail = process.env.DIALOGFLOW_CLIENT_EMAIL?.trim();
@@ -169,6 +178,23 @@ export async function detectIntent(
       },
     },
   };
+
+  // Pass active conversation contexts to Dialogflow session if provided
+  if (contexts && contexts.length > 0) {
+    payload.queryParams = {
+      contexts: contexts.map((ctx) => {
+        const rawName = ctx.name || '';
+        const name = rawName.includes('/contexts/')
+          ? rawName
+          : `projects/${projectId}/agent/sessions/${sessionId}/contexts/${rawName}`;
+        return {
+          name,
+          lifespanCount: ctx.lifespanCount ?? 5,
+          parameters: ctx.parameters || {},
+        };
+      }),
+    };
+  }
 
   const res = await fetch(url, {
     method: 'POST',
