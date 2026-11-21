@@ -13,7 +13,6 @@ import {
   CreditCard,
   Truck,
   ExternalLink,
-  Leaf,
   ShieldCheck,
   Languages,
   Sparkles,
@@ -194,7 +193,7 @@ export const NookiChatWidget: React.FC = () => {
             <div className="flex items-center gap-2.5">
               <div className="relative w-9 h-9 rounded-full bg-emerald-700/60 flex items-center justify-center p-0.5 border border-emerald-400/40 shrink-0">
                 <Image
-                  src="/nookmint_images/moskot.png"
+                  src="/nookmint_images/moskot - Copy.png"
                   alt="Nooki Mascot"
                   width={36}
                   height={36}
@@ -305,7 +304,7 @@ export const NookiChatWidget: React.FC = () => {
                       {!isUser && (
                         <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center shrink-0 border border-emerald-300/60 p-0.5 mt-0.5">
                           <Image
-                            src="/nookmint_images/moskot.png"
+                            src="/nookmint_images/moskot - Copy.png"
                             alt="Nooki"
                             width={28}
                             height={28}
@@ -338,7 +337,7 @@ export const NookiChatWidget: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center shrink-0 border border-emerald-300/60 p-0.5">
                       <Image
-                        src="/nookmint_images/moskot.png"
+                        src="/nookmint_images/moskot - Copy.png"
                         alt="Nooki"
                         width={28}
                         height={28}
@@ -402,27 +401,26 @@ export const NookiChatWidget: React.FC = () => {
           className="pointer-events-auto group relative flex items-center gap-2.5 pl-1.5 pr-4 py-1.5 bg-gradient-to-r from-[#00382E] via-[#004D40] to-[#015C4D] hover:from-[#004438] hover:via-[#005749] hover:to-[#016B59] text-white font-extrabold text-[13px] rounded-full shadow-[inset_0_1px_1.5px_rgba(255,255,255,0.35),0_12px_28px_-4px_rgba(0,77,64,0.5),0_6px_12px_-4px_rgba(0,77,64,0.3)] hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.45),0_16px_36px_-6px_rgba(0,77,64,0.6)] border border-emerald-400/50 hover:border-emerald-300/80 transition-all duration-200 ease-out hover:scale-[1.03] active:scale-[0.96] select-none cursor-pointer"
         >
           {/* 3D Mascot Avatar Badge with Overlap */}
-          <div className="relative w-10 h-10 rounded-full bg-gradient-to-b from-white via-white to-emerald-50/90 flex items-center justify-center p-1 shrink-0 shadow-md border-2 border-white/95 group-hover:scale-105 group-hover:-rotate-3 transition-transform duration-300 ease-out">
+          <div className="relative w-10.5 h-10.5 rounded-full bg-gradient-to-b from-white via-white to-emerald-50/90 flex items-center justify-center p-0.5 shrink-0 shadow-md border-2 border-white/95 group-hover:scale-105 group-hover:-rotate-3 transition-transform duration-300 ease-out">
             <Image
-              src="/nookmint_images/moskot.png"
+              src="/nookmint_images/moskot - Copy.png"
               alt="Nooki Mascot"
-              width={40}
-              height={40}
+              width={42}
+              height={42}
               className="w-full h-full object-contain filter drop-shadow-[0_2px_4px_rgba(0,77,64,0.15)]"
             />
 
-            {/* Pulsing Live Online Beacon at Top-Right */}
-            <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3" aria-hidden="true">
+            {/* Pulsing Live Online Beacon at Bottom-Right */}
+            <span className="absolute bottom-0 right-0 flex h-3 w-3" aria-hidden="true">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-80" />
               <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400 border-2 border-white shadow-2xs" />
             </span>
           </div>
 
           {/* Button Text */}
-          <div className="flex flex-col items-start leading-tight pr-0.5">
-            <span className="tracking-wide font-extrabold text-white text-[13px] drop-shadow-xs flex items-center gap-1.5">
-              <span>Ask Nooki</span>
-              <Leaf className="w-3.5 h-3.5 text-emerald-300 group-hover:rotate-12 transition-transform duration-300 shrink-0" />
+          <div className="flex flex-col items-start leading-tight pr-1">
+            <span className="tracking-wide font-extrabold text-white text-[13.5px] drop-shadow-xs">
+              Ask Nooki
             </span>
             <span className="text-[10px] text-emerald-200/90 font-medium tracking-normal -mt-0.5">
               Online Assistant
